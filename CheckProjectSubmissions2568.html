@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>สรุปการส่งรายงานโครงการ/กิจกรรม – งบอนุมัติ 68</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Sarabun','Tahoma',sans-serif; background:#f0f4f8; color:#2d3748; font-size:15px; }
+
+    header {
+      background: linear-gradient(135deg,#1a3a6b 0%,#2563eb 100%);
+      color:white; padding:26px 32px 20px;
+      box-shadow:0 4px 14px rgba(0,0,0,.18);
+    }
+    header h1 { font-size:21px; font-weight:700; margin-bottom:4px; }
+    header .sub { font-size:13px; opacity:.82; margin-bottom:14px; }
+    .meta-row { display:flex; gap:12px; flex-wrap:wrap; }
+    .chip { background:rgba(255,255,255,.14); border-radius:20px; padding:5px 13px; font-size:12px; display:flex; align-items:center; gap:5px; }
+
+    .container { max-width:1020px; margin:26px auto; padding:0 14px; }
+
+    .stats { display:flex; gap:13px; margin-bottom:20px; flex-wrap:wrap; }
+    .stat { flex:1; min-width:110px; border-radius:12px; padding:15px 16px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,.07); }
+    .stat.total   { background:#fff;    border-top:4px solid #3b82f6; }
+    .stat.done    { background:#f0fdf4; border-top:4px solid #22c55e; }
+    .stat.partial { background:#fffbeb; border-top:4px solid #f59e0b; }
+    .stat.none    { background:#fff5f5; border-top:4px solid #ef4444; }
+    .stat .n { font-size:34px; font-weight:800; }
+    .stat.total   .n { color:#2563eb; }
+    .stat.done    .n { color:#16a34a; }
+    .stat.partial .n { color:#d97706; }
+    .stat.none    .n { color:#dc2626; }
+    .stat .lbl { font-size:12px; color:#6b7280; font-weight:600; margin-top:2px; }
+
+    .prog-wrap { background:white; border-radius:12px; padding:15px 20px; box-shadow:0 2px 8px rgba(0,0,0,.07); margin-bottom:20px; }
+    .prog-label { font-size:13px; color:#374151; font-weight:600; margin-bottom:7px; }
+    .prog-bg { background:#e5e7eb; border-radius:99px; height:12px; overflow:hidden; display:flex; }
+    .prog-done    { background:#22c55e; height:100%; }
+    .prog-partial { background:#f59e0b; height:100%; }
+    .prog-pct { font-size:12px; color:#6b7280; margin-top:5px; display:flex; gap:14px; flex-wrap:wrap; }
+
+    .legend { background:white; border-radius:12px; padding:12px 18px; box-shadow:0 2px 8px rgba(0,0,0,.07); margin-bottom:18px; display:flex; gap:16px; flex-wrap:wrap; align-items:center; }
+    .legend strong { font-size:12px; font-weight:700; color:#374151; }
+    .badge { display:inline-flex; align-items:center; gap:5px; border-radius:99px; padding:3px 11px; font-size:11px; font-weight:700; }
+    .badge.done    { background:#dcfce7; color:#15803d; }
+    .badge.partial { background:#fef9c3; color:#92400e; }
+    .badge.none    { background:#fee2e2; color:#b91c1c; }
+    .badge .dot { width:6px; height:6px; border-radius:50%; display:inline-block; }
+    .badge.done    .dot { background:#22c55e; }
+    .badge.partial .dot { background:#f59e0b; }
+    .badge.none    .dot { background:#ef4444; }
+
+    .note-box { background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:11px 15px; margin-bottom:18px; font-size:13px; color:#1e40af; line-height:1.65; }
+
+    .proj-list { display:flex; flex-direction:column; gap:9px; margin-bottom:22px; }
+    .proj-card { background:white; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,.07); overflow:hidden; border-left:5px solid #e5e7eb; }
+    .proj-card.s-done    { border-left-color:#22c55e; }
+    .proj-card.s-partial { border-left-color:#f59e0b; }
+    .proj-card.s-none    { border-left-color:#ef4444; }
+
+    .proj-header { display:flex; align-items:center; gap:11px; padding:12px 16px; cursor:pointer; user-select:none; }
+    .proj-header:hover { background:#f8fafc; }
+    .proj-no { width:32px; height:32px; border-radius:8px; background:#f1f5f9; color:#1e3a5f; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; flex-shrink:0; }
+    .proj-name { flex:1; font-size:13.5px; font-weight:600; line-height:1.4; color:#1e293b; }
+    .proj-meta { display:flex; align-items:center; gap:9px; flex-shrink:0; }
+    .file-count { font-size:11px; color:#6b7280; background:#f1f5f9; border-radius:20px; padding:2px 9px; }
+    .toggle { color:#9ca3af; font-size:11px; transition:transform .2s; }
+    .proj-card.open .toggle { transform:rotate(180deg); }
+    .proj-body { display:none; border-top:1px solid #f1f5f9; padding:0 16px 14px; }
+    .proj-card.open .proj-body { display:block; }
+
+    .file-table { width:100%; border-collapse:collapse; margin-top:10px; font-size:13px; }
+    .file-table th { text-align:left; padding:6px 10px; font-size:11px; font-weight:700; color:#6b7280; background:#f8fafc; border-bottom:1px solid #e5e7eb; text-transform:uppercase; letter-spacing:.03em; }
+    .file-table td { padding:7px 10px; border-bottom:1px solid #f1f5f9; vertical-align:top; }
+    .file-table tr:last-child td { border-bottom:none; }
+    .file-table tr:hover td { background:#fafafa; }
+    .fname { font-weight:600; color:#1e293b; word-break:break-word; }
+    .ftype { display:inline-block; border-radius:4px; padding:1px 7px; font-size:10px; font-weight:700; white-space:nowrap; }
+    .ftype.docx   { background:#dbeafe; color:#1d4ed8; }
+    .ftype.pdf    { background:#fee2e2; color:#b91c1c; }
+    .ftype.folder { background:#fef9c3; color:#92400e; }
+    .ftype.notice { background:#fce7f3; color:#9d174d; }
+    .cat { display:inline-block; border-radius:4px; padding:1px 7px; font-size:10px; font-weight:700; white-space:nowrap; }
+    .cat.summary  { background:#e0e7ff; color:#3730a3; }
+    .cat.activity { background:#d1fae5; color:#065f46; }
+    .cat.cancel   { background:#fde8d8; color:#9a3412; }
+    .cat.folder   { background:#fef9c3; color:#92400e; }
+    .empty-row td { color:#9ca3af; font-style:italic; }
+
+    .drive-link { display:inline-flex; align-items:center; gap:4px; font-size:11px; color:#2563eb; text-decoration:none; margin-top:8px; padding:4px 10px; border:1px solid #bfdbfe; border-radius:6px; }
+    .drive-link:hover { background:#eff6ff; }
+
+    .src-bar { background:white; border-radius:12px; padding:12px 18px; box-shadow:0 2px 8px rgba(0,0,0,.07); font-size:12px; color:#4b5563; margin-bottom:10px; }
+    .src-bar a { color:#2563eb; text-decoration:none; }
+    footer { text-align:center; font-size:12px; color:#9ca3af; padding:14px 0 28px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>📋 รายงานการส่งสรุปโครงการและกิจกรรม</h1>
+  <p class="sub">งบประมาณตามแผนปฏิบัติการ ปีการศึกษา 2568 (งบอนุมัติ 68) — ตรวจสอบจากไฟล์จริงใน Google Drive</p>
+  <div class="meta-row">
+    <div class="chip">📅 ข้อมูล ณ วันที่ <strong>&nbsp;10 เมษายน 2569 เวลา 19:51 น.&nbsp;</strong></div>
+    <div class="chip">📁 โฟลเดอร์: ส่งสรุปโครงการ/กิจกรรม 2568</div>
+    <div class="chip">🔢 ทั้งหมด 21 โครงการ</div>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="stats">
+    <div class="stat total"><div class="n">21</div><div class="lbl">โครงการทั้งหมด</div></div>
+    <div class="stat done"><div class="n">7</div><div class="lbl">ส่งสรุปโครงการ + กิจกรรม</div></div>
+    <div class="stat partial"><div class="n">9</div><div class="lbl">ส่งบางส่วน</div></div>
+    <div class="stat none"><div class="n">5</div><div class="lbl">ยังไม่มีการส่ง</div></div>
+  </div>
+
+  <div class="prog-wrap">
+    <div class="prog-label">ความคืบหน้าการส่งรายงาน — มีไฟล์ส่งเข้ามาแล้ว 16 จาก 21 โครงการ (76%)</div>
+    <div class="prog-bg">
+      <div class="prog-done"    style="width:33%"></div>
+      <div class="prog-partial" style="width:43%"></div>
+    </div>
+    <div class="prog-pct">
+      <span>🟢 ส่งสรุปโครงการ + กิจกรรม: 7 โครงการ (33%)</span>
+      <span>🟡 ส่งบางส่วน: 9 โครงการ (43%)</span>
+      <span>🔴 ยังไม่ส่ง: 5 โครงการ (24%)</span>
+    </div>
+  </div>
+
+  <div class="legend">
+    <strong>สัญลักษณ์:</strong>
+    <span class="badge done"><span class="dot"></span>ส่งสรุปโครงการ + กิจกรรม</span>
+    <span class="badge partial"><span class="dot"></span>ส่งบางส่วน (กิจกรรมบางส่วน / ยังขาดสรุปโครงการ)</span>
+    <span class="badge none"><span class="dot"></span>ยังไม่มีการส่ง</span>
+  </div>
+
+  <div class="note-box">
+    📌 <strong>วิธีอ่านรายงาน:</strong> แต่ละโฟลเดอร์แสดงไฟล์จริงที่ส่งเข้ามา พร้อมหมวดหมู่:
+    <span class="cat summary">สรุปโครงการ</span>
+    <span class="cat activity">สรุปกิจกรรม</span>
+    <span class="cat cancel">แจ้งไม่ดำเนินกิจกรรม</span>
+    — กดที่แถวโครงการเพื่อขยายดูรายละเอียดไฟล์
+  </div>
+
+  <div class="proj-list">
+
+    <!-- PROJECT 1 -->
+    <div class="proj-card s-none" onclick="tog(this)">
+      <div class="proj-header">
+        <div class="proj-no">1</div>
+        <div class="proj-name">โครงการพัฒนาทักษะการอ่าน การเขียน การสื่อสารและการคิดคำนวณ</div>
+        <div class="proj-meta"><span class="file-count">0 ไฟล์</span><span class="badge none"><span class="dot"></span>ยังไม่ส่ง</span><span class="toggle">▼</span></div>
+      </div>
+      <div class="proj-body">
+        <table class="file-table"><thead><tr><th>ชื่อไฟล์</th><th>ประเภท</th><th>หมวด</th></tr></thead>
+        <tbody><tr class="empty-row"><td colspan="3">📭 ยังไม่มีไฟล์ส่งเข้ามา</td></tr></tbody></table>
+        <a class="drive-link" href="https://drive.google.com/drive/folders/1UTVXOMDzan_lB01hbhOEuqkofopBGOtO" target="_blank">🔗 เปิดโฟลเดอร์</a>
+      </div>
+    </div>
+
+    <!-- PROJECT 2 -->
+    <div class="proj-card s-none" onclick="tog(this)">
+      <div class="proj-header">
+        <div class="proj-no">2</div>
+        <div class="proj-name">โครงการพัฒนาทักษะการคิด วิเคราะห์ อย่างมีวิจารณญาณ อภิปรายแลกเปลี่ยนความคิดเห็นและแก้ปัญหา</div>
+        <div class="proj-meta"><span class="file-count">0 ไฟล์</span><span class="badge none"><span class="dot"></span>ยังไม่ส่ง</span><span class="toggle">▼</span></div>
+      </div>
+      <div class="proj-body">
+        <table class="file-table"><thead><tr><th>ชื่อไฟล์</th><th>ประเภท</th><th>หมวด</th></tr></thead>
+        <tbody><tr class="empty-row"><td colspan="3">📭 ยังไม่มีไฟล์ส่งเข้ามา</td></tr></tbody></table>
+        <a class="drive-link" href="https://drive.google.com/drive/folders/1jF0Sf5vkuDCmZCcWs8kxHhXCQYXCLWWn" target="_blank">🔗 เปิดโฟลเดอร์</a>
+      </div>
+    </div>
+
+    <!-- PROJECT 3 -->
+    <div class="proj-card s-partial" onclick="tog(this)">
+      <div class="proj-header">
+        <div class="proj-no">3</div>
+        <div class="proj-name">โครงการส่งเสริมความสามารถในการสร้างนวัตกรรม</div>
+        <div class="proj-meta"><span class="file-count">1 ไฟล์</span><span class="badge partial"><span class="dot"></span>ส่งบางส่วน</span><span class="toggle">▼</span></div>
+      </div>
+      <div class="proj-body">
+        <table class="file-table"><thead><tr><th>ชื่อไฟล์</th><th>ประเภท</th><th>หมวด</th></tr></thead>
+        <tbody>
+          <tr><td class="fname">บันทึกข้อความขอเลื่อนหรือยกเลิกการดำเนินโครงการ.docx</td><td><span class="ftype notice">📝 Word</span></td><td><span class="cat cancel">แจ้งไม่ดำเนินกิจกรรม</span></td></tr>
+        </tbody></table>
+        <a class="drive-link" href="https://drive.google.com/drive/folders/1HZ4lplREs_aXSs6SkFVdfRNe76yE-Zdk" target="_blank">🔗 เปิดโฟลเดอร์</a>
+      </div>
+    </div>
+
+    <!-- PROJECT 4 -->
+    <div class="proj-card s-partial" onclick="tog(this)">
+      <div class="proj-header">
+        <div class="proj-no">4</div>
+        <div class="proj-name">โครงการพัฒนาความสามารถในการใช้เทคโนโลยีสารสนเทศและการสื่อสาร</div>
+        <div class="proj-meta"><span class="file-count">1 ไฟล์</span><span class="badge partial"><span class="dot"></span>ส่งบางส่วน</span><span class="toggle">▼</span></div>
+      </div>
+      <div class="proj-body">
+        <table class="file-table"><thead><tr><th>ชื่อไฟล์</th><th>ประเภท</th><th>หมวด</th></tr></thead>
+        <tbody>
+          <tr><td class="fname">4.1 โครงการพัฒนาความสามารถในการใช้เทคโนโลยีสารสนเทศและการสื่อสาร.docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat activity">สรุปกิจกรรม 4.1</span></td></tr>
+        </tbody></table>
+        <a class="drive-link" href="https://drive.google.com/drive/folders/1p39K6uMr6GXpju30N6Qv1sjsDaFFZIuq" target="_blank">🔗 เปิดโฟลเดอร์</a>
+      </div>
+    </div>
+
+    <!-- PROJECT 5 -->
+    <div class="proj-card s-partial" onclick="tog(this)">
+      <div class="proj-header">
+        <div class="proj-no">5</div>
+        <div class="proj-name">โครงการยกระดับผลสัมฤทธิ์ทางการเรียน</div>
+        <div class="proj-meta"><span class="file-count">1 ไฟล์</span><span class="badge partial"><span class="dot"></span>ส่งบางส่วน</span><span class="toggle">▼</span></div>
+      </div>
+      <div class="proj-body">
+        <table class="file-table"><thead><tr><th>ชื่อไฟล์</th><th>ประเภท</th><th>หมวด</th></tr></thead>
+        <tbody>
+          <tr><td class="fname">กิจกรรมค่ายปรับพื้นฐาน ม.1 ม.4 ปี2568.docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat activity">สรุปกิจกรรม</span></td></tr>
+        </tbody></table>
+        <a class="drive-link" href="https://drive.google.com/drive/folders/1ujcnjoIWDiYxFSsooAkHt_02aoKUp5fy" target="_blank">🔗 เปิดโฟลเดอร์</a>
+      </div>
+    </div>
+
+    <!-- PROJECT 6 -->
+    <div class="proj-card s-done" onclick="tog(this)">
+      <div class="proj-header">
+        <div class="proj-no">6</div>
+        <div class="proj-name">โครงการส่งเสริมอาชีพตามหลักปรัชญาของเศรษฐกิจพอเพียง</div>
+        <div class="proj-meta"><span class="file-count">2 ไฟล์</span><span class="badge done"><span class="dot"></span>ส่งสรุปโครงการ + กิจกรรม</span><span class="toggle">▼</span></div>
+      </div>
+      <div class="proj-body">
+        <table class="file-table"><thead><tr><th>ชื่อไฟล์</th><th>ประเภท</th><th>หมวด</th></tr></thead>
+        <tbody>
+          <tr><td class="fname">รายงานกิจกรรมเศรษฐกิจพอเพียง 2568.docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat activity">สรุปกิจกรรม</span></td></tr>
+          <tr><td class="fname">รายงานโครงการส่งเสริมหลักปรัชญาของเศรษฐกิจพอเพียง.docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat summary">สรุปโครงการ</span></td></tr>
+        </tbody></table>
+        <a class="drive-link" href="https://drive.google.com/drive/folders/16EZmM7PN-0HwCkxl1BVDkRMtjHEQDLIk" target="_blank">🔗 เปิดโฟลเดอร์</a>
+      </div>
+    </div>
+
+    <!-- PROJECT 7 -->
+    <div class="proj-card s-done open" onclick="tog(this)">
+      <div class="proj-header">
+        <div class="proj-no">7</div>
+        <div class="proj-name">โครงการพัฒนาคนดีศรีชาววัง</div>
+        <div class="proj-meta"><span class="file-count">2 ไฟล์ + โฟลเดอร์ย่อย</span><span class="badge done"><span class="dot"></span>ส่งสรุปโครงการ + กิจกรรม</span><span class="toggle">▼</span></div>
+      </div>
+      <div class="proj-body">
+        <table class="file-table"><thead><tr><th>ชื่อไฟล์</th><th>ประเภท</th><th>หมวด</th></tr></thead>
+        <tbody>
+          <tr><td class="fname">ร่วมเล่มรายงานโครงการพัฒนาคนดีศรีชาววัง 2568.docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat summary">สรุปโครงการ</span></td></tr>
+          <tr><td class="fname">รวมเล่มรายงานโครงการพัฒนาคนดีศรีชาววัง 2568.pdf</td><td><span class="ftype pdf">📋 PDF</span></td><td><span class="cat summary">สรุปโครงการ</span></td></tr>
+          <tr><td class="fname">📁 กิจกรรมภายใต้โครงการ (โฟลเดอร์ย่อย)</td><td><span class="ftype folder">📁 โฟลเดอร์</span></td><td><span class="cat folder">โฟลเดอร์กิจกรรม</span></td></tr>
+        </tbody></table>
+        <a class="drive-link" href="https://drive.google.com/drive/folders/1Vr9cE2hY4biPNSXOoSbxlJeiE_aSGb29" target="_blank">🔗 เปิดโฟลเดอร์</a>
+      </div>
+    </div>
+
+    <!-- PROJECT 8 -->
+    <div class="proj-card s-done" onclick="tog(this)">
+      <div class="proj-header">
+        <div class="proj-no">8</div>
+        <div class="proj-name">โครงการรักษ์ถิ่นและความเป็นไทย</div>
+        <div class="proj-meta"><span class="file-count">3 ไฟล์</span><span class="badge done"><span class="dot"></span>ส่งสรุปโครงการ + กิจกรรม</span><span class="toggle">▼</span></div>
+      </div>
+      <div class="proj-body">
+        <table class="file-table"><thead><tr><th>ชื่อไฟล์</th><th>ประเภท</th><th>หมวด</th></tr></thead>
+        <tbody>
+          <tr><td class="fname">รายงานกิจกรรมของโครงการรักษ์ถิ่นความเป็น....docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat activity">สรุปกิจกรรม</span></td></tr>
+          <tr><td class="fname">รายงานกิจกรรมส่งเสริมนาฏศิลป์และวัฒนธรร....docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat activity">สรุปกิจกรรม</span></td></tr>
+          <tr><td class="fname">สรุปโครงการรักษ์ถิ่นและความเป็นไทย ๒๕๖๘.docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat summary">สรุปโครงการ</span></td></tr>
+        </tbody></table>
+        <a class="drive-link" href="https://drive.google.com/drive/folders/1cowhmIRUFsFgzRTKP4zqODX0JQosqo79" target="_blank">🔗 เปิดโฟลเดอร์</a>
+      </div>
+    </div>
+
+    <!-- PROJECT 9 -->
+    <div class="proj-card s-done" onclick="tog(this)">
+      <div class="proj-header">
+        <div class="proj-no">9</div>
+        <div class="proj-name">โครงการพัฒนาระบบช่วยเหลือนักเรียน</div>
+        <div class="proj-meta"><span class="file-count">9 ไฟล์</span><span class="badge done"><span class="dot"></span>ส่งสรุปโครงการ + กิจกรรม</span><span class="toggle">▼</span></div>
+      </div>
+      <div class="proj-body">
+        <table class="file-table"><thead><tr><th>ชื่อไฟล์</th><th>ประเภท</th><th>หมวด</th></tr></thead>
+        <tbody>
+          <tr><td class="fname">9.8 กิจกรรมรถรับส่งนักเรียน.docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat activity">สรุปกิจกรรม 9.8</span></td></tr>
+          <tr><td class="fname">บันทึกข้อความ กิจกรรมที่ไม่ได้ดำเนินการ กิจกรรมการป้องกันการตั้งครรภ์.docx</td><td><span class="ftype notice">📝 Word</span></td><td><span class="cat cancel">แจ้งไม่ดำเนินกิจกรรม</span></td></tr>
+          <tr><td class="fname">แบบสรุปรวมเยี่ยมบ้านนักเรียนวังกระแสวิทยาคม 1 ปี68.docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat activity">สรุปกิจกรรม</span></td></tr>
+          <tr><td class="fname">แบบสรุปรวมเยี่ยมบ้านนักเรียนวังกระแสวิทยาคม 2 ปี68.docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat activity">สรุปกิจกรรม</span></td></tr>
+          <tr><td class="fname">รายงานกิจกรรมประชุมผู้ปกครอง 2568.docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat activity">สรุปกิจกรรม</span></td></tr>
+          <tr><td class="fname">รายงานกิจกรรมพัฒนาศูนย์ SSS ปี 68.docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat activity">สรุปกิจกรรม</span></td></tr>
+          <tr><td class="fname">รายงานกิจกรรมพัฒนาศูนย์ SSS ปี 68.pdf</td><td><span class="ftype pdf">📋 PDF</span></td><td><span class="cat activity">สรุปกิจกรรม</span></td></tr>
+          <tr><td class="fname">รายงานกิจกรรม To Be Number One 2568.docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat activity">สรุปกิจกรรม</span></td></tr>
+          <tr><td class="fname">รายงานโครงการพัฒนาระบบดูแลช่วยเหลือนักเรียน.docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat summary">สรุปโครงการ</span></td></tr>
+        </tbody></table>
+        <a class="drive-link" href="https://drive.google.com/drive/folders/1mc00BtaoRwl0icRbxj6kwHsUNV1vzqyQ" target="_blank">🔗 เปิดโฟลเดอร์</a>
+      </div>
+    </div>
+
+    <!-- PROJECT 10 -->
+    <div class="proj-card s-partial" onclick="tog(this)">
+      <div class="proj-header">
+        <div class="proj-no">10</div>
+        <div class="proj-name">โครงการโรงเรียนส่งเสริมสุขภาพและความปลอดภัย</div>
+        <div class="proj-meta"><span class="file-count">7 ไฟล์</span><span class="badge partial"><span class="dot"></span>ส่งบางส่วน</span><span class="toggle">▼</span></div>
+      </div>
+      <div class="proj-body">
+        <table class="file-table"><thead><tr><th>ชื่อไฟล์</th><th>ประเภท</th><th>หมวด</th></tr></thead>
+        <tbody>
+          <tr><td class="fname">10.2 รูปรายงานโครงการโรงเรียนส่งเสริมสุขภาพ.docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat activity">สรุปกิจกรรม 10.2</span></td></tr>
+          <tr><td class="fname">10.2 รูปรายงานโครงการโรงเรียนส่งเสริมสุขภาพ.pdf</td><td><span class="ftype pdf">📋 PDF</span></td><td><span class="cat activity">สรุปกิจกรรม 10.2</span></td></tr>
+          <tr><td class="fname">10.9 กิจกรรมพัฒนาความปลอดภัยในสถานศึกษา (กล้อ...).docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat activity">สรุปกิจกรรม 10.9</span></td></tr>
+          <tr><td class="fname">บันทึกข้อความ กิจกรรมที่ไม่ได้ดำเนินการ กิจกรรมการป้องกันอัคคีภัย.docx</td><td><span class="ftype notice">📝 Word</span></td><td><span class="cat cancel">แจ้งไม่ดำเนินกิจกรรม</span></td></tr>
+          <tr><td class="fname">บันทึกข้อความ กิจกรรมที่ไม่ได้ดำเนินการ กิจกรรมขับขี่ปลอดภัย.docx</td><td><span class="ftype notice">📝 Word</span></td><td><span class="cat cancel">แจ้งไม่ดำเนินกิจกรรม</span></td></tr>
+          <tr><td class="fname">บันทึกข้อความ กิจกรรมที่ไม่ได้ดำเนินการ กิจกรรมสถานศึกษาปลอดภัย.docx</td><td><span class="ftype notice">📝 Word</span></td><td><span class="cat cancel">แจ้งไม่ดำเนินกิจกรรม</span></td></tr>
+          <tr><td class="fname">รายงานกิจกรรมกีฬาสี 2568.docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat activity">สรุปกิจกรรม</span></td></tr>
+        </tbody></table>
+        <a class="drive-link" href="https://drive.google.com/drive/folders/1kCGU22wRwmh0Z4zu8ImHFv7CnV3bvKze" target="_blank">🔗 เปิดโฟลเดอร์</a>
+      </div>
+    </div>
+
+    <!-- PROJECT 11 -->
+    <div class="proj-card s-none" onclick="tog(this)">
+      <div class="proj-header">
+        <div class="proj-no">11</div>
+        <div class="proj-name">โครงการจัดทำแผนพัฒนาคุณภาพการจัดการศึกษาและแผนปฏิบัติการประจำปี</div>
+        <div class="proj-meta"><span class="file-count">0 ไฟล์</span><span class="badge none"><span class="dot"></span>ยังไม่ส่ง</span><span class="toggle">▼</span></div>
+      </div>
+      <div class="proj-body">
+        <table class="file-table"><thead><tr><th>ชื่อไฟล์</th><th>ประเภท</th><th>หมวด</th></tr></thead>
+        <tbody><tr class="empty-row"><td colspan="3">📭 ยังไม่มีไฟล์ส่งเข้ามา</td></tr></tbody></table>
+        <a class="drive-link" href="https://drive.google.com/drive/folders/1lAMXD62bJHZpNh2Ua4q-SBBok6GfbFAj" target="_blank">🔗 เปิดโฟลเดอร์</a>
+      </div>
+    </div>
+
+    <!-- PROJECT 12 -->
+    <div class="proj-card s-partial" onclick="tog(this)">
+      <div class="proj-header">
+        <div class="proj-no">12</div>
+        <div class="proj-name">โครงการพัฒนาระบบบริหารจัดการคุณภาพของสถานศึกษา</div>
+        <div class="proj-meta"><span class="file-count">2 ไฟล์</span><span class="badge partial"><span class="dot"></span>ส่งบางส่วน</span><span class="toggle">▼</span></div>
+      </div>
+      <div class="proj-body">
+        <table class="file-table"><thead><tr><th>ชื่อไฟล์</th><th>ประเภท</th><th>หมวด</th></tr></thead>
+        <tbody>
+          <tr><td class="fname">12.1 กิจกรรมพัฒนาระบบงานสำนักงาน.docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat activity">สรุปกิจกรรม 12.1</span></td></tr>
+          <tr><td class="fname">12.4 กิจกรรมติดตามและบริหารเชื้อเพลิงเพื่อภาร....docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat activity">สรุปกิจกรรม 12.4</span></td></tr>
+        </tbody></table>
+        <a class="drive-link" href="https://drive.google.com/drive/folders/1Fb4ZIQ6ShV8SEO86z-Ks3ClD3FSTVx1b" target="_blank">🔗 เปิดโฟลเดอร์</a>
+      </div>
+    </div>
+
+    <!-- PROJECT 13 -->
+    <div class="proj-card s-none" onclick="tog(this)">
+      <div class="proj-header">
+        <div class="proj-no">13</div>
+        <div class="proj-name">โครงการพัฒนาหลักสูตรสถานศึกษา</div>
+        <div class="proj-meta"><span class="file-count">0 ไฟล์</span><span class="badge none"><span class="dot"></span>ยังไม่ส่ง</span><span class="toggle">▼</span></div>
+      </div>
+      <div class="proj-body">
+        <table class="file-table"><thead><tr><th>ชื่อไฟล์</th><th>ประเภท</th><th>หมวด</th></tr></thead>
+        <tbody><tr class="empty-row"><td colspan="3">📭 ยังไม่มีไฟล์ส่งเข้ามา</td></tr></tbody></table>
+        <a class="drive-link" href="https://drive.google.com/drive/folders/1vz-uNtTNaNsjP6RSuoaKvbyDvst2MtuV" target="_blank">🔗 เปิดโฟลเดอร์</a>
+      </div>
+    </div>
+
+    <!-- PROJECT 14 -->
+    <div class="proj-card s-done" onclick="tog(this)">
+      <div class="proj-header">
+        <div class="proj-no">14</div>
+        <div class="proj-name">โครงการพัฒนาครูและบุคลากรให้มีความเชี่ยวชาญทางวิชาชีพ</div>
+        <div class="proj-meta"><span class="file-count">6 ไฟล์</span><span class="badge done"><span class="dot"></span>ส่งสรุปโครงการ + กิจกรรม</span><span class="toggle">▼</span></div>
+      </div>
+      <div class="proj-body">
+        <table class="file-table"><thead><tr><th>ชื่อไฟล์</th><th>ประเภท</th><th>หมวด</th></tr></thead>
+        <tbody>
+          <tr><td class="fname">14.1 กิจกรรมศึกษาดูงาน เพื่อเพิ่มพูลประสบการณ์.docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat activity">สรุปกิจกรรม 14.1</span></td></tr>
+          <tr><td class="fname">14.2 กิจกรรมอบรมพัฒนาสมรรถนะครูและบุคลากรทางก....docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat activity">สรุปกิจกรรม 14.2</span></td></tr>
+          <tr><td class="fname">14.3 กิจกรรมอบรมพัฒนาสมรรถนะครูและบุคลากรทางก....docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat activity">สรุปกิจกรรม 14.3</span></td></tr>
+          <tr><td class="fname">14.4 กิจกรรมอบรมพัฒนาสมรรถนะครูและบุคลากรทางก....docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat activity">สรุปกิจกรรม 14.4</span></td></tr>
+          <tr><td class="fname">14.5 กิจกรรมส่งเสริม ขวัญ กำลังใจ ยกย่องเชิดชู....docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat activity">สรุปกิจกรรม 14.5</span></td></tr>
+          <tr><td class="fname">14 พัฒนาครูและบุคลากรให้มีความเชี่ยวชาญทางวิชาชีพ.docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat summary">สรุปโครงการ</span></td></tr>
+        </tbody></table>
+        <a class="drive-link" href="https://drive.google.com/drive/folders/1dhDf6RMI_h0aYg5-GUghWNm7hG_sY-7O" target="_blank">🔗 เปิดโฟลเดอร์</a>
+      </div>
+    </div>
+
+    <!-- PROJECT 15 -->
+    <div class="proj-card s-done" onclick="tog(this)">
+      <div class="proj-header">
+        <div class="proj-no">15</div>
+        <div class="proj-name">โครงการปรับปรุงภูมิทัศน์ของโรงเรียนให้เอื้อต่อการจัดการเรียนรู้</div>
+        <div class="proj-meta"><span class="file-count">3 ไฟล์</span><span class="badge done"><span class="dot"></span>ส่งสรุปโครงการ + กิจกรรม</span><span class="toggle">▼</span></div>
+      </div>
+      <div class="proj-body">
+        <table class="file-table"><thead><tr><th>ชื่อไฟล์</th><th>ประเภท</th><th>หมวด</th></tr></thead>
+        <tbody>
+          <tr><td class="fname">15.1-6 รายงานกิจกรรมของโครงการต่างๆ (ปรับปรุงภูมิทัศน์).docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat activity">สรุปกิจกรรม 15.1-6</span></td></tr>
+          <tr><td class="fname">15 สรุปโครงการปรับปรุงภูมิทัศน์ ๒๕๖๘.docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat summary">สรุปโครงการ</span></td></tr>
+          <tr><td class="fname">รายงานไม่ดำเนินกิจกรรมปรับปรุงสนามกีฬา.docx</td><td><span class="ftype notice">📝 Word</span></td><td><span class="cat cancel">แจ้งไม่ดำเนินกิจกรรม</span></td></tr>
+        </tbody></table>
+        <a class="drive-link" href="https://drive.google.com/drive/folders/1rqNnwRwWjg2LNe8H9K4TqwnzZXXe-wTs" target="_blank">🔗 เปิดโฟลเดอร์</a>
+      </div>
+    </div>
+
+    <!-- PROJECT 16 -->
+    <div class="proj-card s-partial" onclick="tog(this)">
+      <div class="proj-header">
+        <div class="proj-no">16</div>
+        <div class="proj-name">โครงการพัฒนาระบบเทคโนโลยีสารสนเทศเพื่อสนับสนุนการบริหารจัดการ</div>
+        <div class="proj-meta"><span class="file-count">2 ไฟล์</span><span class="badge partial"><span class="dot"></span>ส่งบางส่วน</span><span class="toggle">▼</span></div>
+      </div>
+      <div class="proj-body">
+        <table class="file-table"><thead><tr><th>ชื่อไฟล์</th><th>ประเภท</th><th>หมวด</th></tr></thead>
+        <tbody>
+          <tr><td class="fname">16.1 กิจกรรมพัฒนาระบบเทคโนโลยีสารสนเทศ (เว็บไซต์).docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat activity">สรุปกิจกรรม 16.1</span></td></tr>
+          <tr><td class="fname">16.2 กิจกรรมขยายระบบสารสนเทศโรงเรียนเพื่อการจัดการเรียนรู้.docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat activity">สรุปกิจกรรม 16.2</span></td></tr>
+        </tbody></table>
+        <a class="drive-link" href="https://drive.google.com/drive/folders/1kCphS14bXFXoXxXZL-iysI8PkMJrEuEO" target="_blank">🔗 เปิดโฟลเดอร์</a>
+      </div>
+    </div>
+
+    <!-- PROJECT 17 -->
+    <div class="proj-card s-partial" onclick="tog(this)">
+      <div class="proj-header">
+        <div class="proj-no">17</div>
+        <div class="proj-name">โครงการส่งเสริมการเรียนรู้ผ่านกระบวนการคิดและปฏิบัติจริง</div>
+        <div class="proj-meta"><span class="file-count">2 ไฟล์</span><span class="badge partial"><span class="dot"></span>ส่งบางส่วน</span><span class="toggle">▼</span></div>
+      </div>
+      <div class="proj-body">
+        <table class="file-table"><thead><tr><th>ชื่อไฟล์</th><th>ประเภท</th><th>หมวด</th></tr></thead>
+        <tbody>
+          <tr><td class="fname">17.5 รายงานกิจกรรมลูกเสือเนตรนารียุวกาชาด ๖๘.docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat activity">สรุปกิจกรรม 17.5</span></td></tr>
+          <tr><td class="fname">17.6 บันทึกข้อความ กิจกรรมที่ไม่ได้ดำเนินการ กิจกรรมนักศึกษาวิชาทหาร.docx</td><td><span class="ftype notice">📝 Word</span></td><td><span class="cat cancel">แจ้งไม่ดำเนินกิจกรรม 17.6</span></td></tr>
+        </tbody></table>
+        <a class="drive-link" href="https://drive.google.com/drive/folders/12lpLMvv0gYi6MttqRFwoRfPNa11qCjQv" target="_blank">🔗 เปิดโฟลเดอร์</a>
+      </div>
+    </div>
+
+    <!-- PROJECT 18 -->
+    <div class="proj-card s-partial" onclick="tog(this)">
+      <div class="proj-header">
+        <div class="proj-no">18</div>
+        <div class="proj-name">โครงการส่งเสริมการใช้สื่อเทคโนโลยีสารสนเทศและแหล่งเรียนรู้</div>
+        <div class="proj-meta"><span class="file-count">1 ไฟล์</span><span class="badge partial"><span class="dot"></span>ส่งบางส่วน</span><span class="toggle">▼</span></div>
+      </div>
+      <div class="proj-body">
+        <table class="file-table"><thead><tr><th>ชื่อไฟล์</th><th>ประเภท</th><th>หมวด</th></tr></thead>
+        <tbody>
+          <tr><td class="fname">บันทึกข้อความ กิจกรรมที่ไม่ได้ดำเนินการ กิจกรรมสวนพฤกษศาสตร์.docx</td><td><span class="ftype notice">📝 Word</span></td><td><span class="cat cancel">แจ้งไม่ดำเนินกิจกรรม</span></td></tr>
+        </tbody></table>
+        <a class="drive-link" href="https://drive.google.com/drive/folders/1n7kjLj-fuUoemLdqTanquJpe0XIl5-ZL" target="_blank">🔗 เปิดโฟลเดอร์</a>
+      </div>
+    </div>
+
+    <!-- PROJECT 19 -->
+    <div class="proj-card s-partial" onclick="tog(this)">
+      <div class="proj-header">
+        <div class="proj-no">19</div>
+        <div class="proj-name">โครงการบริหารจัดการชั้นเรียนเชิงบวก</div>
+        <div class="proj-meta"><span class="file-count">2 ไฟล์</span><span class="badge partial"><span class="dot"></span>ส่งบางส่วน</span><span class="toggle">▼</span></div>
+      </div>
+      <div class="proj-body">
+        <table class="file-table"><thead><tr><th>ชื่อไฟล์</th><th>ประเภท</th><th>หมวด</th></tr></thead>
+        <tbody>
+          <tr><td class="fname">รายงานโครงการบริหารจัดการชั้นเรียนเชิงบวก.docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat summary">สรุปโครงการ</span></td></tr>
+          <tr><td class="fname">รายงานโครงการบริหารจัดการชั้นเรียนเชิงบวก.pdf</td><td><span class="ftype pdf">📋 PDF</span></td><td><span class="cat summary">สรุปโครงการ</span></td></tr>
+        </tbody></table>
+        <a class="drive-link" href="https://drive.google.com/drive/folders/1gL2PPQbxhB9d85Dx1a_FTL_THjNEQYqf" target="_blank">🔗 เปิดโฟลเดอร์</a>
+      </div>
+    </div>
+
+    <!-- PROJECT 20 -->
+    <div class="proj-card s-none" onclick="tog(this)">
+      <div class="proj-header">
+        <div class="proj-no">20</div>
+        <div class="proj-name">โครงการตรวจสอบและประเมินความรู้ความเข้าใจผู้เรียน</div>
+        <div class="proj-meta"><span class="file-count">0 ไฟล์</span><span class="badge none"><span class="dot"></span>ยังไม่ส่ง</span><span class="toggle">▼</span></div>
+      </div>
+      <div class="proj-body">
+        <table class="file-table"><thead><tr><th>ชื่อไฟล์</th><th>ประเภท</th><th>หมวด</th></tr></thead>
+        <tbody><tr class="empty-row"><td colspan="3">📭 ยังไม่มีไฟล์ส่งเข้ามา</td></tr></tbody></table>
+        <a class="drive-link" href="https://drive.google.com/drive/folders/1n2Vmr8Pf7mXj2iLFr0Ouhn447fN_nxb6" target="_blank">🔗 เปิดโฟลเดอร์</a>
+      </div>
+    </div>
+
+    <!-- PROJECT 21 -->
+    <div class="proj-card s-done" onclick="tog(this)">
+      <div class="proj-header">
+        <div class="proj-no">21</div>
+        <div class="proj-name">โครงการส่งเสริมการแลกเปลี่ยนเรียนรู้และให้ข้อมูลย้อนกลับ</div>
+        <div class="proj-meta"><span class="file-count">2 ไฟล์</span><span class="badge done"><span class="dot"></span>ส่งสรุปโครงการ + กิจกรรม</span><span class="toggle">▼</span></div>
+      </div>
+      <div class="proj-body">
+        <table class="file-table"><thead><tr><th>ชื่อไฟล์</th><th>ประเภท</th><th>หมวด</th></tr></thead>
+        <tbody>
+          <tr><td class="fname">21.1 กิจกรรมส่งเสริมการแลกเปลี่ยนเรียนรู้และให้ข้อมูลย้อนกลับ.docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat activity">สรุปกิจกรรม 21.1</span></td></tr>
+          <tr><td class="fname">21 ส่งเสริมการแลกเปลี่ยนเรียนรู้และให้ข้อมูลย้อนกลับ.docx</td><td><span class="ftype docx">📄 Word</span></td><td><span class="cat summary">สรุปโครงการ</span></td></tr>
+        </tbody></table>
+        <a class="drive-link" href="https://drive.google.com/drive/folders/1Md8X85oxfzUZl9MFZl7q4BbTd7NUYNWY" target="_blank">🔗 เปิดโฟลเดอร์</a>
+      </div>
+    </div>
+
+  </div><!-- /.proj-list -->
+
+  <div class="src-bar">
+    🔗 <strong>แหล่งข้อมูล:</strong>
+    <a href="https://drive.google.com/drive/folders/1c8au3fR6BYv6xvEuXIvb7cWQKUSt9RZE" target="_blank">Google Drive – โฟลเดอร์ส่งสรุปโครงการ/กิจกรรม 2568</a>
+    &nbsp;|&nbsp;
+    <a href="https://docs.google.com/spreadsheets/d/1RrOhTgPnsFMiBzJxNW3o8uhYygi8A7wyHYEXfszXYRc" target="_blank">Google Sheets – งบประมาณตามแผนปฏิบัติการ (งบอนุมัติ 68)</a>
+  </div>
+
+</div>
+
+<footer>ตรวจสอบโดยเปิดโฟลเดอร์จริงผ่าน Google Drive &nbsp;·&nbsp; ข้อมูล ณ วันที่ 10 เมษายน 2569</footer>
+
+<script>
+function tog(card) {
+  if (event.target.tagName === 'A') return;
+  card.classList.toggle('open');
+}
+</script>
+</body>
+</html>
