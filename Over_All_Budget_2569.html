@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>สรุปงบประมาณแผนปฏิบัติการ 2569 – โรงเรียนวังกระแสวิทยาคม</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Sarabun', 'Segoe UI', sans-serif;
+      background: #f0f4f8;
+      color: #2d3748;
+      padding: 24px 16px 48px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 1.6rem;
+      color: #1a365d;
+      margin-bottom: 4px;
+    }
+    .subtitle {
+      text-align: center;
+      font-size: 0.95rem;
+      color: #718096;
+      margin-bottom: 32px;
+    }
+
+    /* ── Section wrapper ── */
+    .section {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.08);
+      padding: 28px 24px 32px;
+      margin-bottom: 32px;
+    }
+    .section-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .badge {
+      font-size: 0.72rem;
+      padding: 2px 10px;
+      border-radius: 99px;
+      font-weight: 600;
+      letter-spacing: .3px;
+    }
+    .badge-green  { background:#c6f6d5; color:#276749; }
+    .badge-blue   { background:#bee3f8; color:#2c5282; }
+
+    .section-sub {
+      font-size: 0.88rem;
+      color: #718096;
+      margin-bottom: 20px;
+    }
+
+    /* ── Overview cards ── */
+    .cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+    .card {
+      flex: 1 1 160px;
+      border-radius: 12px;
+      padding: 16px 18px;
+      min-width: 140px;
+    }
+    .card-label { font-size: 0.8rem; opacity: .75; margin-bottom: 6px; }
+    .card-value { font-size: 1.35rem; font-weight: 700; }
+    .card-unit  { font-size: 0.75rem; opacity: .65; margin-top: 2px; }
+
+    .card-income  { background:#ebf8ff; border-left: 4px solid #3182ce; }
+    .card-carry   { background:#faf5ff; border-left: 4px solid #805ad5; }
+    .card-total   { background:#e6fffa; border-left: 4px solid #38a169; }
+    .card-spend   { background:#fff5f5; border-left: 4px solid #e53e3e; }
+    .card-remain  { background:#fffaf0; border-left: 4px solid #dd6b20; }
+    .card-sadue   { background:#fff5f5; border-left: 4px solid #f56565; }
+    .card-reserve { background:#fefcbf; border-left: 4px solid #d69e2e; }
+    .card-travel  { background:#e9d8fd; border-left: 4px solid #805ad5; }
+
+    /* ── Chart layout ── */
+    .chart-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 28px;
+      align-items: flex-start;
+      margin-top: 8px;
+    }
+    .chart-wrap {
+      flex: 1 1 260px;
+      max-width: 340px;
+      position: relative;
+    }
+    .chart-wrap canvas { width: 100% !important; }
+    .chart-legend {
+      flex: 1 1 240px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 10px;
+      padding-top: 8px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+    }
+    .legend-dot {
+      width: 14px; height: 14px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+    .legend-name { flex: 1; }
+    .legend-val  { font-weight: 700; white-space: nowrap; }
+    .legend-pct  { font-size: 0.78rem; color: #718096; white-space: nowrap; }
+
+    /* ── Budget breakdown bars ── */
+    .breakdown-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #4a5568;
+      margin: 24px 0 12px;
+    }
+    .bar-row {
+      margin-bottom: 12px;
+    }
+    .bar-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      margin-bottom: 4px;
+    }
+    .bar-track {
+      background: #e2e8f0;
+      border-radius: 99px;
+      height: 10px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width .6s ease;
+    }
+
+    /* ── Summary comparison table ── */
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      margin-top: 16px;
+    }
+    .compare-table th, .compare-table td {
+      padding: 9px 12px;
+      text-align: right;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .compare-table th:first-child, .compare-table td:first-child {
+      text-align: left;
+    }
+    .compare-table thead th {
+      background: #f7fafc;
+      font-weight: 700;
+      color: #2d3748;
+    }
+    .compare-table tbody tr:hover { background: #f7fafc; }
+    .compare-table tfoot td {
+      font-weight: 700;
+      background: #f0fff4;
+      border-top: 2px solid #38a169;
+    }
+
+    hr.divider {
+      border: none;
+      border-top: 1px dashed #e2e8f0;
+      margin: 24px 0;
+    }
+
+    @media (max-width: 600px) {
+      .chart-wrap { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>สรุปงบประมาณแผนปฏิบัติการ ปีการศึกษา 2569</h1>
+<p class="subtitle">โรงเรียนวังกระแสวิทยาคม &nbsp;|&nbsp; ข้อมูล ณ วันที่ 11 เมษายน 2569</p>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 1 : กิจกรรมพัฒนาผู้เรียน
+     ═══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">
+    🎓 หมวดกิจกรรมพัฒนาผู้เรียน
+    <span class="badge badge-green">Sheet 1</span>
+  </div>
+  <p class="section-sub">งบประมาณสนับสนุนกิจกรรมส่งเสริมศักยภาพนักเรียนนอกเหนือจากการเรียนการสอน</p>
+
+  <!-- overview cards -->
+  <div class="cards">
+    <div class="card card-income">
+      <div class="card-label">รายรับปี 2569</div>
+      <div class="card-value">282,794</div>
+      <div class="card-unit">บาท</div>
+    </div>
+    <div class="card card-carry">
+      <div class="card-label">คงเหลือจากปี 2568</div>
+      <div class="card-value">131,727</div>
+      <div class="card-unit">บาท</div>
+    </div>
+    <div class="card card-total">
+      <div class="card-label">รวมงบที่มี</div>
+      <div class="card-value">414,521</div>
+      <div class="card-unit">บาท</div>
+    </div>
+    <div class="card card-spend">
+      <div class="card-label">จัดสรรกิจกรรม</div>
+      <div class="card-value">414,521</div>
+      <div class="card-unit">บาท</div>
+    </div>
+  </div>
+
+  <!-- Donut chart + legend -->
+  <div class="chart-row">
+    <div class="chart-wrap">
+      <canvas id="chartDev"></canvas>
+    </div>
+    <div class="chart-legend">
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#48bb78"></div>
+        <span class="legend-name">จัดสรรกิจกรรม</span>
+        <span class="legend-val">414,521 บ.</span>
+        <span class="legend-pct">(100%)</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="breakdown-title">สัดส่วนการใช้งบประมาณ</p>
+  <div class="bar-row">
+    <div class="bar-header">
+      <span>จัดสรรกิจกรรม (414,521 บ.)</span>
+      <span>100%</span>
+    </div>
+    <div class="bar-track"><div class="bar-fill" style="width:100%;background:#48bb78"></div></div>
+  </div>
+  <p class="breakdown-title" style="margin-top:28px">หมายเหตุ</p>
+  <p style="font-size:0.85rem;color:#718096;line-height:1.7">
+    หมวดกิจกรรมพัฒนาผู้เรียน <strong>ไม่มีการจัดสรรงบสาธารณูปโภค งบสำรองจ่าย หรืองบไปราชการ</strong> แยกต่างหาก
+    ค่าใช้จ่ายดังกล่าวรวมอยู่ในงบจัดสรรกิจกรรมรายโครงการ
+  </p>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 2 : การจัดการเรียนการสอน
+     ═══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">
+    📚 หมวดค่าจัดการเรียนการสอน
+    <span class="badge badge-blue">Sheet 2</span>
+  </div>
+  <p class="section-sub">งบประมาณสนับสนุนการจัดการเรียนการสอน รวมค่าสาธารณูปโภค สำรองจ่าย และค่าไปราชการ</p>
+
+  <!-- overview cards -->
+  <div class="cards">
+    <div class="card card-income">
+      <div class="card-label">รายรับปี 2569</div>
+      <div class="card-value">1,378,520</div>
+      <div class="card-unit">บาท</div>
+    </div>
+    <div class="card card-carry">
+      <div class="card-label">คงเหลือจากปี 2568</div>
+      <div class="card-value">329,100</div>
+      <div class="card-unit">บาท</div>
+    </div>
+    <div class="card card-total">
+      <div class="card-label">รวมงบที่มี</div>
+      <div class="card-value">1,707,620</div>
+      <div class="card-unit">บาท</div>
+    </div>
+  </div>
+
+  <!-- Budget breakdown cards row -->
+  <p class="breakdown-title">งบประมาณจัดสรรตามประเภท</p>
+  <div class="cards">
+    <div class="card card-sadue">
+      <div class="card-label">💡 งบสาธารณูปโภค</div>
+      <div class="card-value">144,000</div>
+      <div class="card-unit">บาท &nbsp;(8.4%)</div>
+    </div>
+    <div class="card card-reserve">
+      <div class="card-label">🏦 งบสำรองจ่าย</div>
+      <div class="card-value">170,762</div>
+      <div class="card-unit">บาท &nbsp;(10.0%)</div>
+    </div>
+    <div class="card card-travel">
+      <div class="card-label">✈️ งบไปราชการ</div>
+      <div class="card-value">150,000</div>
+      <div class="card-unit">บาท &nbsp;(8.8%)</div>
+    </div>
+    <div class="card card-spend">
+      <div class="card-label">📋 จัดสรรกิจกรรม</div>
+      <div class="card-value">1,242,858</div>
+      <div class="card-unit">บาท &nbsp;(72.8%)</div>
+    </div>
+  </div>
+
+  <!-- Donut chart + legend -->
+  <div class="chart-row">
+    <div class="chart-wrap">
+      <canvas id="chartLearn"></canvas>
+    </div>
+    <div class="chart-legend">
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#e53e3e"></div>
+        <span class="legend-name">งบสาธารณูปโภค</span>
+        <span class="legend-val">144,000 บ.</span>
+        <span class="legend-pct">(8.4%)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#d69e2e"></div>
+        <span class="legend-name">งบสำรองจ่าย</span>
+        <span class="legend-val">170,762 บ.</span>
+        <span class="legend-pct">(10.0%)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#805ad5"></div>
+        <span class="legend-name">งบไปราชการ</span>
+        <span class="legend-val">150,000 บ.</span>
+        <span class="legend-pct">(8.8%)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#3182ce"></div>
+        <span class="legend-name">จัดสรรกิจกรรม</span>
+        <span class="legend-val">1,242,858 บ.</span>
+        <span class="legend-pct">(72.8%)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bar breakdown -->
+  <p class="breakdown-title">สัดส่วนการใช้งบประมาณ (จากงบรวมที่มี 1,707,620 บาท)</p>
+  <div class="bar-row">
+    <div class="bar-header">
+      <span>📋 จัดสรรกิจกรรม (1,242,858 บ.)</span><span>72.8%</span>
+    </div>
+    <div class="bar-track"><div class="bar-fill" style="width:72.8%;background:#3182ce"></div></div>
+  </div>
+  <div class="bar-row">
+    <div class="bar-header">
+      <span>🏦 งบสำรองจ่าย (170,762 บ.)</span><span>10.0%</span>
+    </div>
+    <div class="bar-track"><div class="bar-fill" style="width:10.0%;background:#d69e2e"></div></div>
+  </div>
+  <div class="bar-row">
+    <div class="bar-header">
+      <span>✈️ งบไปราชการ (150,000 บ.)</span><span>8.8%</span>
+    </div>
+    <div class="bar-track"><div class="bar-fill" style="width:8.8%;background:#805ad5"></div></div>
+  </div>
+  <div class="bar-row">
+    <div class="bar-header">
+      <span>💡 งบสาธารณูปโภค (144,000 บ.)</span><span>8.4%</span>
+    </div>
+    <div class="bar-track"><div class="bar-fill" style="width:8.4%;background:#e53e3e"></div></div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 3 : ตารางเปรียบเทียบรวม
+     ═══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">📊 ตารางสรุปเปรียบเทียบงบประมาณทั้งสองหมวด</div>
+  <p class="section-sub">ภาพรวมรายการงบประมาณ ปีการศึกษา 2569</p>
+
+  <table class="compare-table">
+    <thead>
+      <tr>
+        <th>รายการ</th>
+        <th>กิจกรรมพัฒนาผู้เรียน</th>
+        <th>การจัดการเรียนการสอน</th>
+        <th>รวม</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>รายรับปี 2569</td>
+        <td>282,794</td>
+        <td>1,378,520</td>
+        <td>1,661,314</td>
+      </tr>
+      <tr>
+        <td>คงเหลือจากปี 2568</td>
+        <td>131,727.03</td>
+        <td>329,099.62</td>
+        <td>460,826.65</td>
+      </tr>
+      <tr>
+        <td><strong>รวมงบที่มีทั้งสิ้น</strong></td>
+        <td><strong>414,521.03</strong></td>
+        <td><strong>1,707,619.62</strong></td>
+        <td><strong>2,122,140.65</strong></td>
+      </tr>
+      <tr>
+        <td>งบสาธารณูปโภค</td>
+        <td style="color:#a0aec0">–</td>
+        <td>144,000</td>
+        <td>144,000</td>
+      </tr>
+      <tr>
+        <td>งบสำรองจ่าย</td>
+        <td style="color:#a0aec0">–</td>
+        <td>170,762</td>
+        <td>170,762</td>
+      </tr>
+      <tr>
+        <td>งบไปราชการ</td>
+        <td style="color:#a0aec0">–</td>
+        <td>150,000</td>
+        <td>150,000</td>
+      </tr>
+      <tr>
+        <td>จัดสรรกิจกรรม (โครงการต่างๆ)</td>
+        <td>414,521</td>
+        <td>1,242,858</td>
+        <td>1,657,379</td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="font-size:0.8rem;color:#a0aec0;margin-top:8px">
+    * ยังไม่หักค่าสาธารณูปโภค สำรองจ่าย และไปราชการที่เกิดขึ้นจริง — ตัวเลขจะปรับตามการเบิกจ่ายจริง
+  </p>
+
+  <hr class="divider"/>
+
+  <!-- Bar chart comparison -->
+  <p class="breakdown-title">กราฟเปรียบเทียบการจัดสรรงบประมาณ (บาท)</p>
+  <div style="max-width:680px;margin:0 auto;">
+    <canvas id="chartCompare" height="140"></canvas>
+  </div>
+</div>
+
+
+<script>
+/* ── Chart 1 : กิจกรรมพัฒนาผู้เรียน donut ── */
+new Chart(document.getElementById('chartDev'), {
+  type: 'doughnut',
+  data: {
+    labels: ['จัดสรรกิจกรรม'],
+    datasets: [{
+      data: [414521.03],
+      backgroundColor: ['#48bb78'],
+      borderWidth: 2,
+      borderColor: '#fff'
+    }]
+  },
+  options: {
+    cutout: '65%',
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => ' ' + ctx.label + ': ' + ctx.parsed.toLocaleString('th-TH') + ' บาท'
+        }
+      }
+    }
+  }
+});
+
+/* ── Chart 2 : การจัดการเรียนการสอน donut ── */
+new Chart(document.getElementById('chartLearn'), {
+  type: 'doughnut',
+  data: {
+    labels: ['งบสาธารณูปโภค', 'งบสำรองจ่าย', 'งบไปราชการ', 'จัดสรรกิจกรรม'],
+    datasets: [{
+      data: [144000, 170762, 150000, 1242857.62],
+      backgroundColor: ['#e53e3e', '#d69e2e', '#805ad5', '#3182ce'],
+      borderWidth: 2,
+      borderColor: '#fff'
+    }]
+  },
+  options: {
+    cutout: '65%',
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => ' ' + ctx.label + ': ' + ctx.parsed.toLocaleString('th-TH') + ' บาท'
+        }
+      }
+    }
+  }
+});
+
+/* ── Chart 3 : Grouped bar comparison ── */
+new Chart(document.getElementById('chartCompare'), {
+  type: 'bar',
+  data: {
+    labels: ['งบสาธารณูปโภค', 'งบสำรองจ่าย', 'งบไปราชการ', 'จัดสรรกิจกรรม'],
+    datasets: [
+      {
+        label: 'กิจกรรมพัฒนาผู้เรียน',
+        data: [0, 0, 0, 414521.03],
+        backgroundColor: '#68d391',
+        borderRadius: 4
+      },
+      {
+        label: 'การจัดการเรียนการสอน',
+        data: [144000, 170762, 150000, 1242857.62],
+        backgroundColor: '#63b3ed',
+        borderRadius: 4
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: {
+        callbacks: {
+          label: ctx => ' ' + ctx.dataset.label + ': ' + ctx.parsed.y.toLocaleString('th-TH') + ' บาท'
+        }
+      }
+    },
+    scales: {
+      y: {
+        ticks: {
+          callback: val => val.toLocaleString('th-TH')
+        },
+        grid: { color: '#e2e8f0' }
+      },
+      x: { grid: { display: false } }
+    }
+  }
+});
+</script>
+</body>
+</html>
