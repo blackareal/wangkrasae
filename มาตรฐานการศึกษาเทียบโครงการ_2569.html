@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ความสัมพันธ์โครงการกับมาตรฐานการศึกษา 2569 — โรงเรียนวังกระแสวิทยาคม</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Sarabun', 'TH Sarabun New', 'Segoe UI', sans-serif;
+    background: #f0f2f5;
+    color: #1a1a2e;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .hero {
+    background: linear-gradient(135deg, #1a3a5c 0%, #1a6b3a 100%);
+    color: white;
+    padding: 36px 32px 28px;
+    text-align: center;
+  }
+  .hero h1 { font-size: 1.7em; font-weight: 700; margin-bottom: 6px; }
+  .hero p  { font-size: 0.95em; opacity: 0.85; margin-top: 4px; }
+  .hero .sub { font-size: 0.82em; opacity: 0.68; margin-top: 4px; }
+
+  /* ── Standard legend ── */
+  .std-legend {
+    background: white;
+    border-bottom: 2px solid #e0e0e0;
+    padding: 18px 28px;
+    display: flex; flex-wrap: wrap; gap: 24px;
+  }
+  .std-block { flex: 1 1 260px; }
+  .std-block h3 { font-size: 0.88em; font-weight: 700; color: #444; margin-bottom: 6px; }
+  .std-item { font-size: 0.82em; color: #555; margin-bottom: 3px; padding-left: 10px; border-left: 3px solid; }
+  .s1 { border-color: #e53e3e; }
+  .s2 { border-color: #3182ce; }
+  .s3 { border-color: #38a169; }
+
+  /* ── Filter bar ── */
+  .filter-bar {
+    background: white; border-bottom: 1px solid #e0e0e0;
+    padding: 12px 20px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  }
+  .filter-bar label { font-size: 0.82em; color: #555; font-weight: 600; margin-right: 4px; }
+  .filter-btn {
+    border: 1.5px solid #ccc; background: white; border-radius: 20px;
+    padding: 3px 12px; font-size: 0.8em; cursor: pointer; transition: all 0.15s;
+    font-family: inherit;
+  }
+  .filter-btn:hover, .filter-btn.active { background: #1a3a5c; color: white; border-color: #1a3a5c; }
+
+  /* ── Container ── */
+  .container { max-width: 1300px; margin: 0 auto; padding: 24px 16px 48px; }
+
+  /* ── Section header ── */
+  .group-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 20px; border-radius: 8px 8px 0 0;
+    color: white; font-size: 1em; font-weight: 700;
+    margin-top: 28px;
+  }
+  .group-badge {
+    background: rgba(255,255,255,0.25);
+    border-radius: 20px; padding: 2px 10px; font-size: 0.78em;
+  }
+
+  /* ── Matrix table ── */
+  .matrix-wrap {
+    overflow-x: auto;
+    border: 1px solid #e0e0e0;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    background: white;
+  }
+  table.matrix {
+    border-collapse: collapse;
+    min-width: 900px;
+    width: 100%;
+    font-size: 0.82em;
+  }
+  table.matrix thead th {
+    background: #f7fafc;
+    padding: 8px 10px;
+    text-align: center;
+    border-bottom: 2px solid #e0e0e0;
+    border-right: 1px solid #e8ecf0;
+    font-weight: 700;
+    white-space: nowrap;
+    vertical-align: bottom;
+  }
+  table.matrix thead th.project-col {
+    text-align: left; min-width: 220px; max-width: 260px;
+  }
+  table.matrix thead .std-head-1 { color: #c53030; }
+  table.matrix thead .std-head-2 { color: #2b6cb0; }
+  table.matrix thead .std-head-3 { color: #276749; }
+  table.matrix thead .org-head   { color: #6b46c1; }
+
+  table.matrix tbody tr { border-bottom: 1px solid #f0f0f0; }
+  table.matrix tbody tr:hover { background: #fafbff; }
+  table.matrix tbody td {
+    padding: 9px 10px;
+    border-right: 1px solid #f0f0f0;
+    text-align: center;
+    vertical-align: middle;
+  }
+  table.matrix tbody td.project-cell {
+    text-align: left;
+    font-weight: 600;
+    white-space: nowrap;
+    padding-left: 14px;
+  }
+  .code-badge {
+    display: inline-block;
+    padding: 1px 7px; border-radius: 4px;
+    color: white; font-size: 0.78em; font-weight: 700;
+    margin-right: 5px; vertical-align: middle;
+  }
+
+  /* ── Dot marks ── */
+  .dot { font-size: 1.1em; }
+  .dot-1  { color: #e53e3e; }
+  .dot-2  { color: #3182ce; }
+  .dot-3  { color: #38a169; }
+  .dot-org{ color: #805ad5; }
+  .dot-n  { color: #cbd5e0; }
+
+  /* ── Column group separators ── */
+  .grp-sep { border-left: 2px solid #d1d5db !important; }
+
+  /* ── Footer ── */
+  .footer { text-align: center; color: #999; font-size: 0.78em; padding: 16px; border-top: 1px solid #e0e0e0; margin-top: 24px; }
+
+  /* ── Summary section ── */
+  .summary-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;
+    margin-top: 24px;
+  }
+  .summary-card {
+    background: white; border-radius: 10px; padding: 18px 20px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+    border-top: 4px solid;
+  }
+  .summary-card h3 { font-size: 0.92em; font-weight: 700; margin-bottom: 10px; }
+  .summary-card ul { list-style: none; }
+  .summary-card ul li { font-size: 0.83em; color: #444; padding: 3px 0; border-bottom: 1px dashed #f0f0f0; }
+  .summary-card ul li:last-child { border-bottom: none; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>ความสัมพันธ์โครงการกับมาตรฐานการศึกษา</h1>
+  <p>โรงเรียนวังกระแสวิทยาคม — แผนปฏิบัติการ ปีการศึกษา 2569</p>
+  <p class="sub">มาตรฐานการศึกษาขั้นพื้นฐาน สพฐ. และ สมศ. (3 มาตรฐาน)</p>
+</div>
+
+<!-- Legend -->
+<div class="std-legend">
+  <div class="std-block">
+    <h3>🔴 มาตรฐานที่ 1 — คุณภาพของผู้เรียน</h3>
+    <div class="std-item s1">1.1 ก) ผลสัมฤทธิ์ทางการเรียน</div>
+    <div class="std-item s1">1.1 ข) ความสามารถด้านการอ่าน การเขียน</div>
+    <div class="std-item s1">1.1 ค) ความสามารถด้านการคิดคำนวณ</div>
+    <div class="std-item s1">1.1 ง) ความสามารถด้านการคิดขั้นสูง</div>
+    <div class="std-item s1">1.1 จ) ทักษะวิชาชีพ / ทักษะชีวิต</div>
+    <div class="std-item s1">1.1 ฉ) ทักษะภาษาต่างประเทศ / ICT</div>
+    <div class="std-item s1">1.2 ก) คุณธรรมและค่านิยม</div>
+    <div class="std-item s1">1.2 ข) จิตสาธารณะ / ภาวะผู้นำ</div>
+    <div class="std-item s1">1.2 ค) สุขภาวะที่ดี</div>
+    <div class="std-item s1">1.2 ง) ทักษะการเรียนรู้ในศตวรรษที่ 21</div>
+  </div>
+  <div class="std-block">
+    <h3>🔵 มาตรฐานที่ 2 — กระบวนการบริหารและจัดการ</h3>
+    <div class="std-item s2">2.1 เป้าหมาย วิสัยทัศน์ พันธกิจที่ชัดเจน</div>
+    <div class="std-item s2">2.2 ระบบบริหารคุณภาพ</div>
+    <div class="std-item s2">2.3 การพัฒนาครูและบุคลากร</div>
+    <div class="std-item s2">2.4 จัดหาทรัพยากร / สภาพแวดล้อม</div>
+    <div class="std-item s2">2.5 ระบบดูแลช่วยเหลือนักเรียน</div>
+    <div class="std-item s2">2.6 ชุมชน / เครือข่ายมีส่วนร่วม</div>
+  </div>
+  <div class="std-block">
+    <h3>🟢 มาตรฐานที่ 3 — กระบวนการจัดการเรียนการสอน</h3>
+    <div class="std-item s3">3.1 จัดการเรียนรู้ที่หลากหลาย / เน้นผู้เรียน</div>
+    <div class="std-item s3">3.2 สื่อ นวัตกรรม และแหล่งเรียนรู้</div>
+    <div class="std-item s3">3.3 วัดและประเมินผลอย่างหลากหลาย</div>
+    <div class="std-item s3">3.4 แลกเปลี่ยนเรียนรู้ระหว่างครู (PLC)</div>
+    <div class="std-item s3">3.5 ให้บริการแนะแนว / ซ่อมเสริม</div>
+    <br>
+    <h3>🟣 หมายเหตุ</h3>
+    <div class="std-item" style="border-color:#805ad5">มาตรฐาน สพฐ. และ สมศ. ใช้กรอบมาตรฐาน 3 มาตรฐานเดียวกัน</div>
+    <div class="std-item" style="border-color:#805ad5">● = โครงการสนับสนุนมาตรฐาน/ตัวบ่งชี้นั้นโดยตรง</div>
+    <div class="std-item" style="border-color:#805ad5">◌ = ไม่เกี่ยวข้องโดยตรง</div>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ═══════════════════════════════ วิชาการ ═══════════════════════════════ -->
+<div class="group-header" style="background:#b71c1c">
+  <span>บริหารงานวิชาการ</span>
+  <span class="group-badge">4 โครงการ</span>
+</div>
+<div class="matrix-wrap">
+<table class="matrix">
+<thead>
+<tr>
+  <th class="project-col">โครงการ</th>
+  <th class="std-head-1 grp-sep" colspan="6" style="background:#fff5f5">มาตรฐาน 1 — ตัวบ่งชี้ 1.1</th>
+  <th class="std-head-1" colspan="4" style="background:#fff5f5">ตัวบ่งชี้ 1.2</th>
+  <th class="std-head-2 grp-sep" colspan="6" style="background:#ebf8ff">มาตรฐาน 2</th>
+  <th class="std-head-3 grp-sep" colspan="5" style="background:#f0fff4">มาตรฐาน 3</th>
+</tr>
+<tr>
+  <th class="project-col">ชื่อโครงการ / รหัส</th>
+  <th class="std-head-1 grp-sep" style="background:#fff5f5">ก</th>
+  <th class="std-head-1" style="background:#fff5f5">ข</th>
+  <th class="std-head-1" style="background:#fff5f5">ค</th>
+  <th class="std-head-1" style="background:#fff5f5">ง</th>
+  <th class="std-head-1" style="background:#fff5f5">จ</th>
+  <th class="std-head-1" style="background:#fff5f5">ฉ</th>
+  <th class="std-head-1" style="background:#fff5f5">1.2ก</th>
+  <th class="std-head-1" style="background:#fff5f5">1.2ข</th>
+  <th class="std-head-1" style="background:#fff5f5">1.2ค</th>
+  <th class="std-head-1" style="background:#fff5f5">1.2ง</th>
+  <th class="std-head-2 grp-sep" style="background:#ebf8ff">2.1</th>
+  <th class="std-head-2" style="background:#ebf8ff">2.2</th>
+  <th class="std-head-2" style="background:#ebf8ff">2.3</th>
+  <th class="std-head-2" style="background:#ebf8ff">2.4</th>
+  <th class="std-head-2" style="background:#ebf8ff">2.5</th>
+  <th class="std-head-2" style="background:#ebf8ff">2.6</th>
+  <th class="std-head-3 grp-sep" style="background:#f0fff4">3.1</th>
+  <th class="std-head-3" style="background:#f0fff4">3.2</th>
+  <th class="std-head-3" style="background:#f0fff4">3.3</th>
+  <th class="std-head-3" style="background:#f0fff4">3.4</th>
+  <th class="std-head-3" style="background:#f0fff4">3.5</th>
+</tr>
+</thead>
+<tbody>
+<!-- วช1 -->
+<tr>
+  <td class="project-cell"><span class="code-badge" style="background:#c62828">วช1</span>พัฒนาคุณภาพการจัดการเรียนรู้</td>
+  <td class="grp-sep"><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td class="grp-sep"><span class="dot dot-2">●</span></td>
+  <td><span class="dot dot-2">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td class="grp-sep"><span class="dot dot-3">●</span></td>
+  <td><span class="dot dot-3">●</span></td>
+  <td><span class="dot dot-3">●</span></td>
+  <td><span class="dot dot-3">●</span></td>
+  <td><span class="dot dot-3">●</span></td>
+</tr>
+<!-- วช2 -->
+<tr>
+  <td class="project-cell"><span class="code-badge" style="background:#c62828">วช2</span>ส่งเสริมคุณลักษณะตามวิถีวัฒนธรรมและจิตสำนึกที่ดี</td>
+  <td class="grp-sep"><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td class="grp-sep"><span class="dot dot-2">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-2">●</span></td>
+  <td class="grp-sep"><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+</tr>
+<!-- วช3 -->
+<tr>
+  <td class="project-cell"><span class="code-badge" style="background:#c62828">วช3</span>ส่งเสริมทักษะอาชีพและวิถีเศรษฐกิจพอเพียง</td>
+  <td class="grp-sep"><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td class="grp-sep"><span class="dot dot-2">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-2">●</span></td>
+  <td class="grp-sep"><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+</tr>
+<!-- วช4 -->
+<tr>
+  <td class="project-cell"><span class="code-badge" style="background:#c62828">วช4</span>พัฒนาระบบเทคโนโลยีสารสนเทศเพื่อการศึกษา</td>
+  <td class="grp-sep"><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td class="grp-sep"><span class="dot dot-2">●</span></td>
+  <td><span class="dot dot-2">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-2">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td class="grp-sep"><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-3">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-3">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<!-- ═══════════════════════════════ ทั่วไป ═══════════════════════════════ -->
+<div class="group-header" style="background:#6a1b9a">
+  <span>บริหารงานทั่วไป</span>
+  <span class="group-badge">3 โครงการ</span>
+</div>
+<div class="matrix-wrap">
+<table class="matrix">
+<thead>
+<tr>
+  <th class="project-col">โครงการ</th>
+  <th class="std-head-1 grp-sep" colspan="6" style="background:#fff5f5">มาตรฐาน 1 — ตัวบ่งชี้ 1.1</th>
+  <th class="std-head-1" colspan="4" style="background:#fff5f5">ตัวบ่งชี้ 1.2</th>
+  <th class="std-head-2 grp-sep" colspan="6" style="background:#ebf8ff">มาตรฐาน 2</th>
+  <th class="std-head-3 grp-sep" colspan="5" style="background:#f0fff4">มาตรฐาน 3</th>
+</tr>
+<tr>
+  <th class="project-col">ชื่อโครงการ / รหัส</th>
+  <th class="std-head-1 grp-sep" style="background:#fff5f5">ก</th>
+  <th class="std-head-1" style="background:#fff5f5">ข</th>
+  <th class="std-head-1" style="background:#fff5f5">ค</th>
+  <th class="std-head-1" style="background:#fff5f5">ง</th>
+  <th class="std-head-1" style="background:#fff5f5">จ</th>
+  <th class="std-head-1" style="background:#fff5f5">ฉ</th>
+  <th class="std-head-1" style="background:#fff5f5">1.2ก</th>
+  <th class="std-head-1" style="background:#fff5f5">1.2ข</th>
+  <th class="std-head-1" style="background:#fff5f5">1.2ค</th>
+  <th class="std-head-1" style="background:#fff5f5">1.2ง</th>
+  <th class="std-head-2 grp-sep" style="background:#ebf8ff">2.1</th>
+  <th class="std-head-2" style="background:#ebf8ff">2.2</th>
+  <th class="std-head-2" style="background:#ebf8ff">2.3</th>
+  <th class="std-head-2" style="background:#ebf8ff">2.4</th>
+  <th class="std-head-2" style="background:#ebf8ff">2.5</th>
+  <th class="std-head-2" style="background:#ebf8ff">2.6</th>
+  <th class="std-head-3 grp-sep" style="background:#f0fff4">3.1</th>
+  <th class="std-head-3" style="background:#f0fff4">3.2</th>
+  <th class="std-head-3" style="background:#f0fff4">3.3</th>
+  <th class="std-head-3" style="background:#f0fff4">3.4</th>
+  <th class="std-head-3" style="background:#f0fff4">3.5</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td class="project-cell"><span class="code-badge" style="background:#7b1fa2">บท1</span>ระบบดูแลช่วยเหลือนักเรียนและสัมพันธ์ชุมชน</td>
+  <td class="grp-sep"><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td class="grp-sep"><span class="dot dot-2">●</span></td>
+  <td><span class="dot dot-2">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-2">●</span></td>
+  <td><span class="dot dot-2">●</span></td>
+  <td class="grp-sep"><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-3">●</span></td>
+</tr>
+<tr>
+  <td class="project-cell"><span class="code-badge" style="background:#7b1fa2">บท2</span>ส่งเสริมสุขภาพ สวัสดิภาพ และความปลอดภัย</td>
+  <td class="grp-sep"><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td class="grp-sep"><span class="dot dot-2">●</span></td>
+  <td><span class="dot dot-2">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-2">●</span></td>
+  <td><span class="dot dot-2">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td class="grp-sep"><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+</tr>
+<tr>
+  <td class="project-cell"><span class="code-badge" style="background:#7b1fa2">บท3</span>พัฒนาสภาพแวดล้อม อาคาร และสิ่งอำนวยความสะดวก</td>
+  <td class="grp-sep"><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td class="grp-sep"><span class="dot dot-2">●</span></td>
+  <td><span class="dot dot-2">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-2">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td class="grp-sep"><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<!-- ═══════════════════════════════ งบประมาณ ═══════════════════════════════ -->
+<div class="group-header" style="background:#e65100">
+  <span>บริหารแผนงานและงบประมาณ</span>
+  <span class="group-badge">1 โครงการ</span>
+</div>
+<div class="matrix-wrap">
+<table class="matrix">
+<thead>
+<tr>
+  <th class="project-col">โครงการ</th>
+  <th class="std-head-1 grp-sep" colspan="6" style="background:#fff5f5">มาตรฐาน 1 — ตัวบ่งชี้ 1.1</th>
+  <th class="std-head-1" colspan="4" style="background:#fff5f5">ตัวบ่งชี้ 1.2</th>
+  <th class="std-head-2 grp-sep" colspan="6" style="background:#ebf8ff">มาตรฐาน 2</th>
+  <th class="std-head-3 grp-sep" colspan="5" style="background:#f0fff4">มาตรฐาน 3</th>
+</tr>
+<tr>
+  <th class="project-col">ชื่อโครงการ / รหัส</th>
+  <th class="std-head-1 grp-sep" style="background:#fff5f5">ก</th>
+  <th class="std-head-1" style="background:#fff5f5">ข</th>
+  <th class="std-head-1" style="background:#fff5f5">ค</th>
+  <th class="std-head-1" style="background:#fff5f5">ง</th>
+  <th class="std-head-1" style="background:#fff5f5">จ</th>
+  <th class="std-head-1" style="background:#fff5f5">ฉ</th>
+  <th class="std-head-1" style="background:#fff5f5">1.2ก</th>
+  <th class="std-head-1" style="background:#fff5f5">1.2ข</th>
+  <th class="std-head-1" style="background:#fff5f5">1.2ค</th>
+  <th class="std-head-1" style="background:#fff5f5">1.2ง</th>
+  <th class="std-head-2 grp-sep" style="background:#ebf8ff">2.1</th>
+  <th class="std-head-2" style="background:#ebf8ff">2.2</th>
+  <th class="std-head-2" style="background:#ebf8ff">2.3</th>
+  <th class="std-head-2" style="background:#ebf8ff">2.4</th>
+  <th class="std-head-2" style="background:#ebf8ff">2.5</th>
+  <th class="std-head-2" style="background:#ebf8ff">2.6</th>
+  <th class="std-head-3 grp-sep" style="background:#f0fff4">3.1</th>
+  <th class="std-head-3" style="background:#f0fff4">3.2</th>
+  <th class="std-head-3" style="background:#f0fff4">3.3</th>
+  <th class="std-head-3" style="background:#f0fff4">3.4</th>
+  <th class="std-head-3" style="background:#f0fff4">3.5</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td class="project-cell"><span class="code-badge" style="background:#ef6c00">ผง1</span>บริหารจัดการสถานศึกษาอย่างมีประสิทธิภาพ</td>
+  <td class="grp-sep"><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td class="grp-sep"><span class="dot dot-2">●</span></td>
+  <td><span class="dot dot-2">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-2">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td class="grp-sep"><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<!-- ═══════════════════════════════ บุคคล ═══════════════════════════════ -->
+<div class="group-header" style="background:#1565c0">
+  <span>บริหารงานบุคคล</span>
+  <span class="group-badge">1 โครงการ</span>
+</div>
+<div class="matrix-wrap">
+<table class="matrix">
+<thead>
+<tr>
+  <th class="project-col">โครงการ</th>
+  <th class="std-head-1 grp-sep" colspan="6" style="background:#fff5f5">มาตรฐาน 1 — ตัวบ่งชี้ 1.1</th>
+  <th class="std-head-1" colspan="4" style="background:#fff5f5">ตัวบ่งชี้ 1.2</th>
+  <th class="std-head-2 grp-sep" colspan="6" style="background:#ebf8ff">มาตรฐาน 2</th>
+  <th class="std-head-3 grp-sep" colspan="5" style="background:#f0fff4">มาตรฐาน 3</th>
+</tr>
+<tr>
+  <th class="project-col">ชื่อโครงการ / รหัส</th>
+  <th class="std-head-1 grp-sep" style="background:#fff5f5">ก</th>
+  <th class="std-head-1" style="background:#fff5f5">ข</th>
+  <th class="std-head-1" style="background:#fff5f5">ค</th>
+  <th class="std-head-1" style="background:#fff5f5">ง</th>
+  <th class="std-head-1" style="background:#fff5f5">จ</th>
+  <th class="std-head-1" style="background:#fff5f5">ฉ</th>
+  <th class="std-head-1" style="background:#fff5f5">1.2ก</th>
+  <th class="std-head-1" style="background:#fff5f5">1.2ข</th>
+  <th class="std-head-1" style="background:#fff5f5">1.2ค</th>
+  <th class="std-head-1" style="background:#fff5f5">1.2ง</th>
+  <th class="std-head-2 grp-sep" style="background:#ebf8ff">2.1</th>
+  <th class="std-head-2" style="background:#ebf8ff">2.2</th>
+  <th class="std-head-2" style="background:#ebf8ff">2.3</th>
+  <th class="std-head-2" style="background:#ebf8ff">2.4</th>
+  <th class="std-head-2" style="background:#ebf8ff">2.5</th>
+  <th class="std-head-2" style="background:#ebf8ff">2.6</th>
+  <th class="std-head-3 grp-sep" style="background:#f0fff4">3.1</th>
+  <th class="std-head-3" style="background:#f0fff4">3.2</th>
+  <th class="std-head-3" style="background:#f0fff4">3.3</th>
+  <th class="std-head-3" style="background:#f0fff4">3.4</th>
+  <th class="std-head-3" style="background:#f0fff4">3.5</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td class="project-cell"><span class="code-badge" style="background:#1976d2">บค1</span>พัฒนาสมรรถนะครูและบุคลากรทางการศึกษา</td>
+  <td class="grp-sep"><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td class="grp-sep"><span class="dot dot-2">●</span></td>
+  <td><span class="dot dot-2">●</span></td>
+  <td><span class="dot dot-2">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td class="grp-sep"><span class="dot dot-3">●</span></td>
+  <td><span class="dot dot-3">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-3">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<!-- ═══════════════════════════════ กิจกรรมพัฒนาผู้เรียน ═══════════════════════════════ -->
+<div class="group-header" style="background:#1a6b3a">
+  <span>กิจกรรมพัฒนาผู้เรียน</span>
+  <span class="group-badge">7 โครงการ</span>
+</div>
+<div class="matrix-wrap">
+<table class="matrix">
+<thead>
+<tr>
+  <th class="project-col">โครงการ</th>
+  <th class="std-head-1 grp-sep" colspan="6" style="background:#fff5f5">มาตรฐาน 1 — ตัวบ่งชี้ 1.1</th>
+  <th class="std-head-1" colspan="4" style="background:#fff5f5">ตัวบ่งชี้ 1.2</th>
+  <th class="std-head-2 grp-sep" colspan="6" style="background:#ebf8ff">มาตรฐาน 2</th>
+  <th class="std-head-3 grp-sep" colspan="5" style="background:#f0fff4">มาตรฐาน 3</th>
+</tr>
+<tr>
+  <th class="project-col">ชื่อโครงการ / รหัส</th>
+  <th class="std-head-1 grp-sep" style="background:#fff5f5">ก</th>
+  <th class="std-head-1" style="background:#fff5f5">ข</th>
+  <th class="std-head-1" style="background:#fff5f5">ค</th>
+  <th class="std-head-1" style="background:#fff5f5">ง</th>
+  <th class="std-head-1" style="background:#fff5f5">จ</th>
+  <th class="std-head-1" style="background:#fff5f5">ฉ</th>
+  <th class="std-head-1" style="background:#fff5f5">1.2ก</th>
+  <th class="std-head-1" style="background:#fff5f5">1.2ข</th>
+  <th class="std-head-1" style="background:#fff5f5">1.2ค</th>
+  <th class="std-head-1" style="background:#fff5f5">1.2ง</th>
+  <th class="std-head-2 grp-sep" style="background:#ebf8ff">2.1</th>
+  <th class="std-head-2" style="background:#ebf8ff">2.2</th>
+  <th class="std-head-2" style="background:#ebf8ff">2.3</th>
+  <th class="std-head-2" style="background:#ebf8ff">2.4</th>
+  <th class="std-head-2" style="background:#ebf8ff">2.5</th>
+  <th class="std-head-2" style="background:#ebf8ff">2.6</th>
+  <th class="std-head-3 grp-sep" style="background:#f0fff4">3.1</th>
+  <th class="std-head-3" style="background:#f0fff4">3.2</th>
+  <th class="std-head-3" style="background:#f0fff4">3.3</th>
+  <th class="std-head-3" style="background:#f0fff4">3.4</th>
+  <th class="std-head-3" style="background:#f0fff4">3.5</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td class="project-cell"><span class="code-badge" style="background:#2e7d32">ก1</span>พัฒนาทักษะวิชาการและสมรรถนะผู้เรียนรอบด้าน</td>
+  <td class="grp-sep"><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td class="grp-sep"><span class="dot dot-2">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td class="grp-sep"><span class="dot dot-3">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-3">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-3">●</span></td>
+</tr>
+<tr>
+  <td class="project-cell"><span class="code-badge" style="background:#2e7d32">ก2</span>ส่งเสริมการเรียนรู้ด้านภาษาและวัฒนธรรมประเพณี</td>
+  <td class="grp-sep"><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td class="grp-sep"><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td class="grp-sep"><span class="dot dot-3">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+</tr>
+<tr>
+  <td class="project-cell"><span class="code-badge" style="background:#2e7d32">ก3</span>พัฒนาศักยภาพด้านศิลปะ ดนตรี และการแสดง</td>
+  <td class="grp-sep"><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td class="grp-sep"><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td class="grp-sep"><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+</tr>
+<tr>
+  <td class="project-cell"><span class="code-badge" style="background:#2e7d32">ก4</span>พัฒนาคุณธรรม จริยธรรม ลูกเสือ เนตรนารี ยุวกาชาด และ นศท.</td>
+  <td class="grp-sep"><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td class="grp-sep"><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-2">●</span></td>
+  <td class="grp-sep"><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+</tr>
+<tr>
+  <td class="project-cell"><span class="code-badge" style="background:#2e7d32">ก5</span>ทัศนศึกษาแหล่งเรียนรู้นอกสถานที่</td>
+  <td class="grp-sep"><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td class="grp-sep"><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td class="grp-sep"><span class="dot dot-3">●</span></td>
+  <td><span class="dot dot-3">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+</tr>
+<tr>
+  <td class="project-cell"><span class="code-badge" style="background:#2e7d32">ก6</span>ส่งเสริมการเรียนรู้วิทยาศาสตร์และสิ่งแวดล้อม</td>
+  <td class="grp-sep"><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td class="grp-sep"><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td class="grp-sep"><span class="dot dot-3">●</span></td>
+  <td><span class="dot dot-3">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+</tr>
+<tr>
+  <td class="project-cell"><span class="code-badge" style="background:#2e7d32">ก7</span>ส่งเสริมทักษะดิจิทัลและนวัตกรรมการเรียนรู้</td>
+  <td class="grp-sep"><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-1">●</span></td>
+  <td class="grp-sep"><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td class="grp-sep"><span class="dot dot-3">●</span></td>
+  <td><span class="dot dot-3">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+  <td><span class="dot dot-3">●</span></td>
+  <td><span class="dot dot-n">◌</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<!-- ═══════════════════════════════ Summary ═══════════════════════════════ -->
+<div style="margin-top:36px; background:white; border-radius:12px; padding:24px 24px 28px; box-shadow:0 2px 10px rgba(0,0,0,0.08);">
+  <div style="font-size:1.05em; font-weight:700; color:#2d3748; margin-bottom:6px;">📋 สรุปการครอบคลุมมาตรฐานรายมาตรฐาน</div>
+  <p style="font-size:0.83em; color:#718096; margin-bottom:20px;">จำนวนโครงการที่สนับสนุนแต่ละมาตรฐาน/ตัวบ่งชี้ (จาก 16 โครงการ)</p>
+  <div class="summary-grid">
+    <div class="summary-card" style="border-color:#e53e3e;">
+      <h3 style="color:#c53030">🔴 มาตรฐาน 1 — คุณภาพของผู้เรียน</h3>
+      <ul>
+        <li>1.1 ก) ผลสัมฤทธิ์ทางการเรียน — <strong>5 โครงการ</strong> (วช1, ก1, ก6, ก7, ก5)</li>
+        <li>1.1 ข) การอ่าน-การเขียน — <strong>3 โครงการ</strong> (วช1, ก1, ก2)</li>
+        <li>1.1 ค) การคิดคำนวณ — <strong>2 โครงการ</strong> (วช1, ก1)</li>
+        <li>1.1 ง) การคิดขั้นสูง — <strong>6 โครงการ</strong> (วช1, วช3, ก1, ก5, ก6, ก7)</li>
+        <li>1.1 จ) ทักษะวิชาชีพ/ชีวิต — <strong>3 โครงการ</strong> (วช3, ก1, ก3)</li>
+        <li>1.1 ฉ) ICT/ภาษาต่างประเทศ — <strong>4 โครงการ</strong> (วช4, ก2, ก7, วช1)</li>
+        <li>1.2 ก) คุณธรรมและค่านิยม — <strong>7 โครงการ</strong> (วช2, วช3, บท1, บท2, ก2, ก3, ก4)</li>
+        <li>1.2 ข) จิตสาธารณะ/ผู้นำ — <strong>8 โครงการ</strong> (วช2, วช3, บท1, บท2, บค1, ก1, ก2, ก4)</li>
+        <li>1.2 ค) สุขภาวะที่ดี — <strong>5 โครงการ</strong> (บท1, บท2, บท3, ก6, ก1)</li>
+        <li>1.2 ง) ทักษะศตวรรษ 21 — <strong>8 โครงการ</strong> (วช1, วช2, วช3, วช4, ก1, ก2, ก3, ก7)</li>
+      </ul>
+    </div>
+    <div class="summary-card" style="border-color:#3182ce;">
+      <h3 style="color:#2b6cb0">🔵 มาตรฐาน 2 — กระบวนการบริหารและจัดการ</h3>
+      <ul>
+        <li>2.1 เป้าหมาย/วิสัยทัศน์ชัดเจน — <strong>8 โครงการ</strong> (วช1–4, ผง1, บท1-3, ก1)</li>
+        <li>2.2 ระบบบริหารคุณภาพ — <strong>8 โครงการ</strong> (วช1, วช4, ผง1, บท1-3, บค1, ก1 ฯลฯ)</li>
+        <li>2.3 พัฒนาครูและบุคลากร — <strong>2 โครงการ</strong> (บค1, วช1)</li>
+        <li>2.4 ทรัพยากร/สภาพแวดล้อม — <strong>4 โครงการ</strong> (วช4, ผง1, บท2, บท3)</li>
+        <li>2.5 ระบบดูแลช่วยเหลือ — <strong>3 โครงการ</strong> (บท1, บท2, วช1 ผ่านแนะแนว)</li>
+        <li>2.6 ชุมชน/เครือข่าย — <strong>4 โครงการ</strong> (วช2, วช3, บท1, ก4)</li>
+      </ul>
+    </div>
+    <div class="summary-card" style="border-color:#38a169;">
+      <h3 style="color:#276749">🟢 มาตรฐาน 3 — กระบวนการจัดการเรียนการสอน</h3>
+      <ul>
+        <li>3.1 จัดการเรียนรู้หลากหลาย — <strong>6 โครงการ</strong> (วช1, บค1, ก1, ก2, ก5, ก6, ก7)</li>
+        <li>3.2 สื่อ/นวัตกรรม — <strong>6 โครงการ</strong> (วช1, วช4, บค1, ก5, ก6, ก7)</li>
+        <li>3.3 วัดผลหลากหลาย — <strong>2 โครงการ</strong> (วช1, ก1)</li>
+        <li>3.4 PLC ครู — <strong>4 โครงการ</strong> (วช1, วช4, บค1, ก7)</li>
+        <li>3.5 แนะแนว/ซ่อมเสริม — <strong>2 โครงการ</strong> (วช1, บท1)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+</div><!-- /container -->
+<div class="footer">จัดทำโดย แผนงานและงบประมาณ โรงเรียนวังกระแสวิทยาคม • ปีการศึกษา 2569 • อ้างอิง: มาตรฐานการศึกษาระดับการศึกษาขั้นพื้นฐาน สพฐ./สมศ.</div>
+</body>
+</html>
