@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ข้อมูลสารสนเทศบุคลากร ภาคเรียนที่ 1 ปีการศึกษา 2569 | โรงเรียนวังกระแสวิทยาคม</title>
+<meta name="description" content="ข้อมูลสารสนเทศบุคลากรครูและบุคลากรทางการศึกษา โรงเรียนวังกระแสวิทยาคม ภาคเรียนที่ 1 ปีการศึกษา 2569" />
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --primary:#0b3d91;          /* น้ำเงินเข้ม */
+    --primary-2:#1d4fb8;
+    --accent:#f5b301;           /* เหลืองทอง */
+    --accent-2:#e0a800;
+    --bg:#f5f7fb;
+    --card:#ffffff;
+    --text:#1f2937;
+    --muted:#6b7280;
+    --line:#e5e7eb;
+    --shadow:0 6px 18px rgba(11,61,145,0.08);
+    --shadow-hover:0 14px 30px rgba(11,61,145,0.16);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Sarabun','Prompt','Segoe UI',Tahoma,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.55;
+  }
+  /* ===== Header ===== */
+  .site-header{
+    background:linear-gradient(135deg,var(--primary) 0%,var(--primary-2) 60%,#2a63cf 100%);
+    color:#fff;
+    padding:36px 20px 56px;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+  }
+  .site-header::before{
+    content:"";
+    position:absolute;inset:0;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(255,255,255,0.10) 0, transparent 35%),
+      radial-gradient(circle at 85% 80%, rgba(245,179,1,0.18) 0, transparent 40%);
+    pointer-events:none;
+  }
+  .site-header .school{
+    font-family:'Prompt',sans-serif;
+    font-weight:600;
+    letter-spacing:.5px;
+    font-size:1rem;
+    opacity:.9;
+  }
+  .site-header h1{
+    font-family:'Prompt',sans-serif;
+    font-size:clamp(1.6rem,3.2vw,2.4rem);
+    margin:8px 0 6px;
+    font-weight:700;
+    text-shadow:0 2px 8px rgba(0,0,0,.18);
+  }
+  .site-header .subtitle{
+    font-size:1.05rem;
+    opacity:.95;
+  }
+  .site-header .badge{
+    display:inline-block;
+    margin-top:14px;
+    padding:6px 16px;
+    background:var(--accent);
+    color:#1f2937;
+    border-radius:999px;
+    font-weight:600;
+    font-size:.95rem;
+    box-shadow:0 4px 10px rgba(0,0,0,.15);
+  }
+  /* ===== Main ===== */
+  main{
+    max-width:1280px;
+    margin:-32px auto 0;
+    padding:0 20px 40px;
+    position:relative;
+    z-index:1;
+  }
+  .summary{
+    background:var(--card);
+    border-radius:16px;
+    padding:18px 22px;
+    box-shadow:var(--shadow);
+    display:flex;
+    flex-wrap:wrap;
+    gap:14px;
+    justify-content:space-around;
+    margin-bottom:32px;
+    border:1px solid var(--line);
+  }
+  .stat{
+    text-align:center;
+    flex:1 1 140px;
+    padding:6px 8px;
+  }
+  .stat .num{
+    font-family:'Prompt',sans-serif;
+    font-size:1.8rem;
+    font-weight:700;
+    color:var(--primary);
+    line-height:1.1;
+  }
+  .stat .lbl{
+    font-size:.92rem;
+    color:var(--muted);
+    margin-top:2px;
+  }
+  /* ===== Section ===== */
+  .section{
+    margin-top:30px;
+  }
+  .section-title{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom:18px;
+  }
+  .section-title h2{
+    font-family:'Prompt',sans-serif;
+    color:var(--primary);
+    font-size:1.35rem;
+    margin:0;
+    font-weight:600;
+  }
+  .section-title .line{
+    flex:1;
+    height:2px;
+    background:linear-gradient(90deg,var(--accent) 0%,transparent 100%);
+    border-radius:2px;
+  }
+  /* ===== Card grid ===== */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+    gap:22px;
+  }
+  .card{
+    background:var(--card);
+    border-radius:16px;
+    padding:22px 16px 18px;
+    text-align:center;
+    box-shadow:var(--shadow);
+    transition:transform .25s ease,box-shadow .25s ease;
+    border:1px solid var(--line);
+    position:relative;
+  }
+  .card:hover{
+    transform:translateY(-4px);
+    box-shadow:var(--shadow-hover);
+  }
+  .card .photo{
+    width:128px;height:128px;
+    border-radius:50%;
+    overflow:hidden;
+    margin:0 auto 14px;
+    background:#e5e7eb;
+    border:4px solid #fff;
+    box-shadow:0 0 0 3px var(--accent), 0 6px 14px rgba(0,0,0,.12);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .card .photo img{
+    width:100%;height:100%;object-fit:cover;display:block;
+  }
+  .card .photo .placeholder{
+    width:70%;height:70%;color:#9ca3af;
+  }
+  .card .name{
+    font-family:'Prompt',sans-serif;
+    font-weight:600;
+    font-size:1.02rem;
+    color:var(--text);
+    margin:4px 0 6px;
+    min-height:2.5em;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .card .position{
+    color:var(--primary);
+    font-weight:600;
+    font-size:.92rem;
+    margin-bottom:2px;
+  }
+  .card .rank{
+    color:var(--muted);
+    font-size:.85rem;
+    line-height:1.35;
+    min-height:1.2em;
+  }
+  /* Highlight director / deputy */
+  .card.featured{
+    background:linear-gradient(180deg,#fff 65%,rgba(245,179,1,.08) 100%);
+    border:1px solid rgba(245,179,1,.4);
+  }
+  .card.featured .photo{
+    width:160px;height:160px;
+    box-shadow:0 0 0 4px var(--accent), 0 8px 18px rgba(0,0,0,.18);
+  }
+  .card.featured .name{font-size:1.1rem}
+  .card.director{
+    background:linear-gradient(180deg,#fff 60%,rgba(11,61,145,.06) 100%);
+    border:1px solid rgba(11,61,145,.3);
+  }
+  /* ===== Footer ===== */
+  footer{
+    margin-top:40px;
+    background:linear-gradient(135deg,#0a2c69 0%,var(--primary) 100%);
+    color:#dbe4f5;
+    padding:30px 20px;
+    text-align:center;
+  }
+  footer .school-name{
+    font-family:'Prompt',sans-serif;
+    font-weight:600;
+    color:#fff;
+    font-size:1.1rem;
+    margin-bottom:6px;
+  }
+  footer .meta{font-size:.95rem;opacity:.9}
+  footer .credit{font-size:.85rem;opacity:.75;margin-top:10px}
+  /* Responsive tweaks */
+  @media (max-width:520px){
+    .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px}
+    .card{padding:16px 10px 14px}
+    .card .photo{width:104px;height:104px}
+    .card.featured .photo{width:124px;height:124px}
+    .card .name{font-size:.95rem}
+  }
+  /* Print */
+  @media print{
+    body{background:#fff}
+    .card{box-shadow:none;border:1px solid #ddd}
+    .site-header,footer{background:#fff;color:#000}
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="school">โรงเรียนวังกระแสวิทยาคม</div>
+  <h1>ข้อมูลสารสนเทศบุคลากร</h1>
+  <div class="subtitle">ภาคเรียนที่ 1 ปีการศึกษา 2569</div>
+  <span class="badge">งานบุคคล</span>
+</header>
+
+<main>
+  <!-- สรุปข้อมูล -->
+  <section class="summary" aria-label="สรุปจำนวนบุคลากร">
+    <div class="stat"><div class="num">23</div><div class="lbl">บุคลากรทั้งหมด</div></div>
+    <div class="stat"><div class="num">1</div><div class="lbl">ผู้อำนวยการสถานศึกษา</div></div>
+    <div class="stat"><div class="num">1</div><div class="lbl">รองผู้อำนวยการ</div></div>
+    <div class="stat"><div class="num">16</div><div class="lbl">ข้าราชการครู</div></div>
+    <div class="stat"><div class="num">5</div><div class="lbl">พนักงานราชการและลูกจ้างชั่วคราว</div></div>
+  </section>
+
+  <!-- ผู้บริหารสถานศึกษา -->
+  <section class="section">
+    <div class="section-title">
+      <h2>ผู้บริหารสถานศึกษา</h2>
+      <span class="line"></span>
+    </div>
+    <div class="grid">
+
+      <article class="card featured director">
+        <div class="photo"><img src="images/p01.jpg" alt="นางนฤมล ทัดสา" loading="lazy" /></div>
+        <div class="name">นางนฤมล ทัดสา</div>
+        <div class="position">ผู้อำนวยการสถานศึกษา</div>
+        <div class="rank">ผู้อำนวยการสถานศึกษาชำนาญการพิเศษ</div>
+      </article>
+
+      <article class="card featured">
+        <div class="photo"><img src="images/p02.jpg" alt="นางสาวชุติยรัชย์ ทาตะรัตน์" loading="lazy" /></div>
+        <div class="name">นางสาวชุติยรัชย์ ทาตะรัตน์</div>
+        <div class="position">รองผู้อำนวยการสถานศึกษา</div>
+        <div class="rank">รองผู้อำนวยการสถานศึกษาชำนาญการพิเศษ</div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ครู -->
+  <section class="section">
+    <div class="section-title">
+      <h2>ข้าราชการครู</h2>
+      <span class="line"></span>
+    </div>
+    <div class="grid">
+
+      <article class="card">
+        <div class="photo"><img src="images/p03.jpg" alt="นายวรสิทธิ์ กิจเจริญ" loading="lazy" /></div>
+        <div class="name">นายวรสิทธิ์ กิจเจริญ</div>
+        <div class="position">ครู</div>
+        <div class="rank">ครูชำนาญการพิเศษ</div>
+      </article>
+
+      <article class="card">
+        <div class="photo"><img src="images/p04.jpg" alt="นายชัชพงศ์ ไชยรัตน์" loading="lazy" /></div>
+        <div class="name">นายชัชพงศ์ ไชยรัตน์</div>
+        <div class="position">ครู</div>
+        <div class="rank">ครูชำนาญการพิเศษ</div>
+      </article>
+
+      <article class="card">
+        <div class="photo"><img src="images/p05.jpg" alt="นางสาวสุทธิดา เชื้อชาติ" loading="lazy" /></div>
+        <div class="name">นางสาวสุทธิดา เชื้อชาติ</div>
+        <div class="position">ครู</div>
+        <div class="rank">ครูชำนาญการ</div>
+      </article>
+
+      <article class="card">
+        <div class="photo"><img src="images/p06.jpg" alt="นางสาวรัตนา บุญรอด" loading="lazy" /></div>
+        <div class="name">นางสาวรัตนา บุญรอด</div>
+        <div class="position">ครู</div>
+        <div class="rank">ครูชำนาญการ</div>
+      </article>
+
+      <article class="card">
+        <div class="photo"><img src="images/p07.jpg" alt="นางสาวอนัญชุดา วราคุณาศัย" loading="lazy" /></div>
+        <div class="name">นางสาวอนัญชุดา วราคุณาศัย</div>
+        <div class="position">ครู</div>
+        <div class="rank">ครูชำนาญการ</div>
+      </article>
+
+      <article class="card">
+        <div class="photo"><img src="images/p08.jpg" alt="นายอนุพงศ์ ไชยบุตร" loading="lazy" /></div>
+        <div class="name">นายอนุพงศ์ ไชยบุตร</div>
+        <div class="position">ครู</div>
+        <div class="rank">ครูชำนาญการ</div>
+      </article>
+
+      <article class="card">
+        <div class="photo"><img src="images/p09.jpg" alt="นางมิรัณตี อัมพา" loading="lazy" /></div>
+        <div class="name">นางมิรัณตี อัมพา</div>
+        <div class="position">ครู</div>
+        <div class="rank">ครูชำนาญการ</div>
+      </article>
+
+      <article class="card">
+        <div class="photo">
+          <svg class="placeholder" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 2.4c-3.3 0-9.8 1.6-9.8 4.9V22h19.6v-2.7c0-3.3-6.5-4.9-9.8-4.9z"/></svg>
+        </div>
+        <div class="name">นางสาวอลิษา ไชยธรรม</div>
+        <div class="position">ครู</div>
+        <div class="rank">ครูชำนาญการ</div>
+      </article>
+
+      <article class="card">
+        <div class="photo"><img src="images/p10.jpg" alt="นางสุภาวดี วรรณวงศ์" loading="lazy" /></div>
+        <div class="name">นางสุภาวดี วรรณวงศ์</div>
+        <div class="position">ครู</div>
+        <div class="rank"></div>
+      </article>
+
+      <article class="card">
+        <div class="photo"><img src="images/p11.jpg" alt="นางสาววิชุตา คำสิงสัย" loading="lazy" /></div>
+        <div class="name">นางสาววิชุตา คำสิงสัย</div>
+        <div class="position">ครู</div>
+        <div class="rank"></div>
+      </article>
+
+      <article class="card">
+        <div class="photo"><img src="images/p12.jpg" alt="นางสาวเนตรชนก จารุโกน" loading="lazy" /></div>
+        <div class="name">นางสาวเนตรชนก จารุโกน</div>
+        <div class="position">ครู</div>
+        <div class="rank"></div>
+      </article>
+
+      <article class="card">
+        <div class="photo"><img src="images/p13.jpg" alt="นายศิริชัย ลี้พล" loading="lazy" /></div>
+        <div class="name">นายศิริชัย ลี้พล</div>
+        <div class="position">ครู</div>
+        <div class="rank"></div>
+      </article>
+
+      <article class="card">
+        <div class="photo"><img src="images/p14.jpg" alt="นางสาวทักษญา วรเชษฐ์" loading="lazy" /></div>
+        <div class="name">นางสาวทักษญา วรเชษฐ์</div>
+        <div class="position">ครู</div>
+        <div class="rank"></div>
+      </article>
+
+      <article class="card">
+        <div class="photo"><img src="images/p15.jpg" alt="นายวิชชุกร อินทรเทศ" loading="lazy" /></div>
+        <div class="name">นายวิชชุกร อินทรเทศ</div>
+        <div class="position">ครูผู้ช่วย</div>
+        <div class="rank"></div>
+      </article>
+
+      <article class="card">
+        <div class="photo"><img src="images/p16.jpg" alt="นายรัฐศาสตร์ มลาศาสตร์" loading="lazy" /></div>
+        <div class="name">นายรัฐศาสตร์ มลาศาสตร์</div>
+        <div class="position">ครูผู้ช่วย</div>
+        <div class="rank"></div>
+      </article>
+
+      <article class="card">
+        <div class="photo"><img src="images/p17.jpg" alt="นางสาวปรารถนา ยุบลพันธุ์" loading="lazy" /></div>
+        <div class="name">นางสาวปรารถนา ยุบลพันธุ์</div>
+        <div class="position">ครูผู้ช่วย</div>
+        <div class="rank"></div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- พนักงานราชการและลูกจ้างชั่วคราว -->
+  <section class="section">
+    <div class="section-title">
+      <h2>พนักงานราชการและลูกจ้างชั่วคราว</h2>
+      <span class="line"></span>
+    </div>
+    <div class="grid">
+
+      <article class="card">
+        <div class="photo">
+          <svg class="placeholder" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 2.4c-3.3 0-9.8 1.6-9.8 4.9V22h19.6v-2.7c0-3.3-6.5-4.9-9.8-4.9z"/></svg>
+        </div>
+        <div class="name">นางกานต์สินี จันอบ</div>
+        <div class="position">ครูอัตราจ้าง</div>
+        <div class="rank"></div>
+      </article>
+
+      <article class="card">
+        <div class="photo"><img src="images/p18.jpg" alt="นางสาวธันยกานต์ สีคะ" loading="lazy" /></div>
+        <div class="name">นางสาวธันยกานต์ สีคะ</div>
+        <div class="position">พี่เลี้ยงเด็กพิการ</div>
+        <div class="rank"></div>
+      </article>
+
+      <article class="card">
+        <div class="photo"><img src="images/p19.jpg" alt="นางสาวนภาลัย นาบุญ" loading="lazy" /></div>
+        <div class="name">นางสาวนภาลัย นาบุญ</div>
+        <div class="position">เจ้าหน้าที่ธุรการ</div>
+        <div class="rank"></div>
+      </article>
+
+      <article class="card">
+        <div class="photo">
+          <svg class="placeholder" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 2.4c-3.3 0-9.8 1.6-9.8 4.9V22h19.6v-2.7c0-3.3-6.5-4.9-9.8-4.9z"/></svg>
+        </div>
+        <div class="name">นายคมจิต เหลาศรี</div>
+        <div class="position">พนักงานราชการ / นักการภารโรง</div>
+        <div class="rank"></div>
+      </article>
+
+      <article class="card">
+        <div class="photo">
+          <svg class="placeholder" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 2.4c-3.3 0-9.8 1.6-9.8 4.9V22h19.6v-2.7c0-3.3-6.5-4.9-9.8-4.9z"/></svg>
+        </div>
+        <div class="name">นายกิจติ ปาวัน</div>
+        <div class="position">นักการภารโรง</div>
+        <div class="rank"></div>
+      </article>
+
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="school-name">โรงเรียนวังกระแสวิทยาคม</div>
+  <div class="meta">งานบุคคล • ข้อมูลสารสนเทศบุคลากร ภาคเรียนที่ 1 ปีการศึกษา 2569</div>
+  <div class="credit">ข้อมูล ณ วันที่ปรับปรุง: เมษายน 2569</div>
+</footer>
+
+</body>
+</html>
