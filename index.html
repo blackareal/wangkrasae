@@ -59,15 +59,22 @@
     .hero-inner { position: relative; max-width: 800px; margin: 0 auto; }
 
     .school-emblem {
-      width: 72px; height: 72px;
-      background: rgba(255,255,255,.12);
-      border: 2.5px solid rgba(255,255,255,.3);
+      width: 96px; height: 96px;
+      background: rgba(255,255,255,.95);
+      border: 2.5px solid rgba(255,255,255,.45);
       border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      font-size: 34px;
       margin: 0 auto 18px;
       backdrop-filter: blur(4px);
-      box-shadow: 0 4px 20px rgba(0,0,0,.2);
+      box-shadow: 0 6px 24px rgba(0,0,0,.25);
+      overflow: hidden;
+      padding: 6px;
+    }
+    .school-emblem img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
     }
 
     .hero h1 {
@@ -301,7 +308,9 @@
 <!-- ══ HERO ══ -->
 <header class="hero">
   <div class="hero-inner">
-    <div class="school-emblem">🏫</div>
+    <div class="school-emblem">
+      <img src="images/Logo.png" alt="โลโก้โรงเรียนวังกระแสวิทยาคม" />
+    </div>
     <h1>โรงเรียนวังกระแสวิทยาคม</h1>
     <p class="subtitle">ระบบสารสนเทศงานแผนและงบประมาณ</p>
     <div class="hero-chips">
