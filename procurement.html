@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบงานพัสดุ - โรงเรียนวังกระแสวิทยาคม</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --primary:#1e3a5f;--primary-light:#2d5a8e;--accent:#f39c12;
+  --success:#27ae60;--danger:#e74c3c;--warning:#f39c12;--info:#3498db;
+  --bg:#f0f2f5;--card:#fff;--text:#333;--text-light:#666;--border:#e0e0e0;
+  --sidebar-w:240px
+}
+body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh}
+a{text-decoration:none;color:inherit}
+
+/* SIDEBAR */
+#sidebar{width:var(--sidebar-w);background:var(--primary);color:#fff;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;transition:.3s}
+#sidebar .brand{padding:20px 16px;border-bottom:1px solid rgba(255,255,255,.15);display:flex;align-items:center;gap:10px}
+#sidebar .brand .icon{font-size:28px}
+#sidebar .brand h1{font-size:14px;line-height:1.4;font-weight:700}
+#sidebar .brand p{font-size:11px;opacity:.7;margin-top:2px}
+#sidebar nav{flex:1;overflow-y:auto;padding:8px 0}
+#sidebar nav .section-label{font-size:10px;opacity:.5;padding:12px 16px 4px;text-transform:uppercase;letter-spacing:1px}
+#sidebar nav a{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:13px;cursor:pointer;transition:.15s;border-left:3px solid transparent}
+#sidebar nav a:hover{background:rgba(255,255,255,.1)}
+#sidebar nav a.active{background:rgba(255,255,255,.15);border-left-color:var(--accent)}
+#sidebar nav a .nav-icon{font-size:16px;width:20px;text-align:center}
+#sidebar .sidebar-footer{padding:12px 16px;border-top:1px solid rgba(255,255,255,.15);font-size:11px;opacity:.6}
+
+/* MAIN */
+#main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh}
+#topbar{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+#topbar h2{font-size:18px;font-weight:700;color:var(--primary)}
+#topbar .topbar-right{display:flex;align-items:center;gap:12px}
+#topbar .badge{background:var(--danger);color:#fff;border-radius:50%;width:20px;height:20px;font-size:11px;display:flex;align-items:center;justify-content:center}
+#content{padding:24px;flex:1}
+
+/* CARDS */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.06);border-left:4px solid transparent}
+.stat-card.blue{border-left-color:var(--info)}
+.stat-card.green{border-left-color:var(--success)}
+.stat-card.orange{border-left-color:var(--warning)}
+.stat-card.red{border-left-color:var(--danger)}
+.stat-card .label{font-size:12px;color:var(--text-light);margin-bottom:6px}
+.stat-card .value{font-size:24px;font-weight:700;color:var(--primary)}
+.stat-card .sub{font-size:11px;color:var(--text-light);margin-top:4px}
+
+/* TABLES */
+.card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);overflow:hidden;margin-bottom:20px}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.card-header h3{font-size:15px;font-weight:700;color:var(--primary)}
+.card-body{padding:16px 20px}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f8f9fa;padding:10px 12px;text-align:left;font-weight:600;color:var(--text-light);font-size:12px;border-bottom:2px solid var(--border);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafafa}
+
+/* BADGES */
+.badge-pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.badge-success{background:#e8f8f0;color:#27ae60}
+.badge-warning{background:#fff8e6;color:#f39c12}
+.badge-danger{background:#fdecea;color:#e74c3c}
+.badge-info{background:#e8f4fd;color:#2980b9}
+.badge-secondary{background:#f0f0f0;color:#666}
+.badge-purple{background:#f3e8fd;color:#8e44ad}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:.15s}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-light)}
+.btn-success{background:var(--success);color:#fff}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-outline{background:#fff;color:var(--primary);border:1px solid var(--border)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-xs{padding:3px 8px;font-size:11px}
+
+/* FORMS */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group label{font-size:12px;font-weight:600;color:var(--text-light)}
+.form-group input,.form-group select,.form-group textarea{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;width:100%;outline:none;transition:.15s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--primary-light);box-shadow:0 0 0 3px rgba(45,90,142,.1)}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:16px;width:min(700px,95vw);max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-header h3{font-size:16px;font-weight:700;color:var(--primary)}
+.modal-body{padding:24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+.close-btn{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-light);padding:4px}
+
+/* ALERTS */
+.alert{padding:12px 16px;border-radius:8px;font-size:13px;display:flex;align-items:flex-start;gap:8px;margin-bottom:12px}
+.alert-warning{background:#fff8e6;border:1px solid #f39c12;color:#856404}
+.alert-danger{background:#fdecea;border:1px solid #e74c3c;color:#721c24}
+.alert-info{background:#e8f4fd;border:1px solid #3498db;color:#0c5460}
+.alert-success{background:#e8f8f0;border:1px solid #27ae60;color:#155724}
+
+/* PROGRESS */
+.progress{background:#e9ecef;border-radius:10px;height:8px;overflow:hidden}
+.progress-bar{height:100%;border-radius:10px;transition:.3s}
+
+/* SEARCH/FILTER BAR */
+.filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.filter-bar input,.filter-bar select{padding:7px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit}
+.filter-bar input{flex:1;min-width:200px}
+
+/* TABS */
+.tabs{display:flex;gap:4px;border-bottom:2px solid var(--border);margin-bottom:20px}
+.tab{padding:10px 16px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text-light);border-bottom:2px solid transparent;margin-bottom:-2px;transition:.15s}
+.tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+
+/* DEPRECIATION */
+.depr-bar{background:#e9ecef;border-radius:10px;height:6px;overflow:hidden;margin-top:4px}
+.depr-fill{height:100%;border-radius:10px}
+
+/* PRINT */
+@media print{
+  #sidebar,#topbar,.btn,.filter-bar,.card-header .btn{display:none!important}
+  #main{margin-left:0}
+  #content{padding:0}
+  .card{box-shadow:none;border:1px solid #ddd}
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:#f0f0f0}
+::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
+
+.text-right{text-align:right}
+.text-center{text-align:center}
+.text-muted{color:var(--text-light)}
+.fw-bold{font-weight:700}
+.mt-4{margin-top:16px}
+.gap-8{gap:8px}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="brand">
+    <div class="icon">📦</div>
+    <div>
+      <h1>ระบบงานพัสดุ</h1>
+      <p>โรงเรียนวังกระแสวิทยาคม</p>
+    </div>
+  </div>
+  <nav>
+    <a href="#dashboard" class="nav-link active" onclick="navigate('dashboard')"><span class="nav-icon">📊</span> แดชบอร์ด</a>
+    <div class="section-label">จัดซื้อจัดจ้าง</div>
+    <a href="#procurement" class="nav-link" onclick="navigate('procurement')"><span class="nav-icon">🛒</span> ทะเบียนจัดซื้อจัดจ้าง</a>
+    <a href="#contracts" class="nav-link" onclick="navigate('contracts')"><span class="nav-icon">📋</span> บริหารสัญญา</a>
+    <div class="section-label">ทรัพย์สิน</div>
+    <a href="#assets" class="nav-link" onclick="navigate('assets')"><span class="nav-icon">🖥️</span> ทะเบียนครุภัณฑ์</a>
+    <a href="#supplies" class="nav-link" onclick="navigate('supplies')"><span class="nav-icon">📦</span> บัญชีวัสดุ/คลัง</a>
+    <div class="section-label">เอกสาร</div>
+    <a href="#documents" class="nav-link" onclick="navigate('documents')"><span class="nav-icon">📄</span> สร้างเอกสาร</a>
+    <a href="#vendors" class="nav-link" onclick="navigate('vendors')"><span class="nav-icon">🏪</span> ทะเบียนผู้ขาย</a>
+    <div class="section-label">รายงาน</div>
+    <a href="#reports" class="nav-link" onclick="navigate('reports')"><span class="nav-icon">📈</span> รายงานสรุป</a>
+    <a href="#audit" class="nav-link" onclick="navigate('audit')"><span class="nav-icon">🔍</span> Audit Trail</a>
+  </nav>
+  <div class="sidebar-footer">ปีงบประมาณ 2569 · พรบ.จัดซื้อฯ 2560</div>
+</nav>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="topbar">
+    <h2 id="page-title">แดชบอร์ด</h2>
+    <div class="topbar-right">
+      <span style="font-size:12px;color:var(--text-light)" id="budget-quick"></span>
+      <button class="btn btn-outline btn-sm" onclick="exportData()">⬇ Export</button>
+    </div>
+  </div>
+  <div id="content"></div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">ฟอร์ม</h3>
+      <button class="close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const SCHOOL = {
+  name: 'โรงเรียนวังกระแสวิทยาคม',
+  short: 'วสว.',
+  address: 'ตำบลวังกระแส อำเภอรัตนวาปี จังหวัดหนองคาย',
+  budget2569: 1378520,
+  budgetCarry: 329099.62,
+  budgetTotal: 1656360.87
+};
+
+// ทะเบียนจัดซื้อจัดจ้าง 2569 (จาก Google Sheets)
+const PROC_SEED = [
+  {id:'1/2569',type:'ใบสั่งซื้อ',date:'04/10/2568',vendor:'บริษัท แกรนด์ พาวเวอร์ ออโตเมชั่น จำกัด',taxId:'0105562094971',amount:15000,budgetType:'งปม.',receiveDate:'14/10/2568',items:'วัสดุไฟฟ้า',reqNo:''},
+  {id:'2/2569',type:'ใบสั่งซื้อ',date:'04/10/2568',vendor:'ร้านวังกระแสการไฟฟ้า',taxId:'',amount:8500,budgetType:'งปม.',receiveDate:'14/10/2568',items:'วัสดุไฟฟ้า',reqNo:''},
+  {id:'3/2569',type:'ใบสั่งซื้อ',date:'07/10/2568',vendor:'บริษัท ซีเอ็ดยูเคชั่น จำกัด (มหาชน)',taxId:'0107536000617',amount:12400,budgetType:'งปม.',receiveDate:'',items:'หนังสือ',reqNo:''},
+  {id:'4/2569',type:'ใบสั่งจ้าง',date:'08/10/2568',vendor:'นายสมยศ ปาวัน',taxId:'3480100379071',amount:28500,budgetType:'งปม.',receiveDate:'31/03/2569',items:'รถรับส่งนักเรียน',reqNo:''},
+  {id:'5/2569',type:'ใบสั่งจ้าง',date:'08/10/2568',vendor:'นายประดิษฐ์ ดวงสิม',taxId:'3480600083081',amount:28500,budgetType:'งปม.',receiveDate:'31/03/2569',items:'รถรับส่งนักเรียน',reqNo:''},
+  {id:'6/2569',type:'ใบสั่งซื้อ',date:'10/10/2568',vendor:'ออมทรัพย์ครูหนองคาย',taxId:'3101501111021',amount:55000,budgetType:'งปม.',receiveDate:'10/10/2568',items:'วัสดุสำนักงาน',reqNo:''},
+  {id:'7/2569',type:'ใบสั่งซื้อ',date:'14/10/2568',vendor:'หจก.ศรีชัยศึกษาภัณฑ์สกลนคร',taxId:'0433551000222',amount:18600,budgetType:'งปม.',receiveDate:'21/10/2568',items:'วัสดุการศึกษา',reqNo:''},
+  {id:'8/2569',type:'ใบสั่งจ้าง',date:'15/10/2568',vendor:'นายวิทยา แสงดาว',taxId:'',amount:5000,budgetType:'งปม.',receiveDate:'15/10/2568',items:'ซ่อมแซมอาคาร',reqNo:''},
+  {id:'9/2569',type:'ใบสั่งซื้อ',date:'17/10/2568',vendor:'บริษัท สยามโกลบอลเฮ้าส์ จำกัด (มหาชน)',taxId:'0107548000258',amount:23800,budgetType:'งปม.',receiveDate:'17/10/2568',items:'วัสดุก่อสร้าง',reqNo:''},
+  {id:'10/2569',type:'ใบสั่งซื้อ',date:'20/10/2568',vendor:'ร้านเจริญภัณฑ์',taxId:'',amount:7200,budgetType:'งปม.',receiveDate:'20/10/2568',items:'วัสดุสำนักงาน',reqNo:''},
+  {id:'11/2569',type:'ใบสั่งซื้อ',date:'22/10/2568',vendor:'บริษัท เอทีเอ โกลบอล จำกัด',taxId:'0105549121912',amount:46450,budgetType:'งปม.',receiveDate:'30/10/2568',items:'เครื่องปรับอากาศ',reqNo:''},
+  {id:'12/2569',type:'ใบสั่งซื้อ',date:'22/10/2568',vendor:'บริษัท เอทีเอ โกลบอล จำกัด',taxId:'0105549121912',amount:24300,budgetType:'งปม.',receiveDate:'30/10/2568',items:'เครื่องปรับอากาศ',reqNo:''},
+  {id:'13/2569',type:'ใบสั่งจ้าง',date:'25/10/2568',vendor:'นายสุรพล ทองดี',taxId:'',amount:12000,budgetType:'งปม.',receiveDate:'25/10/2568',items:'ซ่อมแซมห้องน้ำ',reqNo:''},
+  {id:'14/2569',type:'ใบสั่งซื้อ',date:'01/11/2568',vendor:'ออมทรัพย์ครูหนองคาย',taxId:'3101501111021',amount:38000,budgetType:'งปม.',receiveDate:'01/11/2568',items:'วัสดุสำนักงาน',reqNo:''},
+  {id:'15/2569',type:'ใบสั่งซื้อ',date:'05/11/2568',vendor:'ร้านวังกระแสการไฟฟ้า',taxId:'',amount:9800,budgetType:'งปม.',receiveDate:'05/11/2568',items:'วัสดุไฟฟ้า',reqNo:''},
+  {id:'16/2569',type:'ใบสั่งซื้อ',date:'08/11/2568',vendor:'บริษัท ซีเอ็ดยูเคชั่น จำกัด (มหาชน)',taxId:'0107536000617',amount:32500,budgetType:'งปม.',receiveDate:'15/11/2568',items:'หนังสือ',reqNo:''},
+  {id:'17/2569',type:'ใบสั่งจ้าง',date:'10/11/2568',vendor:'นายประชา รักษาดี',taxId:'',amount:15000,budgetType:'งปม.',receiveDate:'10/11/2568',items:'ซ่อมแซมอาคาร',reqNo:''},
+  {id:'18/2569',type:'ใบสั่งซื้อ',date:'12/11/2568',vendor:'หจก.ศรีชัยศึกษาภัณฑ์สกลนคร',taxId:'0433551000222',amount:24700,budgetType:'งปม.',receiveDate:'19/11/2568',items:'วัสดุการศึกษา',reqNo:''},
+  {id:'19/2569',type:'ใบสั่งซื้อ',date:'15/11/2568',vendor:'บริษัท สยามโกลบอลเฮ้าส์ จำกัด (มหาชน)',taxId:'0107548000258',amount:18600,budgetType:'งปม.',receiveDate:'15/11/2568',items:'วัสดุก่อสร้าง',reqNo:''},
+  {id:'20/2569',type:'ใบสั่งซื้อ',date:'18/11/2568',vendor:'โกอะไหล่ยนต์',taxId:'',amount:5500,budgetType:'งปม.',receiveDate:'18/11/2568',items:'อะไหล่รถยนต์',reqNo:''},
+  {id:'21/2569',type:'ใบสั่งซื้อ',date:'20/11/2568',vendor:'ออมทรัพย์ครูหนองคาย',taxId:'3101501111021',amount:42000,budgetType:'งปม.',receiveDate:'20/11/2568',items:'วัสดุสำนักงาน',reqNo:''},
+  {id:'22/2569',type:'ใบสั่งจ้าง',date:'22/11/2568',vendor:'นายสมชาย ใจดี',taxId:'',amount:8000,budgetType:'งปม.',receiveDate:'22/11/2568',items:'ซ่อมบำรุงรถยนต์',reqNo:''},
+  {id:'23/2569',type:'ใบสั่งซื้อ',date:'25/11/2568',vendor:'ร้านเจริญภัณฑ์',taxId:'',amount:6400,budgetType:'งปม.',receiveDate:'25/11/2568',items:'วัสดุสำนักงาน',reqNo:''},
+  {id:'24/2569',type:'ใบสั่งซื้อ',date:'28/11/2568',vendor:'บริษัท แกรนด์ พาวเวอร์ฯ',taxId:'0105562094971',amount:11200,budgetType:'งปม.',receiveDate:'05/12/2568',items:'วัสดุไฟฟ้า',reqNo:''},
+  {id:'25/2569',type:'ใบสั่งซื้อ',date:'01/12/2568',vendor:'หจก.ศรีชัยศึกษาภัณฑ์สกลนคร',taxId:'0433551000222',amount:19800,budgetType:'งปม.',receiveDate:'08/12/2568',items:'วัสดุการศึกษา',reqNo:''},
+  {id:'26/2569',type:'ใบสั่งซื้อ',date:'05/12/2568',vendor:'บริษัท ซีเอ็ดยูเคชั่น จำกัด (มหาชน)',taxId:'0107536000617',amount:28400,budgetType:'งปม.',receiveDate:'12/12/2568',items:'หนังสือ',reqNo:''},
+  {id:'27/2569',type:'ใบสั่งจ้าง',date:'08/12/2568',vendor:'นายสมยศ ปาวัน',taxId:'3480100379071',amount:28500,budgetType:'งปม.',receiveDate:'31/03/2569',items:'รถรับส่งนักเรียน',reqNo:''},
+  {id:'28/2569',type:'ใบสั่งจ้าง',date:'08/12/2568',vendor:'นายประดิษฐ์ ดวงสิม',taxId:'3480600083081',amount:28500,budgetType:'งปม.',receiveDate:'31/03/2569',items:'รถรับส่งนักเรียน',reqNo:''},
+  {id:'29/2569',type:'ใบสั่งซื้อ',date:'10/12/2568',vendor:'บริษัท สยามโกลบอลเฮ้าส์ฯ',taxId:'0107548000258',amount:33500,budgetType:'งปม.',receiveDate:'10/12/2568',items:'วัสดุก่อสร้าง',reqNo:''},
+  {id:'30/2569',type:'สัญญาซื้อ',date:'15/12/2568',vendor:'บริษัท เอทีเอ โกลบอล จำกัด',taxId:'0105549121912',amount:125000,budgetType:'งปม.',receiveDate:'20/01/2569',items:'ครุภัณฑ์โสตทัศนูปกรณ์',reqNo:''},
+  {id:'31/2569',type:'ใบสั่งซื้อ',date:'18/12/2568',vendor:'ออมทรัพย์ครูหนองคาย',taxId:'3101501111021',amount:47200,budgetType:'งปม.',receiveDate:'18/12/2568',items:'วัสดุสำนักงาน',reqNo:''},
+  {id:'32/2569',type:'ใบสั่งจ้าง',date:'20/12/2568',vendor:'นายวิทยา แสงดาว',taxId:'',amount:18000,budgetType:'งปม.',receiveDate:'20/12/2568',items:'ซ่อมแซมห้องเรียน',reqNo:''},
+  {id:'33/2569',type:'ใบสั่งซื้อ',date:'22/12/2568',vendor:'ร้านวังกระแสการไฟฟ้า',taxId:'',amount:7600,budgetType:'งปม.',receiveDate:'22/12/2568',items:'วัสดุไฟฟ้า',reqNo:''},
+  {id:'34/2569',type:'ใบสั่งซื้อ',date:'25/12/2568',vendor:'หจก.ศรีชัยศึกษาภัณฑ์สกลนคร',taxId:'0433551000222',amount:16400,budgetType:'งปม.',receiveDate:'02/01/2569',items:'วัสดุการศึกษา',reqNo:''},
+  {id:'35/2569',type:'ใบสั่งซื้อ',date:'05/01/2569',vendor:'บริษัท ซีเอ็ดยูเคชั่นฯ',taxId:'0107536000617',amount:21600,budgetType:'งปม.',receiveDate:'12/01/2569',items:'หนังสือ',reqNo:''},
+  {id:'36/2569',type:'ใบสั่งจ้าง',date:'07/01/2569',vendor:'นายประชา รักษาดี',taxId:'',amount:9500,budgetType:'งปม.',receiveDate:'07/01/2569',items:'ซ่อมแซมอาคาร',reqNo:''},
+  {id:'37/2569',type:'ใบสั่งซื้อ',date:'10/01/2569',vendor:'ออมทรัพย์ครูหนองคาย',taxId:'3101501111021',amount:52800,budgetType:'งปม.',receiveDate:'10/01/2569',items:'วัสดุสำนักงาน',reqNo:''},
+  {id:'38/2569',type:'ใบสั่งซื้อ',date:'13/01/2569',vendor:'บริษัท สยามโกลบอลเฮ้าส์ฯ',taxId:'0107548000258',amount:26700,budgetType:'งปม.',receiveDate:'13/01/2569',items:'วัสดุก่อสร้าง',reqNo:''},
+  {id:'39/2569',type:'ใบสั่งซื้อ',date:'15/01/2569',vendor:'โกอะไหล่ยนต์',taxId:'',amount:4800,budgetType:'งปม.',receiveDate:'15/01/2569',items:'อะไหล่รถยนต์',reqNo:''},
+  {id:'40/2569',type:'ใบสั่งซื้อ',date:'18/01/2569',vendor:'ร้านเจริญภัณฑ์',taxId:'',amount:8900,budgetType:'งปม.',receiveDate:'18/01/2569',items:'วัสดุสำนักงาน',reqNo:''},
+  {id:'41/2569',type:'ใบสั่งซื้อ',date:'20/01/2569',vendor:'หจก.ศรีชัยศึกษาภัณฑ์สกลนคร',taxId:'0433551000222',amount:22100,budgetType:'งปม.',receiveDate:'27/01/2569',items:'วัสดุการศึกษา',reqNo:''},
+  {id:'42/2569',type:'ใบสั่งจ้าง',date:'22/01/2569',vendor:'นายสุรพล ทองดี',taxId:'',amount:11500,budgetType:'งปม.',receiveDate:'22/01/2569',items:'ซ่อมแซมห้องน้ำ',reqNo:''},
+  {id:'43/2569',type:'ใบสั่งซื้อ',date:'25/01/2569',vendor:'บริษัท แกรนด์ พาวเวอร์ฯ',taxId:'0105562094971',amount:13900,budgetType:'งปม.',receiveDate:'01/02/2569',items:'วัสดุไฟฟ้า',reqNo:''},
+  {id:'44/2569',type:'ใบสั่งซื้อ',date:'28/01/2569',vendor:'ออมทรัพย์ครูหนองคาย',taxId:'3101501111021',amount:36500,budgetType:'งปม.',receiveDate:'28/01/2569',items:'วัสดุสำนักงาน',reqNo:''},
+  {id:'45/2569',type:'ใบสั่งซื้อ',date:'01/02/2569',vendor:'บริษัท ซีเอ็ดยูเคชั่นฯ',taxId:'0107536000617',amount:18900,budgetType:'งปม.',receiveDate:'08/02/2569',items:'หนังสือ',reqNo:''},
+  {id:'46/2569',type:'สัญญาจ้าง',date:'03/02/2569',vendor:'บริษัท นวกิจก่อสร้าง จำกัด',taxId:'',amount:180000,budgetType:'งปม.',receiveDate:'',items:'ปรับปรุงห้องประชุม',reqNo:''},
+  {id:'47/2569',type:'ใบสั่งซื้อ',date:'05/02/2569',vendor:'บริษัท สยามโกลบอลเฮ้าส์ฯ',taxId:'0107548000258',amount:29800,budgetType:'งปม.',receiveDate:'05/02/2569',items:'วัสดุก่อสร้าง',reqNo:''},
+  {id:'48/2569',type:'ใบสั่งจ้าง',date:'07/02/2569',vendor:'นายสมชาย ใจดี',taxId:'',amount:6500,budgetType:'งปม.',receiveDate:'07/02/2569',items:'ซ่อมบำรุงรถยนต์',reqNo:''},
+  {id:'49/2569',type:'ใบสั่งซื้อ',date:'10/02/2569',vendor:'ร้านวังกระแสการไฟฟ้า',taxId:'',amount:11300,budgetType:'งปม.',receiveDate:'10/02/2569',items:'วัสดุไฟฟ้า',reqNo:''},
+  {id:'50/2569',type:'ใบสั่งซื้อ',date:'12/02/2569',vendor:'หจก.ศรีชัยศึกษาภัณฑ์สกลนคร',taxId:'0433551000222',amount:27600,budgetType:'งปม.',receiveDate:'19/02/2569',items:'วัสดุการศึกษา',reqNo:''},
+  {id:'51/2569',type:'ใบสั่งซื้อ',date:'15/02/2569',vendor:'ออมทรัพย์ครูหนองคาย',taxId:'3101501111021',amount:44100,budgetType:'งปม.',receiveDate:'15/02/2569',items:'วัสดุสำนักงาน',reqNo:''},
+  {id:'52/2569',type:'ใบสั่งจ้าง',date:'18/02/2569',vendor:'นายสมยศ ปาวัน',taxId:'3480100379071',amount:28500,budgetType:'งปม.',receiveDate:'31/03/2569',items:'รถรับส่งนักเรียน',reqNo:''},
+  {id:'53/2569',type:'ใบสั่งจ้าง',date:'18/02/2569',vendor:'นายประดิษฐ์ ดวงสิม',taxId:'3480600083081',amount:28500,budgetType:'งปม.',receiveDate:'31/03/2569',items:'รถรับส่งนักเรียน',reqNo:''},
+  {id:'54/2569',type:'ใบสั่งซื้อ',date:'20/02/2569',vendor:'บริษัท ซีเอ็ดยูเคชั่นฯ',taxId:'0107536000617',amount:15700,budgetType:'งปม.',receiveDate:'27/02/2569',items:'หนังสือ',reqNo:''},
+  {id:'55/2569',type:'ใบสั่งซื้อ',date:'22/02/2569',vendor:'ร้านเจริญภัณฑ์',taxId:'',amount:9200,budgetType:'งปม.',receiveDate:'22/02/2569',items:'วัสดุสำนักงาน',reqNo:''},
+  {id:'56/2569',type:'ใบสั่งซื้อ',date:'25/02/2569',vendor:'บริษัท สยามโกลบอลเฮ้าส์ฯ',taxId:'0107548000258',amount:17400,budgetType:'งปม.',receiveDate:'25/02/2569',items:'วัสดุก่อสร้าง',reqNo:''},
+  {id:'57/2569',type:'ใบสั่งซื้อ',date:'01/03/2569',vendor:'โกอะไหล่ยนต์',taxId:'',amount:6100,budgetType:'งปม.',receiveDate:'01/03/2569',items:'อะไหล่รถยนต์',reqNo:''},
+  {id:'58/2569',type:'ใบสั่งซื้อ',date:'05/03/2569',vendor:'ออมทรัพย์ครูหนองคาย',taxId:'3101501111021',amount:39600,budgetType:'งปม.',receiveDate:'05/03/2569',items:'วัสดุสำนักงาน',reqNo:''},
+  {id:'59/2569',type:'ใบสั่งซื้อ',date:'10/03/2569',vendor:'บริษัท แคนนอน มาร์เก็ตติ้ง (ไทยแลนด์) จำกัด',taxId:'0105525002513',amount:33500,budgetType:'งปม.',receiveDate:'15/03/2569',items:'กล้อง CANON EOS R50',reqNo:''},
+  {id:'60/2569',type:'ใบสั่งซื้อ',date:'15/03/2569',vendor:'หจก.ศรีชัยศึกษาภัณฑ์สกลนคร',taxId:'0433551000222',amount:34200,budgetType:'งปม.',receiveDate:'22/03/2569',items:'วัสดุการศึกษา',reqNo:''},
+  {id:'61/2569',type:'ใบสั่งซื้อ',date:'20/03/2569',vendor:'บริษัท ซีเอ็ดยูเคชั่นฯ',taxId:'0107536000617',amount:23800,budgetType:'งปม.',receiveDate:'27/03/2569',items:'หนังสือ',reqNo:''},
+  {id:'62/2569',type:'ใบสั่งจ้าง',date:'25/03/2569',vendor:'นายวิทยา แสงดาว',taxId:'',amount:22000,budgetType:'งปม.',receiveDate:'25/03/2569',items:'ซ่อมแซมห้องเรียน',reqNo:''},
+  {id:'63/2569',type:'สัญญาซื้อ',date:'08/04/2569',vendor:'หจก.ศรีชัยศึกษาภัณฑ์สกลนคร',taxId:'0433551000222',amount:282794,budgetType:'งปม.',receiveDate:'',items:'หนังสือเรียน',reqNo:''}
+];
+
+// ทะเบียนครุภัณฑ์
+const ASSET_SEED = [
+  {id:'วสว 01-01-01/67',code:'01',cat:'สำนักงาน',name:'โต๊ะทำงาน',brand:'บ.เพอร์เฟค แสงดาวเฟอร์นิเจอร์',location:'ห้องผู้อำนวยการ',value:0,buyYear:2567,life:0,condition:'ดี',status:'ใช้งาน',serial:''},
+  {id:'วสว 01-02-01/67',code:'01',cat:'สำนักงาน',name:'เก้าอี้สำนักงาน',brand:'บ.เพอร์เฟค แสงดาวเฟอร์นิเจอร์',location:'ห้องผู้อำนวยการ',value:0,buyYear:2567,life:0,condition:'ดี',status:'ใช้งาน',serial:''},
+  {id:'วสว 01-03-01/67',code:'01',cat:'สำนักงาน',name:'เครื่องถ่ายเอกสาร Riso SF5130EII',brand:'Riso',location:'ห้องวิชาการ',value:9900,buyYear:2567,life:8,condition:'ดี',status:'ใช้งาน',serial:'SF5130EII'},
+  {id:'วสว 01-05-01/68',code:'01',cat:'สำนักงาน',name:'เครื่องปรับอากาศ Mitsubishi MSK-KY24VF',brand:'Mitsubishi',location:'ห้องผู้อำนวยการ',value:46450,buyYear:2568,life:8,condition:'ดี',status:'ใช้งาน',serial:'MSK-KY24VF'},
+  {id:'วสว 01-05-02/68',code:'01',cat:'สำนักงาน',name:'เครื่องปรับอากาศ Mitsubishi MSK-KY18VF',brand:'Mitsubishi',location:'ห้องแผน',value:24300,buyYear:2568,life:8,condition:'ดี',status:'ใช้งาน',serial:'MSK-KY18VF'},
+  {id:'วสว 03-03-01/68',code:'03',cat:'ไฟฟ้าและวิทยุ',name:'เครื่องขยายเสียง MT-4400',brand:'MT',location:'ห้องประชาสัมพันธ์',value:5136,buyYear:2568,life:5,condition:'ดี',status:'ใช้งาน',serial:'MT-4400'},
+  {id:'วสว 03-04-01/68',code:'03',cat:'ไฟฟ้าและวิทยุ',name:'เครื่องผสมสัญญาณเสียง PROPLUS TOP-400',brand:'PROPLUS',location:'ห้องประชุม',value:5137,buyYear:2568,life:5,condition:'ดี',status:'ใช้งาน',serial:'TOP-400'},
+  {id:'วสว 03-04-01/69',code:'03',cat:'ไฟฟ้าและวิทยุ',name:'เครื่องผสมสัญญาณเสียง PROPLUS TOP-400',brand:'PROPLUS',location:'ห้องนาฏศิลป์',value:7383,buyYear:2569,life:5,condition:'ดี',status:'ใช้งาน',serial:'TOP-400'},
+  {id:'ว.ส.ว. 03-02-01/69',code:'03',cat:'ไฟฟ้าและวิทยุ',name:'โปรเจคเตอร์ ACER XL2330W',brand:'ACER',location:'ห้องประชุม',value:10593,buyYear:2569,life:5,condition:'ดี',status:'ใช้งาน',serial:'XL2330W'},
+  {id:'วสว 03-04-02/68',code:'03',cat:'ไฟฟ้าและวิทยุ',name:'ลำโพง PM-800 SoundBest',brand:'SoundBest',location:'ห้องประชุม',value:48600,buyYear:2568,life:5,condition:'ดี',status:'ใช้งาน',serial:'PM-800'},
+  {id:'วสว 04-01-01/68',code:'04',cat:'โฆษณาและเผยแพร่',name:'กล้องถ่ายภาพ CANON EOS R50',brand:'CANON',location:'ห้องพัสดุ',value:33500,buyYear:2568,life:5,condition:'ดี',status:'ใช้งาน',serial:'EOS R50'},
+  {id:'วสว 05-01-01/68',code:'05',cat:'การเกษตร',name:'เครื่องตัดหญ้า Daewoo DLM4600SP',brand:'Daewoo',location:'โรงเก็บพัสดุ',value:13800,buyYear:2568,life:5,condition:'ดี',status:'ใช้งาน',serial:'DLM4600SP'},
+  {id:'วสว 05-02-01/68',code:'05',cat:'การเกษตร',name:'เครื่องตัดแต่งพุ่มไม้ BLACK DECKER GRC18502PCF',brand:'BLACK DECKER',location:'โรงเก็บพัสดุ',value:13800,buyYear:2568,life:5,condition:'ดี',status:'ใช้งาน',serial:'GRC18502PCF'},
+  {id:'วสว 06-01-01/37',code:'06',cat:'ยานพาหนะ',name:'รถยนต์ Toyota Hilux',brand:'Toyota',location:'โรงจอดรถ',value:350000,buyYear:2537,life:10,condition:'พอใช้',status:'ใช้งาน',serial:''}
+];
+
+// บัญชีวัสดุ
+const SUPPLY_SEED = [
+  {id:'01-01-1',name:'กระดาษ A4 80g',unit:'รีม',stock:9,minStock:20,maxStock:40,price:140,category:'วัสดุสำนักงาน'},
+  {id:'01-02-2',name:'กระดาษ A4 70g',unit:'รีม',stock:8,minStock:10,maxStock:40,price:120,category:'วัสดุสำนักงาน'},
+  {id:'01-03-3',name:'หมึกปริ้นเตอร์',unit:'ตลับ',stock:3,minStock:5,maxStock:15,price:850,category:'วัสดุสำนักงาน'},
+  {id:'01-04-4',name:'แฟ้มเอกสาร',unit:'อัน',stock:25,minStock:20,maxStock:50,price:45,category:'วัสดุสำนักงาน'},
+  {id:'01-05-5',name:'ปากกาลูกลื่น',unit:'แพ็ค',stock:4,minStock:5,maxStock:20,price:120,category:'วัสดุสำนักงาน'},
+  {id:'02-01-1',name:'ผงซักฟอก',unit:'กิโลกรัม',stock:10,minStock:5,maxStock:30,price:60,category:'วัสดุสุขาภิบาล'},
+  {id:'02-02-2',name:'น้ำยาทำความสะอาด',unit:'แกลลอน',stock:3,minStock:4,maxStock:10,price:280,category:'วัสดุสุขาภิบาล'},
+  {id:'03-01-1',name:'หลอดไฟ LED',unit:'หลอด',stock:12,minStock:10,maxStock:30,price:150,category:'วัสดุไฟฟ้า'},
+  {id:'03-02-2',name:'สายไฟ',unit:'เมตร',stock:50,minStock:20,maxStock:100,price:25,category:'วัสดุไฟฟ้า'}
+];
+
+// ============================================================
+// STATE & STORAGE
+// ============================================================
+let state = {
+  procurement: [],
+  assets: [],
+  supplies: [],
+  vendors: [],
+  contracts: [],
+  auditLog: [],
+  committees: []
+};
+
+function loadState(){
+  try{
+    const saved = localStorage.getItem('wsw_procurement_v2');
+    if(saved){
+      const parsed = JSON.parse(saved);
+      state = {...state,...parsed};
+    }
+  }catch(e){}
+  // Seed if empty
+  if(!state.procurement.length) state.procurement = JSON.parse(JSON.stringify(PROC_SEED));
+  if(!state.assets.length) state.assets = JSON.parse(JSON.stringify(ASSET_SEED));
+  if(!state.supplies.length) state.supplies = JSON.parse(JSON.stringify(SUPPLY_SEED));
+  if(!state.vendors.length) seedVendors();
+}
+
+function saveState(){
+  localStorage.setItem('wsw_procurement_v2', JSON.stringify(state));
+}
+
+function seedVendors(){
+  const vmap = {};
+  state.procurement.forEach(p=>{
+    if(!vmap[p.vendor]) vmap[p.vendor]={name:p.vendor,taxId:p.taxId||'',total:0,count:0};
+    vmap[p.vendor].total += p.amount;
+    vmap[p.vendor].count++;
+  });
+  state.vendors = Object.values(vmap).map((v,i)=>({...v,id:i+1,type:'',address:'',phone:'',bank:''}));
+}
+
+function addAudit(action, detail){
+  state.auditLog.unshift({
+    ts: new Date().toLocaleString('th-TH'),
+    user: 'ครูอนุพงศ์',
+    action, detail
+  });
+  if(state.auditLog.length>200) state.auditLog = state.auditLog.slice(0,200);
+}
+
+// ============================================================
+// ROUTING
+// ============================================================
+const pages = {
+  dashboard:'แดชบอร์ด',
+  procurement:'ทะเบียนจัดซื้อจัดจ้าง',
+  contracts:'บริหารสัญญา',
+  assets:'ทะเบียนครุภัณฑ์',
+  supplies:'บัญชีวัสดุ/คลัง',
+  documents:'สร้างเอกสาร',
+  vendors:'ทะเบียนผู้ขาย',
+  reports:'รายงานสรุป',
+  audit:'Audit Trail'
+};
+
+let currentPage = 'dashboard';
+
+function navigate(page){
+  currentPage = page;
+  document.querySelectorAll('.nav-link').forEach(a=>{
+    a.classList.toggle('active', a.getAttribute('onclick').includes(`'${page}'`));
+  });
+  document.getElementById('page-title').textContent = pages[page]||page;
+  render(page);
+  window.scrollTo(0,0);
+}
+
+function render(page){
+  const c = document.getElementById('content');
+  switch(page){
+    case 'dashboard': c.innerHTML = renderDashboard(); break;
+    case 'procurement': c.innerHTML = renderProcurement(); break;
+    case 'contracts': c.innerHTML = renderContracts(); break;
+    case 'assets': c.innerHTML = renderAssets(); break;
+    case 'supplies': c.innerHTML = renderSupplies(); break;
+    case 'documents': c.innerHTML = renderDocuments(); break;
+    case 'vendors': c.innerHTML = renderVendors(); break;
+    case 'reports': c.innerHTML = renderReports(); break;
+    case 'audit': c.innerHTML = renderAudit(); break;
+    default: c.innerHTML = '<p>ไม่พบหน้า</p>';
+  }
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function renderDashboard(){
+  const totalSpent = state.procurement.reduce((s,p)=>s+p.amount,0);
+  const budget = SCHOOL.budgetTotal;
+  const remaining = budget - totalSpent;
+  const pct = Math.min(100,(totalSpent/budget*100)).toFixed(1);
+  const contracted = state.procurement.filter(p=>p.type.includes('สัญญา')).reduce((s,p)=>s+p.amount,0);
+  const pendingReceive = state.procurement.filter(p=>!p.receiveDate).length;
+  const lowStock = state.supplies.filter(s=>s.stock<=s.minStock).length;
+  const totalAssetValue = state.assets.reduce((s,a)=>s+a.value,0);
+
+  // spending by type
+  const byType = {};
+  state.procurement.forEach(p=>{
+    byType[p.type]=(byType[p.type]||0)+p.amount;
+  });
+
+  // recent 5
+  const recent = [...state.procurement].slice(-5).reverse();
+
+  return `
+  <div class="stat-grid">
+    <div class="stat-card blue">
+      <div class="label">งบประมาณทั้งหมด (2569)</div>
+      <div class="value">${fmt(budget)}</div>
+      <div class="sub">รายได้ ${fmt(SCHOOL.budget2569)} + คงเหลือ ${fmt(SCHOOL.budgetCarry)}</div>
+    </div>
+    <div class="stat-card red">
+      <div class="label">ใช้จ่ายแล้ว</div>
+      <div class="value">${fmt(totalSpent)}</div>
+      <div class="sub">${pct}% ของงบประมาณ</div>
+    </div>
+    <div class="stat-card green">
+      <div class="label">คงเหลือ</div>
+      <div class="value">${fmt(remaining)}</div>
+      <div class="sub">${(100-parseFloat(pct)).toFixed(1)}% ของงบประมาณ</div>
+    </div>
+    <div class="stat-card orange">
+      <div class="label">รายการจัดซื้อ 2569</div>
+      <div class="value">${state.procurement.length}</div>
+      <div class="sub">รอตรวจรับ ${pendingReceive} รายการ</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+    <div class="card">
+      <div class="card-header"><h3>📊 การใช้งบประมาณ</h3></div>
+      <div class="card-body">
+        <div style="font-size:13px;margin-bottom:8px">ใช้แล้ว ${fmt(totalSpent)} / ${fmt(budget)} บาท</div>
+        <div class="progress" style="height:14px">
+          <div class="progress-bar" style="width:${pct}%;background:${parseFloat(pct)>80?'#e74c3c':'#27ae60'}"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:#666;margin-top:6px">
+          <span>0 บาท</span><span>${fmt(budget)} บาท</span>
+        </div>
+        <div style="margin-top:16px">
+          ${Object.entries(byType).map(([t,v])=>`
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-size:13px">${t}</span>
+            <span style="font-size:13px;font-weight:700">${fmt(v)}</span>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><h3>⚠️ แจ้งเตือน</h3></div>
+      <div class="card-body">
+        ${pendingReceive>0?`<div class="alert alert-warning">📦 รอตรวจรับพัสดุ <strong>${pendingReceive} รายการ</strong></div>`:''}
+        ${lowStock>0?`<div class="alert alert-danger">📉 วัสดุต่ำกว่าขั้นต่ำ <strong>${lowStock} รายการ</strong> <button class="btn btn-xs btn-outline" onclick="navigate('supplies')" style="margin-left:8px">ดู</button></div>`:''}
+        ${parseFloat(pct)>80?`<div class="alert alert-warning">💰 ใช้งบประมาณเกิน 80% แล้ว</div>`:''}
+        ${state.contracts.filter(c=>c.status==='กำลังดำเนินการ').length>0?`<div class="alert alert-info">📋 สัญญาที่กำลังดำเนินการ ${state.contracts.filter(c=>c.status==='กำลังดำเนินการ').length} ฉบับ</div>`:''}
+        <div style="margin-top:12px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:1px solid #f0f0f0">
+            <span>มูลค่าครุภัณฑ์รวม</span><span class="fw-bold">${fmt(totalAssetValue)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0">
+            <span>มูลค่าสัญญารวม</span><span class="fw-bold">${fmt(contracted)}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3>🕐 รายการจัดซื้อล่าสุด</h3>
+      <button class="btn btn-outline btn-sm" onclick="navigate('procurement')">ดูทั้งหมด →</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>เลขที่</th><th>ประเภท</th><th>วันที่</th><th>ผู้ขาย</th><th>รายการ</th><th class="text-right">จำนวนเงิน</th><th>สถานะ</th></tr></thead>
+        <tbody>
+          ${recent.map(p=>`<tr>
+            <td class="fw-bold">${p.id}</td>
+            <td>${typeBadge(p.type)}</td>
+            <td>${p.date}</td>
+            <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.vendor}</td>
+            <td>${p.items}</td>
+            <td class="text-right fw-bold">${fmt(p.amount)}</td>
+            <td>${p.receiveDate?`<span class="badge-pill badge-success">ตรวจรับแล้ว</span>`:`<span class="badge-pill badge-warning">รอตรวจรับ</span>`}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  `;
+}
+
+// ============================================================
+// PROCUREMENT
+// ============================================================
+let procFilter = {q:'',type:'',status:''};
+
+function renderProcurement(){
+  const filtered = state.procurement.filter(p=>{
+    const q = procFilter.q.toLowerCase();
+    const matchQ = !q || p.id.toLowerCase().includes(q)||p.vendor.toLowerCase().includes(q)||p.items.toLowerCase().includes(q);
+    const matchT = !procFilter.type || p.type===procFilter.type;
+    const matchS = !procFilter.status || (procFilter.status==='received'?p.receiveDate:!p.receiveDate);
+    return matchQ&&matchT&&matchS;
+  });
+  const total = filtered.reduce((s,p)=>s+p.amount,0);
+
+  return `
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-body" style="padding:12px 16px">
+      <div class="filter-bar">
+        <input type="text" placeholder="ค้นหา เลขที่/ผู้ขาย/รายการ..." value="${procFilter.q}" oninput="procFilter.q=this.value;updateProcTable()" style="flex:2">
+        <select onchange="procFilter.type=this.value;updateProcTable()">
+          <option value="">-- ประเภท --</option>
+          <option value="ใบสั่งซื้อ" ${procFilter.type==='ใบสั่งซื้อ'?'selected':''}>ใบสั่งซื้อ</option>
+          <option value="ใบสั่งจ้าง" ${procFilter.type==='ใบสั่งจ้าง'?'selected':''}>ใบสั่งจ้าง</option>
+          <option value="สัญญาซื้อ" ${procFilter.type==='สัญญาซื้อ'?'selected':''}>สัญญาซื้อ</option>
+          <option value="สัญญาจ้าง" ${procFilter.type==='สัญญาจ้าง'?'selected':''}>สัญญาจ้าง</option>
+        </select>
+        <select onchange="procFilter.status=this.value;updateProcTable()">
+          <option value="">-- สถานะ --</option>
+          <option value="received" ${procFilter.status==='received'?'selected':''}>ตรวจรับแล้ว</option>
+          <option value="pending" ${procFilter.status==='pending'?'selected':''}>รอตรวจรับ</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="openProcForm()">+ เพิ่มรายการ</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3>ทะเบียนจัดซื้อจัดจ้าง ปีงบประมาณ 2569</h3>
+      <span style="font-size:13px;color:#666">${filtered.length} รายการ · รวม <strong>${fmt(total)}</strong> บาท</span>
+    </div>
+    <div class="table-wrap">
+      <table id="proc-table">
+        <thead><tr>
+          <th>เลขที่</th><th>ประเภท</th><th>วันที่</th>
+          <th>ผู้ขาย/ผู้รับจ้าง</th><th>รายการพัสดุ</th>
+          <th class="text-right">จำนวนเงิน</th>
+          <th>ประเภทเงิน</th><th>วันที่ตรวจรับ</th><th>สถานะ</th><th></th>
+        </tr></thead>
+        <tbody id="proc-tbody">
+          ${filtered.map(p=>procRow(p)).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function procRow(p){
+  return `<tr id="proc-${p.id.replace('/','_')}">
+    <td class="fw-bold" style="white-space:nowrap">${p.id}</td>
+    <td>${typeBadge(p.type)}</td>
+    <td style="white-space:nowrap">${p.date}</td>
+    <td style="max-width:200px"><div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.vendor}">${p.vendor}</div></td>
+    <td style="max-width:200px"><div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.items}">${p.items}</div></td>
+    <td class="text-right fw-bold">${fmt(p.amount)}</td>
+    <td><span class="badge-pill badge-secondary">${p.budgetType}</span></td>
+    <td style="white-space:nowrap">${p.receiveDate||'<span class="text-muted">-</span>'}</td>
+    <td>${p.receiveDate?`<span class="badge-pill badge-success">ตรวจรับแล้ว</span>`:`<span class="badge-pill badge-warning">รอตรวจรับ</span>`}</td>
+    <td><button class="btn btn-xs btn-outline" onclick="editProc('${p.id}')">แก้ไข</button></td>
+  </tr>`;
+}
+
+function updateProcTable(){
+  const filtered = state.procurement.filter(p=>{
+    const q = procFilter.q.toLowerCase();
+    const matchQ = !q || p.id.toLowerCase().includes(q)||p.vendor.toLowerCase().includes(q)||p.items.toLowerCase().includes(q);
+    const matchT = !procFilter.type || p.type===procFilter.type;
+    const matchS = !procFilter.status || (procFilter.status==='received'?p.receiveDate:!p.receiveDate);
+    return matchQ&&matchT&&matchS;
+  });
+  const total = filtered.reduce((s,p)=>s+p.amount,0);
+  const tbody = document.getElementById('proc-tbody');
+  if(tbody) tbody.innerHTML = filtered.map(p=>procRow(p)).join('');
+}
+
+function openProcForm(data){
+  const isEdit = !!data;
+  const d = data||{id:'',type:'ใบสั่งซื้อ',date:todayTH(),vendor:'',taxId:'',amount:'',budgetType:'งปม.',receiveDate:'',items:'',reqNo:''};
+  openModal(isEdit?`แก้ไข ${d.id}`:'เพิ่มรายการจัดซื้อ',`
+  <div class="form-grid">
+    <div class="form-group"><label>เลขที่ ${isEdit?'(ไม่สามารถเปลี่ยนได้)':''}</label><input id="f-id" value="${d.id}" ${isEdit?'readonly':''}></div>
+    <div class="form-group"><label>ประเภท</label>
+      <select id="f-type">${['ใบสั่งซื้อ','ใบสั่งจ้าง','สัญญาซื้อ','สัญญาจ้าง'].map(t=>`<option ${d.type===t?'selected':''}>${t}</option>`).join('')}</select></div>
+    <div class="form-group"><label>วันที่ลงนาม</label><input id="f-date" value="${d.date}"></div>
+    <div class="form-group"><label>ผู้ขาย/ผู้รับจ้าง</label><input id="f-vendor" value="${d.vendor}"></div>
+    <div class="form-group"><label>เลขประจำตัวผู้เสียภาษี</label><input id="f-taxid" value="${d.taxId}"></div>
+    <div class="form-group"><label>จำนวนเงิน (บาท)</label><input id="f-amount" type="number" value="${d.amount}"></div>
+    <div class="form-group"><label>ประเภทเงิน</label>
+      <select id="f-budtype">${['งปม.','เงินอุดหนุน','เงินรายได้','เงินบริจาค'].map(t=>`<option ${d.budgetType===t?'selected':''}>${t}</option>`).join('')}</select></div>
+    <div class="form-group"><label>วันที่ตรวจรับ (ว่างหากยังไม่รับ)</label><input id="f-receive" value="${d.receiveDate}"></div>
+    <div class="form-group" style="grid-column:1/-1"><label>รายการพัสดุ</label><input id="f-items" value="${d.items}"></div>
+  </div>`,
+  `<button class="btn btn-outline" onclick="closeModal()">ยกเลิก</button>
+   <button class="btn btn-primary" onclick="${isEdit?`saveProc('${d.id}')`:'addProc()'}">💾 บันทึก</button>`);
+}
+
+function addProc(){
+  const id = document.getElementById('f-id').value.trim();
+  if(!id){alert('กรุณาระบุเลขที่');return;}
+  if(state.procurement.find(p=>p.id===id)){alert('เลขที่นี้มีอยู่แล้ว');return;}
+  const p = {
+    id, type:v('f-type'), date:v('f-date'), vendor:v('f-vendor'),
+    taxId:v('f-taxid'), amount:parseFloat(v('f-amount'))||0,
+    budgetType:v('f-budtype'), receiveDate:v('f-receive'), items:v('f-items'), reqNo:''
+  };
+  state.procurement.push(p);
+  addAudit('เพิ่มรายการ',`${id} - ${p.vendor} ${fmt(p.amount)} บาท`);
+  saveState(); closeModal(); navigate('procurement');
+}
+
+function editProc(id){
+  const p = state.procurement.find(x=>x.id===id);
+  if(p) openProcForm(p);
+}
+
+function saveProc(id){
+  const p = state.procurement.find(x=>x.id===id);
+  if(!p) return;
+  p.type=v('f-type'); p.date=v('f-date'); p.vendor=v('f-vendor');
+  p.taxId=v('f-taxid'); p.amount=parseFloat(v('f-amount'))||0;
+  p.budgetType=v('f-budtype'); p.receiveDate=v('f-receive'); p.items=v('f-items');
+  addAudit('แก้ไขรายการ',`${id} - ${p.vendor}`);
+  saveState(); closeModal(); navigate('procurement');
+}
+
+// ============================================================
+// ASSETS
+// ============================================================
+function renderAssets(){
+  const cats = [...new Set(state.assets.map(a=>a.cat))];
+  const totalValue = state.assets.reduce((s,a)=>s+a.value,0);
+  return `
+  <div class="stat-grid">
+    <div class="stat-card blue"><div class="label">ครุภัณฑ์ทั้งหมด</div><div class="value">${state.assets.length}</div><div class="sub">รายการ</div></div>
+    <div class="stat-card green"><div class="label">มูลค่ารวม</div><div class="value">${fmt(totalValue)}</div><div class="sub">บาท</div></div>
+    <div class="stat-card orange"><div class="label">สภาพดี</div><div class="value">${state.assets.filter(a=>a.condition==='ดี').length}</div><div class="sub">รายการ</div></div>
+    <div class="stat-card red"><div class="label">รอซ่อม/ชำรุด</div><div class="value">${state.assets.filter(a=>a.condition==='ชำรุด'||a.condition==='รอซ่อม').length}</div><div class="sub">รายการ</div></div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <h3>ทะเบียนคุมครุภัณฑ์</h3>
+      <button class="btn btn-primary btn-sm" onclick="openAssetForm()">+ เพิ่มครุภัณฑ์</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>เลขทะเบียน</th><th>ประเภท</th><th>ชื่อ/รายการ</th><th>ยี่ห้อ</th><th>สถานที่</th><th class="text-right">ราคา</th><th>ปีที่ซื้อ</th><th>ค่าเสื่อม</th><th>สภาพ</th><th></th></tr></thead>
+        <tbody>
+          ${state.assets.map(a=>{
+            const age = 2569-a.buyYear;
+            const deprPct = a.life>0?Math.min(100,age/a.life*100):0;
+            const remaining = a.life>0?Math.max(1,a.value*(1-age/a.life)):a.value;
+            return `<tr>
+              <td class="fw-bold" style="white-space:nowrap;font-size:12px">${a.id}</td>
+              <td><span class="badge-pill badge-secondary">${a.cat}</span></td>
+              <td style="max-width:200px"><div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${a.name}">${a.name}</div></td>
+              <td>${a.brand}</td>
+              <td>${a.location}</td>
+              <td class="text-right">${a.value?fmt(a.value):'-'}</td>
+              <td>${a.buyYear||'-'}</td>
+              <td style="min-width:100px">${a.life>0?`
+                <div style="font-size:11px;color:#666">${deprPct.toFixed(0)}% (${age}/${a.life}ปี)</div>
+                <div class="depr-bar"><div class="depr-fill" style="width:${deprPct}%;background:${deprPct>=100?'#e74c3c':deprPct>50?'#f39c12':'#27ae60'}"></div></div>
+                <div style="font-size:11px;color:#888">คงเหลือ ${fmt(Math.round(remaining))}</div>
+              `:'-'}</td>
+              <td>${condBadge(a.condition)}</td>
+              <td><button class="btn btn-xs btn-outline" onclick="editAsset('${a.id}')">แก้ไข</button></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function openAssetForm(data){
+  const isEdit=!!data;
+  const d=data||{id:'',cat:'สำนักงาน',name:'',brand:'',location:'',value:'',buyYear:'',life:8,condition:'ดี',status:'ใช้งาน',serial:''};
+  openModal(isEdit?`แก้ไข ${d.id}`:'เพิ่มครุภัณฑ์',`
+  <div class="form-grid">
+    <div class="form-group"><label>เลขทะเบียน</label><input id="f-id" value="${d.id}" ${isEdit?'readonly':''}></div>
+    <div class="form-group"><label>ประเภท</label>
+      <select id="f-cat">${['สำนักงาน','การศึกษา','ไฟฟ้าและวิทยุ','โฆษณาและเผยแพร่','การเกษตร','ยานพาหนะ'].map(c=>`<option ${d.cat===c?'selected':''}>${c}</option>`).join('')}</select></div>
+    <div class="form-group" style="grid-column:1/-1"><label>ชื่อรายการ</label><input id="f-name" value="${d.name}"></div>
+    <div class="form-group"><label>ยี่ห้อ</label><input id="f-brand" value="${d.brand}"></div>
+    <div class="form-group"><label>ห้อง/สถานที่</label><input id="f-loc" value="${d.location}"></div>
+    <div class="form-group"><label>ราคาที่ได้มา</label><input id="f-val" type="number" value="${d.value}"></div>
+    <div class="form-group"><label>ปีงบประมาณที่ซื้อ</label><input id="f-yr" type="number" value="${d.buyYear}"></div>
+    <div class="form-group"><label>อายุการใช้งาน (ปี)</label><input id="f-life" type="number" value="${d.life}"></div>
+    <div class="form-group"><label>สภาพ</label>
+      <select id="f-cond">${['ดี','พอใช้','รอซ่อม','ชำรุด','จำหน่าย'].map(c=>`<option ${d.condition===c?'selected':''}>${c}</option>`).join('')}</select></div>
+    <div class="form-group"><label>S/N</label><input id="f-serial" value="${d.serial}"></div>
+  </div>`,
+  `<button class="btn btn-outline" onclick="closeModal()">ยกเลิก</button>
+   <button class="btn btn-primary" onclick="${isEdit?`saveAsset('${d.id}')`:'addAsset()'}">💾 บันทึก</button>`);
+}
+
+function addAsset(){
+  const a={id:v('f-id'),cat:v('f-cat'),name:v('f-name'),brand:v('f-brand'),location:v('f-loc'),value:parseFloat(v('f-val'))||0,buyYear:parseInt(v('f-yr'))||0,life:parseInt(v('f-life'))||0,condition:v('f-cond'),status:'ใช้งาน',serial:v('f-serial')};
+  if(!a.id){alert('กรุณาระบุเลขทะเบียน');return;}
+  state.assets.push(a);
+  addAudit('เพิ่มครุภัณฑ์',`${a.id} - ${a.name}`);
+  saveState();closeModal();navigate('assets');
+}
+
+function editAsset(id){
+  const a=state.assets.find(x=>x.id===id);
+  if(a) openAssetForm(a);
+}
+
+function saveAsset(id){
+  const a=state.assets.find(x=>x.id===id);
+  if(!a) return;
+  a.cat=v('f-cat');a.name=v('f-name');a.brand=v('f-brand');a.location=v('f-loc');
+  a.value=parseFloat(v('f-val'))||0;a.buyYear=parseInt(v('f-yr'))||0;
+  a.life=parseInt(v('f-life'))||0;a.condition=v('f-cond');a.serial=v('f-serial');
+  addAudit('แก้ไขครุภัณฑ์',`${id} - ${a.name}`);
+  saveState();closeModal();navigate('assets');
+}
+
+// ============================================================
+// SUPPLIES
+// ============================================================
+function renderSupplies(){
+  const lowItems = state.supplies.filter(s=>s.stock<=s.minStock);
+  return `
+  ${lowItems.length?`<div class="alert alert-danger">⚠️ วัสดุต่ำกว่าขั้นต่ำ: ${lowItems.map(s=>s.name).join(', ')}</div>`:''}
+  <div class="card">
+    <div class="card-header">
+      <h3>บัญชีคุมวัสดุ</h3>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline btn-sm" onclick="openSupplyTx()">📋 เบิก/รับ</button>
+        <button class="btn btn-primary btn-sm" onclick="openSupplyForm()">+ เพิ่มรายการ</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>รหัส</th><th>รายการ</th><th>หมวด</th><th class="text-right">คงเหลือ</th><th>หน่วย</th><th class="text-right">ราคา/หน่วย</th><th class="text-right">มูลค่า</th><th>Min</th><th>Max</th><th>สถานะ</th><th></th></tr></thead>
+        <tbody>
+          ${state.supplies.map(s=>{
+            const pct=Math.min(100,(s.stock/s.maxStock)*100);
+            const statusColor=s.stock<=s.minStock?'badge-danger':s.stock<=s.minStock*1.5?'badge-warning':'badge-success';
+            const statusText=s.stock<=s.minStock?'ต่ำกว่าขั้นต่ำ':s.stock<=s.minStock*1.5?'ใกล้หมด':'ปกติ';
+            return `<tr>
+              <td style="font-size:12px">${s.id}</td>
+              <td class="fw-bold">${s.name}</td>
+              <td><span class="badge-pill badge-secondary">${s.category}</span></td>
+              <td class="text-right fw-bold" style="color:${s.stock<=s.minStock?'#e74c3c':s.stock<=s.minStock*1.5?'#f39c12':'#27ae60'}">${s.stock}</td>
+              <td>${s.unit}</td>
+              <td class="text-right">${fmt(s.price)}</td>
+              <td class="text-right">${fmt(s.stock*s.price)}</td>
+              <td class="text-right text-muted">${s.minStock}</td>
+              <td class="text-right text-muted">${s.maxStock}</td>
+              <td><span class="badge-pill ${statusColor}">${statusText}</span></td>
+              <td><button class="btn btn-xs btn-outline" onclick="editSupply('${s.id}')">แก้ไข</button></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function openSupplyTx(){
+  openModal('เบิก / รับวัสดุ',`
+  <div class="form-grid">
+    <div class="form-group"><label>รายการวัสดุ</label>
+      <select id="f-sid">${state.supplies.map(s=>`<option value="${s.id}">${s.name} (คงเหลือ ${s.stock} ${s.unit})</option>`).join('')}</select></div>
+    <div class="form-group"><label>ประเภทรายการ</label>
+      <select id="f-txtype"><option value="รับ">รับเข้า</option><option value="เบิก">เบิกออก</option></select></div>
+    <div class="form-group"><label>จำนวน</label><input id="f-qty" type="number" min="1" value="1"></div>
+    <div class="form-group"><label>หมายเหตุ</label><input id="f-note" placeholder="ผู้เบิก/แหล่งที่มา..."></div>
+  </div>`,
+  `<button class="btn btn-outline" onclick="closeModal()">ยกเลิก</button>
+   <button class="btn btn-primary" onclick="doSupplyTx()">✅ บันทึก</button>`);
+}
+
+function doSupplyTx(){
+  const sid=v('f-sid');const txtype=v('f-txtype');const qty=parseInt(v('f-qty'))||0;const note=v('f-note');
+  const s=state.supplies.find(x=>x.id===sid);
+  if(!s||qty<=0) return;
+  if(txtype==='เบิก'&&s.stock<qty){alert('วัสดุไม่เพียงพอ');return;}
+  s.stock+=(txtype==='รับ'?qty:-qty);
+  addAudit(`${txtype}วัสดุ`,`${s.name} ${qty} ${s.unit}${note?' - '+note:''}`);
+  saveState();closeModal();navigate('supplies');
+}
+
+function openSupplyForm(data){
+  const isEdit=!!data;
+  const d=data||{id:'',name:'',unit:'',stock:0,minStock:0,maxStock:0,price:0,category:'วัสดุสำนักงาน'};
+  openModal(isEdit?`แก้ไข ${d.name}`:'เพิ่มรายการวัสดุ',`
+  <div class="form-grid">
+    <div class="form-group"><label>รหัสวัสดุ</label><input id="f-id" value="${d.id}" ${isEdit?'readonly':''}></div>
+    <div class="form-group"><label>หมวดหมู่</label>
+      <select id="f-cat">${['วัสดุสำนักงาน','วัสดุสุขาภิบาล','วัสดุไฟฟ้า','วัสดุก่อสร้าง','วัสดุการเกษตร','วัสดุงานบ้าน'].map(c=>`<option ${d.category===c?'selected':''}>${c}</option>`).join('')}</select></div>
+    <div class="form-group" style="grid-column:1/-1"><label>ชื่อรายการ</label><input id="f-name" value="${d.name}"></div>
+    <div class="form-group"><label>หน่วยนับ</label><input id="f-unit" value="${d.unit}"></div>
+    <div class="form-group"><label>จำนวนปัจจุบัน</label><input id="f-stock" type="number" value="${d.stock}"></div>
+    <div class="form-group"><label>จำนวนขั้นต่ำ</label><input id="f-min" type="number" value="${d.minStock}"></div>
+    <div class="form-group"><label>จำนวนสูงสุด</label><input id="f-max" type="number" value="${d.maxStock}"></div>
+    <div class="form-group"><label>ราคาต่อหน่วย</label><input id="f-price" type="number" value="${d.price}"></div>
+  </div>`,
+  `<button class="btn btn-outline" onclick="closeModal()">ยกเลิก</button>
+   <button class="btn btn-primary" onclick="${isEdit?`saveSupply('${d.id}')`:'addSupply()'}">💾 บันทึก</button>`);
+}
+
+function addSupply(){
+  const s={id:v('f-id'),name:v('f-name'),unit:v('f-unit'),stock:parseInt(v('f-stock'))||0,minStock:parseInt(v('f-min'))||0,maxStock:parseInt(v('f-max'))||0,price:parseFloat(v('f-price'))||0,category:v('f-cat')};
+  if(!s.id||!s.name){alert('กรุณากรอกรหัสและชื่อ');return;}
+  state.supplies.push(s);addAudit('เพิ่มวัสดุ',s.name);saveState();closeModal();navigate('supplies');
+}
+
+function editSupply(id){
+  const s=state.supplies.find(x=>x.id===id);
+  if(s) openSupplyForm(s);
+}
+
+function saveSupply(id){
+  const s=state.supplies.find(x=>x.id===id);
+  if(!s) return;
+  s.name=v('f-name');s.unit=v('f-unit');s.stock=parseInt(v('f-stock'))||0;
+  s.minStock=parseInt(v('f-min'))||0;s.maxStock=parseInt(v('f-max'))||0;
+  s.price=parseFloat(v('f-price'))||0;s.category=v('f-cat');
+  addAudit('แก้ไขวัสดุ',`${id} - ${s.name}`);
+  saveState();closeModal();navigate('supplies');
+}
+
+// ============================================================
+// CONTRACTS
+// ============================================================
+function renderContracts(){
+  const contracts = state.procurement.filter(p=>p.type.includes('สัญญา'));
+  return `
+  <div class="card">
+    <div class="card-header">
+      <h3>ทะเบียนสัญญา (รายการที่มีสัญญา)</h3>
+      <span style="font-size:13px;color:#666">${contracts.length} ฉบับ</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>เลขที่</th><th>ประเภท</th><th>วันที่</th><th>คู่สัญญา</th><th>รายการ</th><th class="text-right">มูลค่า</th><th>สถานะ</th></tr></thead>
+        <tbody>
+          ${contracts.map(p=>`<tr>
+            <td class="fw-bold">${p.id}</td>
+            <td>${typeBadge(p.type)}</td>
+            <td>${p.date}</td>
+            <td>${p.vendor}</td>
+            <td>${p.items}</td>
+            <td class="text-right fw-bold">${fmt(p.amount)}</td>
+            <td>${p.receiveDate?`<span class="badge-pill badge-success">เสร็จสิ้น</span>`:`<span class="badge-pill badge-warning">กำลังดำเนินการ</span>`}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="alert alert-info" style="margin-top:16px">ℹ️ กฎหมาย: สัญญาต้องทำสำหรับวงเงินเกิน 100,000 บาท · พรบ.จัดซื้อจัดจ้างฯ พ.ศ. 2560 มาตรา 89</div>`;
+}
+
+// ============================================================
+// VENDORS
+// ============================================================
+function renderVendors(){
+  return `
+  <div class="card">
+    <div class="card-header">
+      <h3>ทะเบียนผู้ขาย/ผู้รับจ้าง</h3>
+      <span style="font-size:13px;color:#666">${state.vendors.length} ราย</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>ชื่อผู้ขาย</th><th>เลขประจำตัวฯ</th><th class="text-right">ยอดสั่งซื้อรวม</th><th class="text-right">จำนวนครั้ง</th><th>หมายเหตุ</th></tr></thead>
+        <tbody>
+          ${state.vendors.sort((a,b)=>b.total-a.total).map((v,i)=>`<tr>
+            <td>${i+1}</td>
+            <td class="fw-bold">${v.name}</td>
+            <td style="font-size:12px;color:#666">${v.taxId||'-'}</td>
+            <td class="text-right fw-bold">${fmt(v.total)}</td>
+            <td class="text-right">${v.count} ครั้ง</td>
+            <td>${v.bank||''}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// DOCUMENTS
+// ============================================================
+function renderDocuments(){
+  return `
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px">
+    ${[
+      {icon:'📋',title:'ใบสั่งซื้อ/ใบสั่งจ้าง',desc:'สร้างเอกสารใบสั่งซื้อหรือใบสั่งจ้าง',fn:'genPurchaseOrder'},
+      {icon:'✅',title:'ใบตรวจรับพัสดุ',desc:'บันทึกผลการตรวจรับพัสดุ',fn:'genReceiptForm'},
+      {icon:'🏆',title:'ประกาศผู้ชนะ',desc:'ประกาศผลการจัดซื้อจัดจ้าง',fn:'genWinnerAnnounce'},
+      {icon:'📝',title:'บน.06 (ขออนุมัติ)',desc:'แบบขออนุมัติจัดซื้อจัดจ้าง',fn:'genBN06'},
+      {icon:'📊',title:'รายงานการตรวจนับ',desc:'รายงานผลการตรวจนับพัสดุประจำปี',fn:'genAnnualCount'},
+      {icon:'📜',title:'บัญชีรายการครุภัณฑ์',desc:'พิมพ์ทะเบียนครุภัณฑ์ทั้งหมด',fn:'genAssetList'},
+    ].map(d=>`
+    <div class="card" style="cursor:pointer" onclick="${d.fn}()">
+      <div class="card-body" style="text-align:center;padding:28px 20px">
+        <div style="font-size:36px;margin-bottom:12px">${d.icon}</div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:6px">${d.title}</div>
+        <div style="font-size:12px;color:#666">${d.desc}</div>
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function genPurchaseOrder(){
+  const proc = state.procurement[state.procurement.length-1];
+  const html = `
+  <div style="font-family:Sarabun,sans-serif;padding:40px;max-width:700px;margin:auto;border:1px solid #ddd">
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:16px;font-weight:700">${SCHOOL.name}</div>
+      <div style="font-size:13px">${SCHOOL.address}</div>
+      <div style="font-size:18px;font-weight:700;margin-top:16px">ใบสั่งซื้อ/ใบสั่งจ้าง</div>
+      <div>เลขที่ ______/2569</div>
+    </div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
+      <tr><td style="padding:6px 0">วันที่</td><td>${todayTH()}</td></tr>
+      <tr><td>ผู้ขาย/ผู้รับจ้าง</td><td>${proc.vendor}</td></tr>
+      <tr><td>ที่อยู่</td><td>_______________________________________</td></tr>
+    </table>
+    <table style="width:100%;border-collapse:collapse;border:1px solid #ddd">
+      <thead><tr style="background:#f8f9fa"><th style="border:1px solid #ddd;padding:8px">ลำดับ</th><th style="border:1px solid #ddd;padding:8px">รายการ</th><th style="border:1px solid #ddd;padding:8px">จำนวน</th><th style="border:1px solid #ddd;padding:8px">หน่วย</th><th style="border:1px solid #ddd;padding:8px">ราคา/หน่วย</th><th style="border:1px solid #ddd;padding:8px">จำนวนเงิน</th></tr></thead>
+      <tbody><tr><td style="border:1px solid #ddd;padding:8px;text-align:center">1</td><td style="border:1px solid #ddd;padding:8px">${proc.items}</td><td style="border:1px solid #ddd;padding:8px;text-align:center">1</td><td style="border:1px solid #ddd;padding:8px;text-align:center">รายการ</td><td style="border:1px solid #ddd;padding:8px;text-align:right">${fmt(proc.amount)}</td><td style="border:1px solid #ddd;padding:8px;text-align:right">${fmt(proc.amount)}</td></tr></tbody>
+    </table>
+    <div style="text-align:right;margin-top:12px;font-weight:700">รวมทั้งสิ้น ${fmt(proc.amount)} บาท</div>
+    <div style="display:flex;justify-content:space-between;margin-top:60px">
+      <div style="text-align:center">
+        <div>ลงชื่อ ________________________</div>
+        <div>( นายอนุพงศ์ ไชยบุตร )</div>
+        <div>เจ้าหน้าที่พัสดุ</div>
+      </div>
+      <div style="text-align:center">
+        <div>ลงชื่อ ________________________</div>
+        <div>( ผู้อำนวยการ )</div>
+        <div>ผู้อนุมัติ</div>
+      </div>
+    </div>
+  </div>`;
+  const w = window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ใบสั่งซื้อ</title></head><body>${html}<script>window.print()<\/script></body></html>`);
+  w.document.close();
+}
+
+function genBN06(){
+  alert('แบบฟอร์ม บน.06 - พิมพ์แบบขออนุมัติจัดซื้อจัดจ้าง\n(กรุณาเลือกรายการจากทะเบียนก่อนสร้างเอกสาร)');
+}
+
+function genReceiptForm(){
+  alert('แบบฟอร์มใบตรวจรับพัสดุ\n(กรุณาเลือกรายการจากทะเบียนก่อนสร้างเอกสาร)');
+}
+
+function genWinnerAnnounce(){
+  alert('ประกาศผู้ชนะการเสนอราคา\n(กรุณาเลือกรายการจากทะเบียนก่อนสร้างเอกสาร)');
+}
+
+function genAnnualCount(){
+  alert('รายงานการตรวจนับพัสดุประจำปี\n(ใช้สำหรับการตรวจนับประจำปีตามระเบียบฯ)');
+}
+
+function genAssetList(){
+  const rows = state.assets.map((a,i)=>`<tr><td>${i+1}</td><td>${a.id}</td><td>${a.name}</td><td>${a.location}</td><td style="text-align:right">${a.value?fmt(a.value):'-'}</td><td>${a.buyYear||'-'}</td><td>${a.condition}</td></tr>`).join('');
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ทะเบียนครุภัณฑ์</title><style>body{font-family:Sarabun,sans-serif;padding:40px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:6px 8px;font-size:13px}th{background:#f0f0f0}</style></head><body>
+  <h2 style="text-align:center">${SCHOOL.name}</h2><h3 style="text-align:center">บัญชีรายการครุภัณฑ์</h3>
+  <table><thead><tr><th>#</th><th>เลขทะเบียน</th><th>รายการ</th><th>สถานที่</th><th>ราคา</th><th>ปีที่ได้มา</th><th>สภาพ</th></tr></thead><tbody>${rows}</tbody></table>
+  <script>window.print()<\/script></body></html>`;
+  const w=window.open('','_blank');w.document.write(html);w.document.close();
+}
+
+// ============================================================
+// REPORTS
+// ============================================================
+function renderReports(){
+  const byMonth={};
+  state.procurement.forEach(p=>{
+    const m=p.date.substring(3,10);
+    byMonth[m]=(byMonth[m]||0)+p.amount;
+  });
+  const byVendor={};
+  state.procurement.forEach(p=>{
+    byVendor[p.vendor]=(byVendor[p.vendor]||0)+p.amount;
+  });
+  const top5Vendor = Object.entries(byVendor).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const totalSpent = state.procurement.reduce((s,p)=>s+p.amount,0);
+
+  return `
+  <div class="stat-grid">
+    <div class="stat-card blue"><div class="label">รายจ่ายรวม 2569</div><div class="value">${fmt(totalSpent)}</div></div>
+    <div class="stat-card green"><div class="label">งบคงเหลือ</div><div class="value">${fmt(SCHOOL.budgetTotal-totalSpent)}</div></div>
+    <div class="stat-card orange"><div class="label">ผู้ขายทั้งหมด</div><div class="value">${state.vendors.length} ราย</div></div>
+    <div class="stat-card red"><div class="label">ครุภัณฑ์รวม</div><div class="value">${fmt(state.assets.reduce((s,a)=>s+a.value,0))}</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div class="card">
+      <div class="card-header"><h3>📊 ค่าใช้จ่ายตามประเภท</h3></div>
+      <div class="card-body">
+        ${['ใบสั่งซื้อ','ใบสั่งจ้าง','สัญญาซื้อ','สัญญาจ้าง'].map(t=>{
+          const total=state.procurement.filter(p=>p.type===t).reduce((s,p)=>s+p.amount,0);
+          const pct=(total/totalSpent*100)||0;
+          return `<div style="margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+              <span>${typeBadge(t)}</span><span class="fw-bold">${fmt(total)} (${pct.toFixed(1)}%)</span>
+            </div>
+            <div class="progress"><div class="progress-bar" style="width:${pct}%;background:var(--primary-light)"></div></div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><h3>🏆 ผู้ขายสูงสุด 5 อันดับ</h3></div>
+      <div class="card-body">
+        <table style="width:100%">
+          ${top5Vendor.map(([name,total],i)=>`<tr>
+            <td style="padding:8px 4px;font-size:13px">${i+1}. ${name}</td>
+            <td class="text-right fw-bold" style="font-size:13px">${fmt(total)}</td>
+          </tr>`).join('')}
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <div class="card-header">
+      <h3>📋 สรุปการจัดซื้อตามหมวดวัสดุ</h3>
+    </div>
+    <div class="card-body">
+      <table>
+        <thead><tr><th>หมวดรายการ</th><th class="text-right">จำนวนรายการ</th><th class="text-right">มูลค่ารวม</th><th class="text-right">%</th></tr></thead>
+        <tbody>
+          ${['วัสดุสำนักงาน','วัสดุการศึกษา','หนังสือ','วัสดุก่อสร้าง','วัสดุไฟฟ้า','รถรับส่งนักเรียน','ครุภัณฑ์','ซ่อมแซม','อะไหล่รถยนต์'].map(cat=>{
+            const items=state.procurement.filter(p=>p.items.includes(cat.replace('วัสดุ','').trim())||p.items===cat);
+            if(!items.length) return '';
+            const t=items.reduce((s,p)=>s+p.amount,0);
+            return `<tr><td>${cat}</td><td class="text-right">${items.length}</td><td class="text-right fw-bold">${fmt(t)}</td><td class="text-right">${(t/totalSpent*100).toFixed(1)}%</td></tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// AUDIT TRAIL
+// ============================================================
+function renderAudit(){
+  return `
+  <div class="card">
+    <div class="card-header">
+      <h3>🔍 Audit Trail</h3>
+      <button class="btn btn-outline btn-sm" onclick="state.auditLog=[];saveState();navigate('audit')">ล้างประวัติ</button>
+    </div>
+    ${state.auditLog.length===0?`<div class="card-body text-muted">ยังไม่มีการบันทึก</div>`:`
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>เวลา</th><th>ผู้ใช้</th><th>การกระทำ</th><th>รายละเอียด</th></tr></thead>
+        <tbody>
+          ${state.auditLog.map(l=>`<tr>
+            <td style="white-space:nowrap;font-size:12px;color:#666">${l.ts}</td>
+            <td>${l.user}</td>
+            <td><span class="badge-pill badge-info">${l.action}</span></td>
+            <td>${l.detail}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`}
+  </div>`;
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function fmt(n){
+  if(!n&&n!==0) return '-';
+  return n.toLocaleString('th-TH',{minimumFractionDigits:0,maximumFractionDigits:2})+' บาท';
+}
+
+function typeBadge(t){
+  const cls = t==='ใบสั่งซื้อ'?'badge-info':t==='ใบสั่งจ้าง'?'badge-purple':t==='สัญญาซื้อ'?'badge-warning':'badge-danger';
+  return `<span class="badge-pill ${cls}">${t}</span>`;
+}
+
+function condBadge(c){
+  const cls = c==='ดี'?'badge-success':c==='พอใช้'?'badge-warning':c==='รอซ่อม'?'badge-danger':'badge-secondary';
+  return `<span class="badge-pill ${cls}">${c}</span>`;
+}
+
+function todayTH(){
+  const d=new Date();
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()+543}`;
+}
+
+function v(id){return document.getElementById(id)?.value||'';}
+
+function openModal(title,body,footer){
+  document.getElementById('modal-title').textContent=title;
+  document.getElementById('modal-body').innerHTML=body;
+  document.getElementById('modal-footer').innerHTML=footer;
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+
+function exportData(){
+  const data=JSON.stringify(state,null,2);
+  const a=document.createElement('a');
+  a.href='data:application/json;charset=utf-8,'+encodeURIComponent(data);
+  a.download=`procurement_backup_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  addAudit('Export ข้อมูล','JSON backup');
+  saveState();
+}
+
+// Close modal on overlay click
+document.getElementById('modal').addEventListener('click',function(e){
+  if(e.target===this) closeModal();
+});
+
+// ============================================================
+// INIT
+// ============================================================
+loadState();
+document.getElementById('budget-quick').textContent=`งบ: ${(SCHOOL.budgetTotal/1000000).toFixed(2)}M บาท`;
+navigate('dashboard');
+</script>
+</body>
+</html>
