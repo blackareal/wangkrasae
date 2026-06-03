@@ -106,10 +106,25 @@
     /* ── MAIN LAYOUT ── */
     main {
       flex: 1;
-      max-width: 1040px;
+      max-width: 1100px;
       margin: 0 auto;
       width: 100%;
       padding: 40px 20px 60px;
+    }
+
+    /* ── SECTION ROW (2 กลุ่มเคียงกัน) ── */
+    .section-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      margin-bottom: 44px;
+    }
+    .section-row .card-grid {
+      grid-template-columns: repeat(2, 1fr);
+      margin-bottom: 0;
+    }
+    @media (max-width: 720px) {
+      .section-row { grid-template-columns: 1fr; }
     }
 
     /* ── SECTION HEADER ── */
@@ -322,168 +337,171 @@
 <!-- ══ MAIN ══ -->
 <main>
 
-  <!-- ── Section: กลุ่มบริหารงานวิชาการ ── -->
-  <div class="section-header">
-    <div class="section-icon green">📚</div>
-    <div class="section-title">
-      <h2>กลุ่มบริหารงานวิชาการ</h2>
-      <p>ตารางเรียน ตารางสอน และระบบติดตามการเข้าเรียน</p>
-    </div>
-  </div>
+  <!-- ══ แถวที่ 1: วิชาการ + งบประมาณ ══ -->
+  <div class="section-row">
 
-  <div class="card-grid">
-
-    <!-- ตารางเรียน-ตารางสอน เทอม 1 -->
-    <a class="card" href="https://blackareal.github.io/wangkrasae/Schedule_Term1_2569.html" target="_blank" rel="noopener">
-      <div class="card-stripe stripe-green"></div>
-      <div class="card-body">
-        <div class="card-icon-wrap icon-green">📅</div>
-        <div class="card-year year-green">2569 · ภาคเรียนที่ 1</div>
-        <div class="card-title">ตารางเรียน–ตารางสอน</div>
-        <div class="card-desc">ตารางเรียนรวมทุกห้อง (ม.1–ม.6) และตารางสอนรายครู 16 คน พร้อมรายชื่อครูที่ปรึกษา</div>
-        <div class="card-footer">
-          <span class="card-badge badge-green">8 ห้อง · 16 ครู</span>
-          <span class="card-arrow arrow-green">→</span>
+    <!-- ── กลุ่มบริหารงานวิชาการ ── -->
+    <div>
+      <div class="section-header">
+        <div class="section-icon green">📚</div>
+        <div class="section-title">
+          <h2>กลุ่มบริหารงานวิชาการ</h2>
+          <p>ตารางเรียน และตารางสอน</p>
         </div>
       </div>
-    </a>
+      <div class="card-grid">
 
-  </div>
+        <a class="card" href="https://blackareal.github.io/wangkrasae/Schedule_Term1_2569.html" target="_blank" rel="noopener">
+          <div class="card-stripe stripe-green"></div>
+          <div class="card-body">
+            <div class="card-icon-wrap icon-green">📅</div>
+            <div class="card-year year-green">2569 · ภาคเรียนที่ 1</div>
+            <div class="card-title">ตารางเรียน–ตารางสอน</div>
+            <div class="card-desc">ตารางเรียนรวมทุกห้อง (ม.1–ม.6) และตารางสอนรายครู 16 คน พร้อมรายชื่อครูที่ปรึกษา</div>
+            <div class="card-footer">
+              <span class="card-badge badge-green">8 ห้อง · 16 ครู</span>
+              <span class="card-arrow arrow-green">→</span>
+            </div>
+          </div>
+        </a>
+
+      </div>
+    </div>
+
+    <!-- ── กลุ่มบริหารงานงบประมาณ ── -->
+    <div>
+      <div class="section-header">
+        <div class="section-icon blue">📊</div>
+        <div class="section-title">
+          <h2>กลุ่มบริหารงานงบประมาณ</h2>
+          <p>แผนปฏิบัติการ งบประมาณ และโครงการประจำปี</p>
+        </div>
+      </div>
+      <div class="card-grid">
+
+        <a class="card" href="https://script.google.com/macros/s/AKfycbwy2RriTuSAdhEFAePIDgZsIE27qW5iQf1G1iM0zoJwt3ijOh9et2rnN4ekHHAsx39eww/exec" target="_blank" rel="noopener">
+          <div class="card-stripe stripe-blue"></div>
+          <div class="card-body">
+            <div class="card-icon-wrap icon-blue">💰</div>
+            <div class="card-year year-blue">2569 · งบประมาณ</div>
+            <div class="card-title">แผนงานและงบประมาณ</div>
+            <div class="card-desc">ระบบบริหารจัดการแผนปฏิบัติการและงบประมาณประจำปีการศึกษา 2569</div>
+            <div class="card-footer">
+              <span class="card-badge badge-blue">Google Apps Script</span>
+              <span class="card-arrow arrow-blue">→</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="card" href="https://blackareal.github.io/wangkrasae/List_Project_Activities_2569.html" target="_blank" rel="noopener">
+          <div class="card-stripe stripe-blue"></div>
+          <div class="card-body">
+            <div class="card-icon-wrap icon-blue">📋</div>
+            <div class="card-year year-blue">2569 · โครงการ</div>
+            <div class="card-title">รายกิจกรรมโครงการทั้งหมด</div>
+            <div class="card-desc">รายการโครงการและกิจกรรมทุกรายการ จำแนกตามกลุ่มงาน ฝ่าย และวงเงินงบประมาณที่ได้รับอนุมัติ</div>
+            <div class="card-footer">
+              <span class="card-badge badge-blue">21 โครงการ</span>
+              <span class="card-arrow arrow-blue">→</span>
+            </div>
+          </div>
+        </a>
+
+      </div>
+    </div>
+
+  </div><!-- end section-row 1 -->
 
   <hr class="divider" />
 
-  <!-- ── Section: กลุ่มบริหารงานงบประมาณ ── -->
-  <div class="section-header">
-    <div class="section-icon blue">📊</div>
-    <div class="section-title">
-      <h2>กลุ่มบริหารงานงบประมาณ</h2>
-      <p>แผนปฏิบัติการ งบประมาณ และโครงการประจำปี</p>
+  <!-- ══ แถวที่ 2: บุคคล + ทั่วไป ══ -->
+  <div class="section-row">
+
+    <!-- ── กลุ่มบริหารงานบุคคล ── -->
+    <div>
+      <div class="section-header">
+        <div class="section-icon purple">👥</div>
+        <div class="section-title">
+          <h2>กลุ่มบริหารงานบุคคล</h2>
+          <p>ข้อมูลสารสนเทศบุคลากรและคำสั่งมอบหมายงาน</p>
+        </div>
+      </div>
+      <div class="card-grid">
+
+        <a class="card" href="https://blackareal.github.io/wangkrasae/Personal_Information.html" target="_blank" rel="noopener">
+          <div class="card-stripe stripe-purple"></div>
+          <div class="card-body">
+            <div class="card-icon-wrap icon-purple">👥</div>
+            <div class="card-year year-purple">2569 · บุคลากร</div>
+            <div class="card-title">ทำเนียบบุคลากรโรงเรียน</div>
+            <div class="card-desc">ข้อมูลผู้บริหารสถานศึกษา ข้าราชการครู พนักงานราชการและลูกจ้างชั่วคราว รวม 23 คน พร้อมตำแหน่งและวิทยฐานะ</div>
+            <div class="card-footer">
+              <span class="card-badge badge-purple">23 คน</span>
+              <span class="card-arrow arrow-purple">→</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="card" href="https://blackareal.github.io/wangkrasae/AssignmentOrder2569.html" target="_blank" rel="noopener">
+          <div class="card-stripe stripe-purple"></div>
+          <div class="card-body">
+            <div class="card-icon-wrap icon-purple">📝</div>
+            <div class="card-year year-purple">2569 · ภาคเรียนที่ 1</div>
+            <div class="card-title">คำสั่งมอบหมายงานครู</div>
+            <div class="card-desc">คำสั่งมอบหมายหน้าที่รับผิดชอบให้แก่ครูและบุคลากรโรงเรียน ภาคเรียนที่ 1 ปีการศึกษา 2569</div>
+            <div class="card-footer">
+              <span class="card-badge badge-purple">คำสั่งโรงเรียน</span>
+              <span class="card-arrow arrow-purple">→</span>
+            </div>
+          </div>
+        </a>
+
+      </div>
     </div>
-  </div>
 
-  <div class="card-grid">
-
-    <!-- แผนงานและงบประมาณ -->
-    <a class="card" href="https://script.google.com/macros/s/AKfycbwy2RriTuSAdhEFAePIDgZsIE27qW5iQf1G1iM0zoJwt3ijOh9et2rnN4ekHHAsx39eww/exec" target="_blank" rel="noopener">
-      <div class="card-stripe stripe-blue"></div>
-      <div class="card-body">
-        <div class="card-icon-wrap icon-blue">💰</div>
-        <div class="card-year year-blue">2569 · งบประมาณ</div>
-        <div class="card-title">แผนงานและงบประมาณ</div>
-        <div class="card-desc">ระบบบริหารจัดการแผนปฏิบัติการและงบประมาณประจำปีการศึกษา 2569</div>
-        <div class="card-footer">
-          <span class="card-badge badge-blue">Google Apps Script</span>
-          <span class="card-arrow arrow-blue">→</span>
+    <!-- ── กลุ่มบริหารงานทั่วไป ── -->
+    <div>
+      <div class="section-header">
+        <div class="section-icon amber">🏫</div>
+        <div class="section-title">
+          <h2>กลุ่มบริหารงานทั่วไป</h2>
+          <p>งานกิจการนักเรียน</p>
         </div>
       </div>
-    </a>
+      <div class="card-grid">
 
-    <!-- รายกิจกรรม -->
-    <a class="card" href="https://blackareal.github.io/wangkrasae/List_Project_Activities_2569.html" target="_blank" rel="noopener">
-      <div class="card-stripe stripe-blue"></div>
-      <div class="card-body">
-        <div class="card-icon-wrap icon-blue">📋</div>
-        <div class="card-year year-blue">2569 · โครงการ</div>
-        <div class="card-title">รายกิจกรรมโครงการทั้งหมด</div>
-        <div class="card-desc">รายการโครงการและกิจกรรมทุกรายการ จำแนกตามกลุ่มงาน ฝ่าย และวงเงินงบประมาณที่ได้รับอนุมัติ</div>
-        <div class="card-footer">
-          <span class="card-badge badge-blue">21 โครงการ</span>
-          <span class="card-arrow arrow-blue">→</span>
-        </div>
+        <a class="card" href="https://script.google.com/macros/s/AKfycbxun_gg2YmyLrrEmtRdbO2oDkJo5CB9aSn9n1O5seDDweJvmw6lGJYIfWd4JeLrHxcW/exec" target="_blank" rel="noopener">
+          <div class="card-stripe stripe-amber"></div>
+          <div class="card-body">
+            <div class="card-icon-wrap icon-amber">✅</div>
+            <div class="card-year year-amber">2569 · กิจการนักเรียน</div>
+            <div class="card-title">ระบบเช็คชื่อนักเรียน</div>
+            <div class="card-desc">บันทึกและติดตามการเข้าเรียนรายวัน สำหรับครูประจำวิชาและครูที่ปรึกษา</div>
+            <div class="card-footer">
+              <span class="card-badge badge-amber">Google Apps Script</span>
+              <span class="card-arrow arrow-amber">→</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="card" href="https://blackareal.github.io/wangkrasae/teachersmanual.html" target="_blank" rel="noopener">
+          <div class="card-stripe stripe-amber"></div>
+          <div class="card-body">
+            <div class="card-icon-wrap icon-amber">📖</div>
+            <div class="card-year year-amber">2569 · คู่มือ</div>
+            <div class="card-title">คู่มือการใช้ระบบเช็คชื่อสำหรับครู</div>
+            <div class="card-desc">คำแนะนำขั้นตอนการใช้งานระบบเช็คชื่อนักเรียน สำหรับครูทุกท่าน</div>
+            <div class="card-footer">
+              <span class="card-badge badge-amber">สำหรับครู</span>
+              <span class="card-arrow arrow-amber">→</span>
+            </div>
+          </div>
+        </a>
+
       </div>
-    </a>
-
-  </div>
-
-  <hr class="divider" />
-
-  <!-- ── Section: กลุ่มบริหารงานบุคคล ── -->
-  <div class="section-header">
-    <div class="section-icon purple">👥</div>
-    <div class="section-title">
-      <h2>กลุ่มบริหารงานบุคคล</h2>
-      <p>ข้อมูลสารสนเทศบุคลากรและคำสั่งมอบหมายงาน</p>
     </div>
-  </div>
 
-  <div class="card-grid">
-
-    <!-- ทำเนียบบุคลากร -->
-    <a class="card" href="https://blackareal.github.io/wangkrasae/Personal_Information.html" target="_blank" rel="noopener">
-      <div class="card-stripe stripe-purple"></div>
-      <div class="card-body">
-        <div class="card-icon-wrap icon-purple">👥</div>
-        <div class="card-year year-purple">2569 · บุคลากร</div>
-        <div class="card-title">ทำเนียบบุคลากรโรงเรียน</div>
-        <div class="card-desc">ข้อมูลผู้บริหารสถานศึกษา ข้าราชการครู พนักงานราชการและลูกจ้างชั่วคราว รวม 23 คน พร้อมตำแหน่งและวิทยฐานะ</div>
-        <div class="card-footer">
-          <span class="card-badge badge-purple">23 คน</span>
-          <span class="card-arrow arrow-purple">→</span>
-        </div>
-      </div>
-    </a>
-
-    <!-- คำสั่งมอบหมายงานครู -->
-    <a class="card" href="https://blackareal.github.io/wangkrasae/AssignmentOrder2569.html" target="_blank" rel="noopener">
-      <div class="card-stripe stripe-purple"></div>
-      <div class="card-body">
-        <div class="card-icon-wrap icon-purple">📝</div>
-        <div class="card-year year-purple">2569 · ภาคเรียนที่ 1</div>
-        <div class="card-title">คำสั่งมอบหมายงานครู</div>
-        <div class="card-desc">คำสั่งมอบหมายหน้าที่รับผิดชอบให้แก่ครูและบุคลากรโรงเรียน ภาคเรียนที่ 1 ปีการศึกษา 2569</div>
-        <div class="card-footer">
-          <span class="card-badge badge-purple">คำสั่งโรงเรียน</span>
-          <span class="card-arrow arrow-purple">→</span>
-        </div>
-      </div>
-    </a>
-
-  </div>
-
-  <hr class="divider" />
-
-  <!-- ── Section: กลุ่มบริหารงานทั่วไป ── -->
-  <div class="section-header">
-    <div class="section-icon amber">🏫</div>
-    <div class="section-title">
-      <h2>กลุ่มบริหารงานทั่วไป</h2>
-      <p>งานกิจการนักเรียน</p>
-    </div>
-  </div>
-
-  <div class="card-grid">
-
-    <!-- ระบบเช็คชื่อนักเรียน -->
-    <a class="card" href="https://script.google.com/macros/s/AKfycbxun_gg2YmyLrrEmtRdbO2oDkJo5CB9aSn9n1O5seDDweJvmw6lGJYIfWd4JeLrHxcW/exec" target="_blank" rel="noopener">
-      <div class="card-stripe stripe-amber"></div>
-      <div class="card-body">
-        <div class="card-icon-wrap icon-amber">✅</div>
-        <div class="card-year year-amber">2569 · กิจการนักเรียน</div>
-        <div class="card-title">ระบบเช็คชื่อนักเรียน</div>
-        <div class="card-desc">บันทึกและติดตามการเข้าเรียนรายวัน สำหรับครูประจำวิชาและครูที่ปรึกษา</div>
-        <div class="card-footer">
-          <span class="card-badge badge-amber">Google Apps Script</span>
-          <span class="card-arrow arrow-amber">→</span>
-        </div>
-      </div>
-    </a>
-
-    <!-- คู่มือการใช้ระบบเช็คชื่อ -->
-    <a class="card" href="https://blackareal.github.io/wangkrasae/teachersmanual.html" target="_blank" rel="noopener">
-      <div class="card-stripe stripe-amber"></div>
-      <div class="card-body">
-        <div class="card-icon-wrap icon-amber">📖</div>
-        <div class="card-year year-amber">2569 · คู่มือ</div>
-        <div class="card-title">คู่มือการใช้ระบบเช็คชื่อสำหรับครู</div>
-        <div class="card-desc">คำแนะนำขั้นตอนการใช้งานระบบเช็คชื่อนักเรียน สำหรับครูทุกท่าน</div>
-        <div class="card-footer">
-          <span class="card-badge badge-amber">สำหรับครู</span>
-          <span class="card-arrow arrow-amber">→</span>
-        </div>
-      </div>
-    </a>
-
-  </div>
+  </div><!-- end section-row 2 -->
 
 </main>
 
