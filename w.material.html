@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>บัญชีราคาสินค้า — ร้าน ว.รุ่งโรจน์</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sarabun', sans-serif;
+    background: #f5f6fa;
+    color: #2d3748;
+    padding: 28px 12px 48px;
+  }
+
+  .page-header {
+    max-width: 900px;
+    margin: 0 auto 24px;
+    text-align: center;
+  }
+  .shop-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: white;
+    padding: 7px 22px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 14px;
+    box-shadow: 0 3px 12px rgba(37,99,235,0.35);
+  }
+  h1 { font-size: 26px; font-weight: 700; color: #1e293b; margin-bottom: 6px; }
+  .subtitle { font-size: 14px; color: #64748b; }
+
+  .stats-bar {
+    max-width: 900px;
+    margin: 0 auto 20px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .stat-chip {
+    background: white;
+    border-radius: 10px;
+    padding: 9px 16px;
+    font-size: 13px;
+    color: #475569;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    display: flex; gap: 6px; align-items: center;
+  }
+  .stat-chip strong { color: #1e293b; font-size: 15px; }
+
+  .search-wrap {
+    max-width: 900px;
+    margin: 0 auto 20px;
+    position: relative;
+  }
+  .search-wrap input {
+    width: 100%;
+    padding: 12px 18px 12px 44px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 15px;
+    color: #1e293b;
+    background: white;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-wrap input:focus { border-color: #2563eb; }
+  .search-icon {
+    position: absolute;
+    left: 14px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    opacity: 0.4;
+  }
+  #no-result {
+    text-align: center;
+    padding: 32px;
+    color: #94a3b8;
+    font-size: 15px;
+    display: none;
+  }
+
+  .tbl-wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: #1e293b; }
+  thead th {
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+    text-align: left;
+  }
+  thead th.r { text-align: right; }
+
+  tbody tr:nth-child(even) { background: #f8fafc; }
+  tbody tr:nth-child(odd) { background: white; }
+  tbody tr:hover { background: #eff6ff; }
+  tbody tr.hidden { display: none; }
+
+  tbody td {
+    padding: 9px 16px;
+    font-size: 14px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+  }
+  .wcode { font-family: monospace; font-size: 12px; color: #94a3b8; width: 60px; }
+  .unit-col { color: #64748b; font-size: 13px; width: 100px; }
+  .price-col { text-align: right; font-weight: 600; color: #1e40af; width: 110px; white-space: nowrap; }
+
+  .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #94a3b8; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="shop-badge">📋 บัญชีราคาสินค้า</div>
+  <h1>ร้าน ว.รุ่งโรจน์</h1>
+  <p class="subtitle">อุปกรณ์เครื่องเขียน / วัสดุสำนักงาน &nbsp;|&nbsp; สำหรับโรงเรียนวังกระแสวิทยาคม</p>
+</div>
+
+<div class="stats-bar">
+  <div class="stat-chip">📦 รายการทั้งหมด <strong id="total-count">181</strong> รายการ</div>
+  <div class="stat-chip" id="found-chip" style="display:none">🔍 พบ <strong id="found-count">0</strong> รายการ</div>
+  <div class="stat-chip" style="color:#0369a1">💡 พิมพ์ชื่อสินค้าเพื่อค้นหา</div>
+</div>
+
+<div class="search-wrap">
+  <span class="search-icon">🔍</span>
+  <input type="text" id="searchInput" placeholder="ค้นหาสินค้า เช่น กระดาษ, ปากกา, เทป..." oninput="filterItems(this.value)">
+</div>
+
+<div class="tbl-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:60px">รหัส</th>
+        <th>รายการสินค้า</th>
+        <th style="width:100px">หน่วยนับ</th>
+        <th class="r" style="width:110px">ราคา (บาท)</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody">
+          <tr data-name="กระดาษ A4 80G" data-unit="กล่อง" data-price="700">
+            <td class="wcode">W001</td>
+            <td>กระดาษ A4 80G</td>
+            <td class="unit-col">กล่อง</td>
+            <td class="price-col">700</td>
+          </tr>
+          <tr data-name="กระดาษ A4 70G" data-unit="กล่อง" data-price="600">
+            <td class="wcode">W002</td>
+            <td>กระดาษ A4 70G</td>
+            <td class="unit-col">กล่อง</td>
+            <td class="price-col">600</td>
+          </tr>
+          <tr data-name="กระดาษปกสี A4 120G" data-unit="รีม" data-price="110">
+            <td class="wcode">W003</td>
+            <td>กระดาษปกสี A4 120G</td>
+            <td class="unit-col">รีม</td>
+            <td class="price-col">110</td>
+          </tr>
+          <tr data-name="กระดาษปกหอม A4 180G" data-unit="รีม" data-price="120">
+            <td class="wcode">W004</td>
+            <td>กระดาษปกหอม A4 180G</td>
+            <td class="unit-col">รีม</td>
+            <td class="price-col">120</td>
+          </tr>
+          <tr data-name="กระดาษโฟโต้ 120G" data-unit="รีม" data-price="300">
+            <td class="wcode">W005</td>
+            <td>กระดาษโฟโต้ 120G</td>
+            <td class="unit-col">รีม</td>
+            <td class="price-col">300</td>
+          </tr>
+          <tr data-name="กระดาษโฟโต้ 150G" data-unit="รีม" data-price="350">
+            <td class="wcode">W006</td>
+            <td>กระดาษโฟโต้ 150G</td>
+            <td class="unit-col">รีม</td>
+            <td class="price-col">350</td>
+          </tr>
+          <tr data-name="กระดาษโฟโต้ 180G" data-unit="รีม" data-price="450">
+            <td class="wcode">W007</td>
+            <td>กระดาษโฟโต้ 180G</td>
+            <td class="unit-col">รีม</td>
+            <td class="price-col">450</td>
+          </tr>
+          <tr data-name="กระดาษการ์ดขาว 120G (100 แผ่น)" data-unit="รีม" data-price="100">
+            <td class="wcode">W008</td>
+            <td>กระดาษการ์ดขาว 120G (100 แผ่น)</td>
+            <td class="unit-col">รีม</td>
+            <td class="price-col">100</td>
+          </tr>
+          <tr data-name="กระดาษการ์ดขาว 150G (50 แผ่น)" data-unit="รีม" data-price="70">
+            <td class="wcode">W009</td>
+            <td>กระดาษการ์ดขาว 150G (50 แผ่น)</td>
+            <td class="unit-col">รีม</td>
+            <td class="price-col">70</td>
+          </tr>
+          <tr data-name="กระดาษการ์ดขาว 180G (50 แผ่น)" data-unit="รีม" data-price="80">
+            <td class="wcode">W010</td>
+            <td>กระดาษการ์ดขาว 180G (50 แผ่น)</td>
+            <td class="unit-col">รีม</td>
+            <td class="price-col">80</td>
+          </tr>
+          <tr data-name="กระดาษการ์ดขาว 210G (50 แผ่น)" data-unit="รีม" data-price="100">
+            <td class="wcode">W011</td>
+            <td>กระดาษการ์ดขาว 210G (50 แผ่น)</td>
+            <td class="unit-col">รีม</td>
+            <td class="price-col">100</td>
+          </tr>
+          <tr data-name="กระดาษ 100 ปอนด์แผ่นใหญ่" data-unit="แผ่น" data-price="20">
+            <td class="wcode">W012</td>
+            <td>กระดาษ 100 ปอนด์แผ่นใหญ่</td>
+            <td class="unit-col">แผ่น</td>
+            <td class="price-col">20</td>
+          </tr>
+          <tr data-name="กระดาษรีไซเกิล/อเนกประสงค์ A4 (500 แผ่น)" data-unit="รีม" data-price="200">
+            <td class="wcode">W013</td>
+            <td>กระดาษรีไซเกิล/อเนกประสงค์ A4 (500 แผ่น)</td>
+            <td class="unit-col">รีม</td>
+            <td class="price-col">200</td>
+          </tr>
+          <tr data-name="สติ๊กเกอร์ใส A4 (50 แผ่น)" data-unit="รีม" data-price="200">
+            <td class="wcode">W014</td>
+            <td>สติ๊กเกอร์ใส A4 (50 แผ่น)</td>
+            <td class="unit-col">รีม</td>
+            <td class="price-col">200</td>
+          </tr>
+          <tr data-name="กระดาษปรู๊ฟ" data-unit="แผ่น" data-price="4">
+            <td class="wcode">W015</td>
+            <td>กระดาษปรู๊ฟ</td>
+            <td class="unit-col">แผ่น</td>
+            <td class="price-col">4</td>
+          </tr>
+          <tr data-name="กระดาษรองบอร์ด" data-unit="แผ่น" data-price="12">
+            <td class="wcode">W016</td>
+            <td>กระดาษรองบอร์ด</td>
+            <td class="unit-col">แผ่น</td>
+            <td class="price-col">12</td>
+          </tr>
+          <tr data-name="กระดาษโปสเตอร์สี 1 หน้า" data-unit="แผ่น" data-price="6">
+            <td class="wcode">W017</td>
+            <td>กระดาษโปสเตอร์สี 1 หน้า</td>
+            <td class="unit-col">แผ่น</td>
+            <td class="price-col">6</td>
+          </tr>
+          <tr data-name="กระดาษโปสเตอร์สี 2 หน้า" data-unit="แผ่น" data-price="8">
+            <td class="wcode">W018</td>
+            <td>กระดาษโปสเตอร์สี 2 หน้า</td>
+            <td class="unit-col">แผ่น</td>
+            <td class="price-col">8</td>
+          </tr>
+          <tr data-name="กระดาษโปสเตอร์สีแข็ง, กระดาษเทา-ขาว" data-unit="แผ่น" data-price="15">
+            <td class="wcode">W019</td>
+            <td>กระดาษโปสเตอร์สีแข็ง, กระดาษเทา-ขาว</td>
+            <td class="unit-col">แผ่น</td>
+            <td class="price-col">15</td>
+          </tr>
+          <tr data-name="กระดาษโปสเตอร์สะท้อนแสง บาง" data-unit="แผ่น" data-price="10">
+            <td class="wcode">W020</td>
+            <td>กระดาษโปสเตอร์สะท้อนแสง บาง</td>
+            <td class="unit-col">แผ่น</td>
+            <td class="price-col">10</td>
+          </tr>
+          <tr data-name="กระดาษโปสเตอร์สีสะท้อนแสง หนา" data-unit="แผ่น" data-price="15">
+            <td class="wcode">W021</td>
+            <td>กระดาษโปสเตอร์สีสะท้อนแสง หนา</td>
+            <td class="unit-col">แผ่น</td>
+            <td class="price-col">15</td>
+          </tr>
+          <tr data-name="กระดาษคำตอบ 60, 80 ข้อ" data-unit="ห่อ" data-price="25">
+            <td class="wcode">W022</td>
+            <td>กระดาษคำตอบ 60, 80 ข้อ</td>
+            <td class="unit-col">ห่อ</td>
+            <td class="price-col">25</td>
+          </tr>
+          <tr data-name="กระดาษคำตอบ ต2ก." data-unit="ห่อ" data-price="80">
+            <td class="wcode">W023</td>
+            <td>กระดาษคำตอบ ต2ก.</td>
+            <td class="unit-col">ห่อ</td>
+            <td class="price-col">80</td>
+          </tr>
+          <tr data-name="ซองพับ 4 (ขาว ครุฑ)(500 ใบ)" data-unit="กล่อง" data-price="400">
+            <td class="wcode">W024</td>
+            <td>ซองพับ 4 (ขาว ครุฑ)(500 ใบ)</td>
+            <td class="unit-col">กล่อง</td>
+            <td class="price-col">400</td>
+          </tr>
+          <tr data-name="ซองพับ 4 (ขาว ไม่ครุฑ)(500 ใบ)" data-unit="กล่อง" data-price="300">
+            <td class="wcode">W025</td>
+            <td>ซองพับ 4 (ขาว ไม่ครุฑ)(500 ใบ)</td>
+            <td class="unit-col">กล่อง</td>
+            <td class="price-col">300</td>
+          </tr>
+          <tr data-name="ซองน้ำตาล A4 ครุฑ (ไม่ขยายข้าง)" data-unit="ซอง" data-price="3">
+            <td class="wcode">W026</td>
+            <td>ซองน้ำตาล A4 ครุฑ (ไม่ขยายข้าง)</td>
+            <td class="unit-col">ซอง</td>
+            <td class="price-col">3</td>
+          </tr>
+          <tr data-name="ซองน้ำตาล A4 ครุฑ (ขยายข้าง)" data-unit="ซอง" data-price="5">
+            <td class="wcode">W027</td>
+            <td>ซองน้ำตาล A4 ครุฑ (ขยายข้าง)</td>
+            <td class="unit-col">ซอง</td>
+            <td class="price-col">5</td>
+          </tr>
+          <tr data-name="ซองน้ำตาล F4 ครุฑ (ขยายข้าง)" data-unit="ซอง" data-price="6">
+            <td class="wcode">W028</td>
+            <td>ซองน้ำตาล F4 ครุฑ (ขยายข้าง)</td>
+            <td class="unit-col">ซอง</td>
+            <td class="price-col">6</td>
+          </tr>
+          <tr data-name="ซองพับ 2 (ขาว,น้ำตาล)" data-unit="ซอง" data-price="3">
+            <td class="wcode">W029</td>
+            <td>ซองพับ 2 (ขาว,น้ำตาล)</td>
+            <td class="unit-col">ซอง</td>
+            <td class="price-col">3</td>
+          </tr>
+          <tr data-name="ซองน้ำตาล 7" x 10"" data-unit="ซอง" data-price="2">
+            <td class="wcode">W030</td>
+            <td>ซองน้ำตาล 7" x 10"</td>
+            <td class="unit-col">ซอง</td>
+            <td class="price-col">2</td>
+          </tr>
+          <tr data-name="กระดาษคาร์บอน (100 แผ่น)" data-unit="กล่อง" data-price="160">
+            <td class="wcode">W031</td>
+            <td>กระดาษคาร์บอน (100 แผ่น)</td>
+            <td class="unit-col">กล่อง</td>
+            <td class="price-col">160</td>
+          </tr>
+          <tr data-name="พลาสติกเคลือบร้อน A4" data-unit="กล่อง" data-price="700">
+            <td class="wcode">W032</td>
+            <td>พลาสติกเคลือบร้อน A4</td>
+            <td class="unit-col">กล่อง</td>
+            <td class="price-col">700</td>
+          </tr>
+          <tr data-name="แฟ้มช้าง 2",3"" data-unit="โหล" data-price="1,020">
+            <td class="wcode">W033</td>
+            <td>แฟ้มช้าง 2",3"</td>
+            <td class="unit-col">โหล</td>
+            <td class="price-col">1,020</td>
+          </tr>
+          <tr data-name="แฟ้มช้าง 1" (หนีบ,ห่วง)" data-unit="โหล" data-price="780">
+            <td class="wcode">W034</td>
+            <td>แฟ้มช้าง 1" (หนีบ,ห่วง)</td>
+            <td class="unit-col">โหล</td>
+            <td class="price-col">780</td>
+          </tr>
+          <tr data-name="แฟ้มสะสมงาน ปก PVC" data-unit="อัน" data-price="130">
+            <td class="wcode">W035</td>
+            <td>แฟ้มสะสมงาน ปก PVC</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">130</td>
+          </tr>
+          <tr data-name="แฟ้มสะสมงาน ปก พลาสติก" data-unit="อัน" data-price="40">
+            <td class="wcode">W036</td>
+            <td>แฟ้มสะสมงาน ปก พลาสติก</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">40</td>
+          </tr>
+          <tr data-name="แฟ้มซองกระดุม F4" data-unit="อัน" data-price="10">
+            <td class="wcode">W037</td>
+            <td>แฟ้มซองกระดุม F4</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">10</td>
+          </tr>
+          <tr data-name="ซองสอด A4" data-unit="อัน" data-price="5">
+            <td class="wcode">W038</td>
+            <td>ซองสอด A4</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">5</td>
+          </tr>
+          <tr data-name="ใส้แฟ้ม A4 11 รู (20ใบ)" data-unit="ห่อ" data-price="35">
+            <td class="wcode">W039</td>
+            <td>ใส้แฟ้ม A4 11 รู (20ใบ)</td>
+            <td class="unit-col">ห่อ</td>
+            <td class="price-col">35</td>
+          </tr>
+          <tr data-name="สมุดปกอ่อน 10-" data-unit="โหล" data-price="120">
+            <td class="wcode">W040</td>
+            <td>สมุดปกอ่อน 10-</td>
+            <td class="unit-col">โหล</td>
+            <td class="price-col">120</td>
+          </tr>
+          <tr data-name="สมุดปกอ่อน 20-" data-unit="โหล" data-price="240">
+            <td class="wcode">W041</td>
+            <td>สมุดปกอ่อน 20-</td>
+            <td class="unit-col">โหล</td>
+            <td class="price-col">240</td>
+          </tr>
+          <tr data-name="สมุดบัญชี No.2 PVC" data-unit="เล่ม" data-price="40">
+            <td class="wcode">W042</td>
+            <td>สมุดบัญชี No.2 PVC</td>
+            <td class="unit-col">เล่ม</td>
+            <td class="price-col">40</td>
+          </tr>
+          <tr data-name="สมุดบัญชี No.2 ปกกระดาษ" data-unit="เล่ม" data-price="30">
+            <td class="wcode">W043</td>
+            <td>สมุดบัญชี No.2 ปกกระดาษ</td>
+            <td class="unit-col">เล่ม</td>
+            <td class="price-col">30</td>
+          </tr>
+          <tr data-name="สมุดบัญชี 5/100" data-unit="เล่ม" data-price="80">
+            <td class="wcode">W044</td>
+            <td>สมุดบัญชี 5/100</td>
+            <td class="unit-col">เล่ม</td>
+            <td class="price-col">80</td>
+          </tr>
+          <tr data-name="สมุดบัญชี 5/200" data-unit="เล่ม" data-price="160">
+            <td class="wcode">W045</td>
+            <td>สมุดบัญชี 5/200</td>
+            <td class="unit-col">เล่ม</td>
+            <td class="price-col">160</td>
+          </tr>
+          <tr data-name="สมุดบัญชี 4/100" data-unit="เล่ม" data-price="120">
+            <td class="wcode">W046</td>
+            <td>สมุดบัญชี 4/100</td>
+            <td class="unit-col">เล่ม</td>
+            <td class="price-col">120</td>
+          </tr>
+          <tr data-name="สมุดบัญชี 4/200" data-unit="เล่ม" data-price="240">
+            <td class="wcode">W047</td>
+            <td>สมุดบัญชี 4/200</td>
+            <td class="unit-col">เล่ม</td>
+            <td class="price-col">240</td>
+          </tr>
+          <tr data-name="ทะเบียนรับ-ส่ง ปก PVC" data-unit="เล่ม" data-price="80">
+            <td class="wcode">W048</td>
+            <td>ทะเบียนรับ-ส่ง ปก PVC</td>
+            <td class="unit-col">เล่ม</td>
+            <td class="price-col">80</td>
+          </tr>
+          <tr data-name="บัญชีวัสดุ" data-unit="เล่ม" data-price="120">
+            <td class="wcode">W049</td>
+            <td>บัญชีวัสดุ</td>
+            <td class="unit-col">เล่ม</td>
+            <td class="price-col">120</td>
+          </tr>
+          <tr data-name="ทะเบียนครุภัณฑ์" data-unit="เล่ม" data-price="120">
+            <td class="wcode">W050</td>
+            <td>ทะเบียนครุภัณฑ์</td>
+            <td class="unit-col">เล่ม</td>
+            <td class="price-col">120</td>
+          </tr>
+          <tr data-name="เทปผ้า (แล็คซีน) 1"" data-unit="ม้วน" data-price="30">
+            <td class="wcode">W051</td>
+            <td>เทปผ้า (แล็คซีน) 1"</td>
+            <td class="unit-col">ม้วน</td>
+            <td class="price-col">30</td>
+          </tr>
+          <tr data-name="เทปผ้า (แล็คซีน) 1.5"" data-unit="ม้วน" data-price="50">
+            <td class="wcode">W052</td>
+            <td>เทปผ้า (แล็คซีน) 1.5"</td>
+            <td class="unit-col">ม้วน</td>
+            <td class="price-col">50</td>
+          </tr>
+          <tr data-name="เทปผ้า (แล็คซีน) 2"" data-unit="ม้วน" data-price="65">
+            <td class="wcode">W053</td>
+            <td>เทปผ้า (แล็คซีน) 2"</td>
+            <td class="unit-col">ม้วน</td>
+            <td class="price-col">65</td>
+          </tr>
+          <tr data-name="เทปผ้า (แล็คซีน) 3"" data-unit="ม้วน" data-price="90">
+            <td class="wcode">W054</td>
+            <td>เทปผ้า (แล็คซีน) 3"</td>
+            <td class="unit-col">ม้วน</td>
+            <td class="price-col">90</td>
+          </tr>
+          <tr data-name="กระดาษกาวย่อน 1"" data-unit="ม้วน" data-price="25">
+            <td class="wcode">W055</td>
+            <td>กระดาษกาวย่อน 1"</td>
+            <td class="unit-col">ม้วน</td>
+            <td class="price-col">25</td>
+          </tr>
+          <tr data-name="กระดาษกาวย่อน 1.5"" data-unit="ม้วน" data-price="35">
+            <td class="wcode">W056</td>
+            <td>กระดาษกาวย่อน 1.5"</td>
+            <td class="unit-col">ม้วน</td>
+            <td class="price-col">35</td>
+          </tr>
+          <tr data-name="กระดาษกาวย่อน 2"" data-unit="ม้วน" data-price="50">
+            <td class="wcode">W057</td>
+            <td>กระดาษกาวย่อน 2"</td>
+            <td class="unit-col">ม้วน</td>
+            <td class="price-col">50</td>
+          </tr>
+          <tr data-name="เทปกาว 2 หน้า บาง 1"" data-unit="ม้วน" data-price="25">
+            <td class="wcode">W058</td>
+            <td>เทปกาว 2 หน้า บาง 1"</td>
+            <td class="unit-col">ม้วน</td>
+            <td class="price-col">25</td>
+          </tr>
+          <tr data-name="เทปกาว 2 หน้า บาง 1.5"" data-unit="ม้วน" data-price="35">
+            <td class="wcode">W059</td>
+            <td>เทปกาว 2 หน้า บาง 1.5"</td>
+            <td class="unit-col">ม้วน</td>
+            <td class="price-col">35</td>
+          </tr>
+          <tr data-name="เทปกาว 2 หน้า บาง 2"" data-unit="ม้วน" data-price="50">
+            <td class="wcode">W060</td>
+            <td>เทปกาว 2 หน้า บาง 2"</td>
+            <td class="unit-col">ม้วน</td>
+            <td class="price-col">50</td>
+          </tr>
+          <tr data-name="เทปใส 3/4"" data-unit="ม้วน" data-price="35">
+            <td class="wcode">W061</td>
+            <td>เทปใส 3/4"</td>
+            <td class="unit-col">ม้วน</td>
+            <td class="price-col">35</td>
+          </tr>
+          <tr data-name="เทปใส 1"" data-unit="ม้วน" data-price="40">
+            <td class="wcode">W062</td>
+            <td>เทปใส 1"</td>
+            <td class="unit-col">ม้วน</td>
+            <td class="price-col">40</td>
+          </tr>
+          <tr data-name="เทป OPP (ขุ่น,ใส)" data-unit="ม้วน" data-price="30">
+            <td class="wcode">W063</td>
+            <td>เทป OPP (ขุ่น,ใส)</td>
+            <td class="unit-col">ม้วน</td>
+            <td class="price-col">30</td>
+          </tr>
+          <tr data-name="เทปโฟม 3 เมตร ยาว 3 เมตร" data-unit="ม้วน" data-price="150">
+            <td class="wcode">W064</td>
+            <td>เทปโฟม 3 เมตร ยาว 3 เมตร</td>
+            <td class="unit-col">ม้วน</td>
+            <td class="price-col">150</td>
+          </tr>
+          <tr data-name="เทปโฟม 3 เมตร ยาว 5 เมตร" data-unit="ม้วน" data-price="250">
+            <td class="wcode">W065</td>
+            <td>เทปโฟม 3 เมตร ยาว 5 เมตร</td>
+            <td class="unit-col">ม้วน</td>
+            <td class="price-col">250</td>
+          </tr>
+          <tr data-name="คลิบดำ 2 ขา No.108 (51 มม.)" data-unit="โหล" data-price="80">
+            <td class="wcode">W066</td>
+            <td>คลิบดำ 2 ขา No.108 (51 มม.)</td>
+            <td class="unit-col">โหล</td>
+            <td class="price-col">80</td>
+          </tr>
+          <tr data-name="คลิบดำ 2 ขา No.109 (41 มม.)" data-unit="โหล" data-price="60">
+            <td class="wcode">W067</td>
+            <td>คลิบดำ 2 ขา No.109 (41 มม.)</td>
+            <td class="unit-col">โหล</td>
+            <td class="price-col">60</td>
+          </tr>
+          <tr data-name="คลิบดำ 2 ขา No.110 (32 มม.)" data-unit="โหล" data-price="40">
+            <td class="wcode">W068</td>
+            <td>คลิบดำ 2 ขา No.110 (32 มม.)</td>
+            <td class="unit-col">โหล</td>
+            <td class="price-col">40</td>
+          </tr>
+          <tr data-name="คลิบดำ 2 ขา No.111 (25 มม.)" data-unit="โหล" data-price="30">
+            <td class="wcode">W069</td>
+            <td>คลิบดำ 2 ขา No.111 (25 มม.)</td>
+            <td class="unit-col">โหล</td>
+            <td class="price-col">30</td>
+          </tr>
+          <tr data-name="คลิบดำ 2 ขา No.112 (19 มม.)" data-unit="โหล" data-price="20">
+            <td class="wcode">W070</td>
+            <td>คลิบดำ 2 ขา No.112 (19 มม.)</td>
+            <td class="unit-col">โหล</td>
+            <td class="price-col">20</td>
+          </tr>
+          <tr data-name="ลวดเสียบกระดาษ No.1" data-unit="กล่อง" data-price="10">
+            <td class="wcode">W071</td>
+            <td>ลวดเสียบกระดาษ No.1</td>
+            <td class="unit-col">กล่อง</td>
+            <td class="price-col">10</td>
+          </tr>
+          <tr data-name="ลวดเย็บกระดาษ No.10 (24 กล่องเล็ก)" data-unit="กล่อง" data-price="240">
+            <td class="wcode">W072</td>
+            <td>ลวดเย็บกระดาษ No.10 (24 กล่องเล็ก)</td>
+            <td class="unit-col">กล่อง</td>
+            <td class="price-col">240</td>
+          </tr>
+          <tr data-name="ลวดเย็บกระดาษ No.8 (12 กล่องเล็ก)" data-unit="กล่อง" data-price="180">
+            <td class="wcode">W073</td>
+            <td>ลวดเย็บกระดาษ No.8 (12 กล่องเล็ก)</td>
+            <td class="unit-col">กล่อง</td>
+            <td class="price-col">180</td>
+          </tr>
+          <tr data-name="ลวดเย็บกระดาษ No.35 (24 กล่องเล็ก)" data-unit="กล่อง" data-price="360">
+            <td class="wcode">W074</td>
+            <td>ลวดเย็บกระดาษ No.35 (24 กล่องเล็ก)</td>
+            <td class="unit-col">กล่อง</td>
+            <td class="price-col">360</td>
+          </tr>
+          <tr data-name="ลวดเย็บกระดาษ No.3 (24 กล่องเล็ก)" data-unit="กล่อง" data-price="600">
+            <td class="wcode">W075</td>
+            <td>ลวดเย็บกระดาษ No.3 (24 กล่องเล็ก)</td>
+            <td class="unit-col">กล่อง</td>
+            <td class="price-col">600</td>
+          </tr>
+          <tr data-name="ลวดเย็บเข้าเล่ม No.23/10 (กล่องเล็ก)" data-unit="กล่อง" data-price="60">
+            <td class="wcode">W076</td>
+            <td>ลวดเย็บเข้าเล่ม No.23/10 (กล่องเล็ก)</td>
+            <td class="unit-col">กล่อง</td>
+            <td class="price-col">60</td>
+          </tr>
+          <tr data-name="ลวดเย็บเข้าเล่ม No.23/13 (กล่องเล็ก)" data-unit="กล่อง" data-price="70">
+            <td class="wcode">W077</td>
+            <td>ลวดเย็บเข้าเล่ม No.23/13 (กล่องเล็ก)</td>
+            <td class="unit-col">กล่อง</td>
+            <td class="price-col">70</td>
+          </tr>
+          <tr data-name="ลวดเย็บเข้าเล่ม No.23/15 (กล่องเล็ก)" data-unit="กล่อง" data-price="80">
+            <td class="wcode">W078</td>
+            <td>ลวดเย็บเข้าเล่ม No.23/15 (กล่องเล็ก)</td>
+            <td class="unit-col">กล่อง</td>
+            <td class="price-col">80</td>
+          </tr>
+          <tr data-name="ลวดเย็บเข้าเล่ม No.23/17 (กล่องเล็ก)" data-unit="กล่อง" data-price="90">
+            <td class="wcode">W079</td>
+            <td>ลวดเย็บเข้าเล่ม No.23/17 (กล่องเล็ก)</td>
+            <td class="unit-col">กล่อง</td>
+            <td class="price-col">90</td>
+          </tr>
+          <tr data-name="ลวดเย็บเข้าเล่ม No.23/20 (กล่องเล็ก)" data-unit="กล่อง" data-price="100">
+            <td class="wcode">W080</td>
+            <td>ลวดเย็บเข้าเล่ม No.23/20 (กล่องเล็ก)</td>
+            <td class="unit-col">กล่อง</td>
+            <td class="price-col">100</td>
+          </tr>
+          <tr data-name="ลวดเย็บเข้าเล่ม No.23/24 (กล่องเล็ก)" data-unit="กล่อง" data-price="120">
+            <td class="wcode">W081</td>
+            <td>ลวดเย็บเข้าเล่ม No.23/24 (กล่องเล็ก)</td>
+            <td class="unit-col">กล่อง</td>
+            <td class="price-col">120</td>
+          </tr>
+          <tr data-name="ลวดยิงบอร์ด" data-unit="กล่อง" data-price="50">
+            <td class="wcode">W082</td>
+            <td>ลวดยิงบอร์ด</td>
+            <td class="unit-col">กล่อง</td>
+            <td class="price-col">50</td>
+          </tr>
+          <tr data-name="เครื่องเย็บกระดาษ No.10" data-unit="ตัว" data-price="70">
+            <td class="wcode">W083</td>
+            <td>เครื่องเย็บกระดาษ No.10</td>
+            <td class="unit-col">ตัว</td>
+            <td class="price-col">70</td>
+          </tr>
+          <tr data-name="เครื่องเย็บกระดาษ No.3,35" data-unit="ตัว" data-price="380">
+            <td class="wcode">W084</td>
+            <td>เครื่องเย็บกระดาษ No.3,35</td>
+            <td class="unit-col">ตัว</td>
+            <td class="price-col">380</td>
+          </tr>
+          <tr data-name="เครื่องเย็บกระดาษ No.3,35 (ตัวถูก)" data-unit="ตัว" data-price="150">
+            <td class="wcode">W085</td>
+            <td>เครื่องเย็บกระดาษ No.3,35 (ตัวถูก)</td>
+            <td class="unit-col">ตัว</td>
+            <td class="price-col">150</td>
+          </tr>
+          <tr data-name="เครื่องเย็บกระดาษ No.8" data-unit="ตัว" data-price="400">
+            <td class="wcode">W086</td>
+            <td>เครื่องเย็บกระดาษ No.8</td>
+            <td class="unit-col">ตัว</td>
+            <td class="price-col">400</td>
+          </tr>
+          <tr data-name="กรรไกร 8"" data-unit="อัน" data-price="70">
+            <td class="wcode">W087</td>
+            <td>กรรไกร 8"</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">70</td>
+          </tr>
+          <tr data-name="กรรไกรกลาง" data-unit="อัน" data-price="40">
+            <td class="wcode">W088</td>
+            <td>กรรไกรกลาง</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">40</td>
+          </tr>
+          <tr data-name="มีดคัตเตอร์ใหญ่" data-unit="อัน" data-price="70">
+            <td class="wcode">W089</td>
+            <td>มีดคัตเตอร์ใหญ่</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">70</td>
+          </tr>
+          <tr data-name="มีดคัตเตอร์เล็ก" data-unit="อัน" data-price="40">
+            <td class="wcode">W090</td>
+            <td>มีดคัตเตอร์เล็ก</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">40</td>
+          </tr>
+          <tr data-name="ใบมีดคัตเตอร์ใหญ่ (6 ใบ)" data-unit="หลอด" data-price="20">
+            <td class="wcode">W091</td>
+            <td>ใบมีดคัตเตอร์ใหญ่ (6 ใบ)</td>
+            <td class="unit-col">หลอด</td>
+            <td class="price-col">20</td>
+          </tr>
+          <tr data-name="ใบมีดคัตเตอร์เล็ก (6 ใบ)" data-unit="หลอด" data-price="15">
+            <td class="wcode">W092</td>
+            <td>ใบมีดคัตเตอร์เล็ก (6 ใบ)</td>
+            <td class="unit-col">หลอด</td>
+            <td class="price-col">15</td>
+          </tr>
+          <tr data-name="กาวน้ำ หลอดเล็ก" data-unit="ขวด" data-price="10">
+            <td class="wcode">W093</td>
+            <td>กาวน้ำ หลอดเล็ก</td>
+            <td class="unit-col">ขวด</td>
+            <td class="price-col">10</td>
+          </tr>
+          <tr data-name="กาวน้ำ หลอดใหญ่" data-unit="ขวด" data-price="40">
+            <td class="wcode">W094</td>
+            <td>กาวน้ำ หลอดใหญ่</td>
+            <td class="unit-col">ขวด</td>
+            <td class="price-col">40</td>
+          </tr>
+          <tr data-name="กาวลาเท็กซ์ 4 ออนซ์" data-unit="ขวด" data-price="20">
+            <td class="wcode">W095</td>
+            <td>กาวลาเท็กซ์ 4 ออนซ์</td>
+            <td class="unit-col">ขวด</td>
+            <td class="price-col">20</td>
+          </tr>
+          <tr data-name="กาวลาเท็กซ์ 8 ออนซ์" data-unit="ขวด" data-price="30">
+            <td class="wcode">W096</td>
+            <td>กาวลาเท็กซ์ 8 ออนซ์</td>
+            <td class="unit-col">ขวด</td>
+            <td class="price-col">30</td>
+          </tr>
+          <tr data-name="กาวลาเท็กซ์ 16 ออนซ์" data-unit="ขวด" data-price="50">
+            <td class="wcode">W097</td>
+            <td>กาวลาเท็กซ์ 16 ออนซ์</td>
+            <td class="unit-col">ขวด</td>
+            <td class="price-col">50</td>
+          </tr>
+          <tr data-name="กาวลาเท็กซ์ 32 ออนซ์" data-unit="ขวด" data-price="80">
+            <td class="wcode">W098</td>
+            <td>กาวลาเท็กซ์ 32 ออนซ์</td>
+            <td class="unit-col">ขวด</td>
+            <td class="price-col">80</td>
+          </tr>
+          <tr data-name="กาวแท่ง ป้องเล็ก" data-unit="แท่ง" data-price="35">
+            <td class="wcode">W099</td>
+            <td>กาวแท่ง ป้องเล็ก</td>
+            <td class="unit-col">แท่ง</td>
+            <td class="price-col">35</td>
+          </tr>
+          <tr data-name="กาวแท่ง ป้องใหญ่" data-unit="แท่ง" data-price="70">
+            <td class="wcode">W100</td>
+            <td>กาวแท่ง ป้องใหญ่</td>
+            <td class="unit-col">แท่ง</td>
+            <td class="price-col">70</td>
+          </tr>
+          <tr data-name="เครื่องยิงบอร์ด S-01" data-unit="เครื่อง" data-price="1,500">
+            <td class="wcode">W101</td>
+            <td>เครื่องยิงบอร์ด S-01</td>
+            <td class="unit-col">เครื่อง</td>
+            <td class="price-col">1,500</td>
+          </tr>
+          <tr data-name="เครื่องเย็บเข้าเล่ม S-01" data-unit="เครื่อง" data-price="2,500">
+            <td class="wcode">W102</td>
+            <td>เครื่องเย็บเข้าเล่ม S-01</td>
+            <td class="unit-col">เครื่อง</td>
+            <td class="price-col">2,500</td>
+          </tr>
+          <tr data-name="ดินสอ HB" data-unit="โหล" data-price="45">
+            <td class="wcode">W103</td>
+            <td>ดินสอ HB</td>
+            <td class="unit-col">โหล</td>
+            <td class="price-col">45</td>
+          </tr>
+          <tr data-name="ดินสอ 2B (ฝนข้อสอบ)" data-unit="โหล" data-price="120">
+            <td class="wcode">W104</td>
+            <td>ดินสอ 2B (ฝนข้อสอบ)</td>
+            <td class="unit-col">โหล</td>
+            <td class="price-col">120</td>
+          </tr>
+          <tr data-name="ดินสอ 2B (แรเงา)" data-unit="แท่ง" data-price="20">
+            <td class="wcode">W105</td>
+            <td>ดินสอ 2B (แรเงา)</td>
+            <td class="unit-col">แท่ง</td>
+            <td class="price-col">20</td>
+          </tr>
+          <tr data-name="ปากกาลูกลื่น" data-unit="แท่ง" data-price="5">
+            <td class="wcode">W106</td>
+            <td>ปากกาลูกลื่น</td>
+            <td class="unit-col">แท่ง</td>
+            <td class="price-col">5</td>
+          </tr>
+          <tr data-name="ปากกาลูกลื่น (50 แท่ง)" data-unit="กล่อง" data-price="250">
+            <td class="wcode">W107</td>
+            <td>ปากกาลูกลื่น (50 แท่ง)</td>
+            <td class="unit-col">กล่อง</td>
+            <td class="price-col">250</td>
+          </tr>
+          <tr data-name="ปากกาเคมี" data-unit="โหล" data-price="180">
+            <td class="wcode">W108</td>
+            <td>ปากกาเคมี</td>
+            <td class="unit-col">โหล</td>
+            <td class="price-col">180</td>
+          </tr>
+          <tr data-name="ปากกาไวท์บอร์ด" data-unit="โหล" data-price="240">
+            <td class="wcode">W109</td>
+            <td>ปากกาไวท์บอร์ด</td>
+            <td class="unit-col">โหล</td>
+            <td class="price-col">240</td>
+          </tr>
+          <tr data-name="หมึกเติมปากกาไวท์บอร์ด" data-unit="ขวด" data-price="80">
+            <td class="wcode">W110</td>
+            <td>หมึกเติมปากกาไวท์บอร์ด</td>
+            <td class="unit-col">ขวด</td>
+            <td class="price-col">80</td>
+          </tr>
+          <tr data-name="ปากกาเมจิก (ด้ามริ้ว)" data-unit="แท่ง" data-price="10">
+            <td class="wcode">W111</td>
+            <td>ปากกาเมจิก (ด้ามริ้ว)</td>
+            <td class="unit-col">แท่ง</td>
+            <td class="price-col">10</td>
+          </tr>
+          <tr data-name="ปากกาเขียนแผ่น CD" data-unit="แท่ง" data-price="25">
+            <td class="wcode">W112</td>
+            <td>ปากกาเขียนแผ่น CD</td>
+            <td class="unit-col">แท่ง</td>
+            <td class="price-col">25</td>
+          </tr>
+          <tr data-name="ปากกาเขียนครุภัณฑ์ (หมึกน้ำมัน) เล็ก" data-unit="แท่ง" data-price="60">
+            <td class="wcode">W113</td>
+            <td>ปากกาเขียนครุภัณฑ์ (หมึกน้ำมัน) เล็ก</td>
+            <td class="unit-col">แท่ง</td>
+            <td class="price-col">60</td>
+          </tr>
+          <tr data-name="ปากกาเขียนครุภัณฑ์ (หมึกน้ำมัน) ใหญ่" data-unit="แท่ง" data-price="70">
+            <td class="wcode">W114</td>
+            <td>ปากกาเขียนครุภัณฑ์ (หมึกน้ำมัน) ใหญ่</td>
+            <td class="unit-col">แท่ง</td>
+            <td class="price-col">70</td>
+          </tr>
+          <tr data-name="น้ำยาลบคำผิด 7 มล." data-unit="แท่ง" data-price="75">
+            <td class="wcode">W115</td>
+            <td>น้ำยาลบคำผิด 7 มล.</td>
+            <td class="unit-col">แท่ง</td>
+            <td class="price-col">75</td>
+          </tr>
+          <tr data-name="เทปลบคำผิด" data-unit="อัน" data-price="60">
+            <td class="wcode">W116</td>
+            <td>เทปลบคำผิด</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">60</td>
+          </tr>
+          <tr data-name="แท่นประทับตรายาง No.2" data-unit="อัน" data-price="40">
+            <td class="wcode">W117</td>
+            <td>แท่นประทับตรายาง No.2</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">40</td>
+          </tr>
+          <tr data-name="แท่นประทับตรายาง No.3" data-unit="อัน" data-price="30">
+            <td class="wcode">W118</td>
+            <td>แท่นประทับตรายาง No.3</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">30</td>
+          </tr>
+          <tr data-name="หมึกเติมแท่นประทับ" data-unit="ขวด" data-price="15">
+            <td class="wcode">W119</td>
+            <td>หมึกเติมแท่นประทับ</td>
+            <td class="unit-col">ขวด</td>
+            <td class="price-col">15</td>
+          </tr>
+          <tr data-name="คลิบบอร์ด พลาสติก A4" data-unit="อัน" data-price="50">
+            <td class="wcode">W120</td>
+            <td>คลิบบอร์ด พลาสติก A4</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">50</td>
+          </tr>
+          <tr data-name="คลิบบอร์ด ปก PVC A4" data-unit="อัน" data-price="90">
+            <td class="wcode">W121</td>
+            <td>คลิบบอร์ด ปก PVC A4</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">90</td>
+          </tr>
+          <tr data-name="ขี้ผึ้ง (ครีม) นับกระดาษ" data-unit="ตลับ" data-price="40">
+            <td class="wcode">W122</td>
+            <td>ขี้ผึ้ง (ครีม) นับกระดาษ</td>
+            <td class="unit-col">ตลับ</td>
+            <td class="price-col">40</td>
+          </tr>
+          <tr data-name="Post It" data-unit="ห่อ" data-price="40">
+            <td class="wcode">W123</td>
+            <td>Post It</td>
+            <td class="unit-col">ห่อ</td>
+            <td class="price-col">40</td>
+          </tr>
+          <tr data-name="สันรูด 3 มม." data-unit="โหล" data-price="40">
+            <td class="wcode">W124</td>
+            <td>สันรูด 3 มม.</td>
+            <td class="unit-col">โหล</td>
+            <td class="price-col">40</td>
+          </tr>
+          <tr data-name="สันรูด 5 มม." data-unit="โหล" data-price="60">
+            <td class="wcode">W125</td>
+            <td>สันรูด 5 มม.</td>
+            <td class="unit-col">โหล</td>
+            <td class="price-col">60</td>
+          </tr>
+          <tr data-name="สันรูด 10 มม." data-unit="โหล" data-price="120">
+            <td class="wcode">W126</td>
+            <td>สันรูด 10 มม.</td>
+            <td class="unit-col">โหล</td>
+            <td class="price-col">120</td>
+          </tr>
+          <tr data-name="สันรูด 15 มม." data-unit="โหล" data-price="150">
+            <td class="wcode">W127</td>
+            <td>สันรูด 15 มม.</td>
+            <td class="unit-col">โหล</td>
+            <td class="price-col">150</td>
+          </tr>
+          <tr data-name="กล่องใส่แฟ้ม 1 ช่อง" data-unit="ใบ" data-price="100">
+            <td class="wcode">W128</td>
+            <td>กล่องใส่แฟ้ม 1 ช่อง</td>
+            <td class="unit-col">ใบ</td>
+            <td class="price-col">100</td>
+          </tr>
+          <tr data-name="กล่องใส่แฟ้ม 2 ช่อง" data-unit="ใบ" data-price="200">
+            <td class="wcode">W129</td>
+            <td>กล่องใส่แฟ้ม 2 ช่อง</td>
+            <td class="unit-col">ใบ</td>
+            <td class="price-col">200</td>
+          </tr>
+          <tr data-name="กล่องใส่แฟ้ม 3 ช่อง" data-unit="ใบ" data-price="300">
+            <td class="wcode">W130</td>
+            <td>กล่องใส่แฟ้ม 3 ช่อง</td>
+            <td class="unit-col">ใบ</td>
+            <td class="price-col">300</td>
+          </tr>
+          <tr data-name="แผ่นรองตัด ขนาด A4" data-unit="แผ่น" data-price="150">
+            <td class="wcode">W131</td>
+            <td>แผ่นรองตัด ขนาด A4</td>
+            <td class="unit-col">แผ่น</td>
+            <td class="price-col">150</td>
+          </tr>
+          <tr data-name="แผ่นรองตัด ขนาด A3" data-unit="แผ่น" data-price="250">
+            <td class="wcode">W132</td>
+            <td>แผ่นรองตัด ขนาด A3</td>
+            <td class="unit-col">แผ่น</td>
+            <td class="price-col">250</td>
+          </tr>
+          <tr data-name="แผ่นรองตัด ขนาด A2" data-unit="แผ่น" data-price="350">
+            <td class="wcode">W133</td>
+            <td>แผ่นรองตัด ขนาด A2</td>
+            <td class="unit-col">แผ่น</td>
+            <td class="price-col">350</td>
+          </tr>
+          <tr data-name="เครื่องเจาะกระดาษ 2 รู เล็ก" data-unit="อัน" data-price="100">
+            <td class="wcode">W134</td>
+            <td>เครื่องเจาะกระดาษ 2 รู เล็ก</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">100</td>
+          </tr>
+          <tr data-name="เครื่องเจาะกระดาษ 2 รู กลาง" data-unit="อัน" data-price="200">
+            <td class="wcode">W135</td>
+            <td>เครื่องเจาะกระดาษ 2 รู กลาง</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">200</td>
+          </tr>
+          <tr data-name="เครื่องเจาะกระดาษ 2 รู ใหญ่" data-unit="อัน" data-price="300">
+            <td class="wcode">W136</td>
+            <td>เครื่องเจาะกระดาษ 2 รู ใหญ่</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">300</td>
+          </tr>
+          <tr data-name="เชือกขาว (ม้วนเล็ก)" data-unit="ม้วน" data-price="10">
+            <td class="wcode">W137</td>
+            <td>เชือกขาว (ม้วนเล็ก)</td>
+            <td class="unit-col">ม้วน</td>
+            <td class="price-col">10</td>
+          </tr>
+          <tr data-name="เชือกขาว-แดง (ม้วนใหญ่)" data-unit="ม้วน" data-price="50">
+            <td class="wcode">W138</td>
+            <td>เชือกขาว-แดง (ม้วนใหญ่)</td>
+            <td class="unit-col">ม้วน</td>
+            <td class="price-col">50</td>
+          </tr>
+          <tr data-name="ไม้บรรทัด พลาสติก" data-unit="อัน" data-price="5">
+            <td class="wcode">W139</td>
+            <td>ไม้บรรทัด พลาสติก</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">5</td>
+          </tr>
+          <tr data-name="ไม้บรรทัด เหล็ก 1 ฟุต" data-unit="อัน" data-price="40">
+            <td class="wcode">W140</td>
+            <td>ไม้บรรทัด เหล็ก 1 ฟุต</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">40</td>
+          </tr>
+          <tr data-name="แผ่นใสรองปก (100 แผ่น)" data-unit="รีม" data-price="200">
+            <td class="wcode">W141</td>
+            <td>แผ่นใสรองปก (100 แผ่น)</td>
+            <td class="unit-col">รีม</td>
+            <td class="price-col">200</td>
+          </tr>
+          <tr data-name="กระดาษห่อพัสดุ (น้ำตาล)" data-unit="แผ่น" data-price="5">
+            <td class="wcode">W142</td>
+            <td>กระดาษห่อพัสดุ (น้ำตาล)</td>
+            <td class="unit-col">แผ่น</td>
+            <td class="price-col">5</td>
+          </tr>
+          <tr data-name="ตะกร้าใส่เอกสาร 1 ชั้น (มีฝาปิด)" data-unit="อัน" data-price="150">
+            <td class="wcode">W143</td>
+            <td>ตะกร้าใส่เอกสาร 1 ชั้น (มีฝาปิด)</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">150</td>
+          </tr>
+          <tr data-name="ตะกร้าใส่เอกสาร 3 ชั้น" data-unit="อัน" data-price="180">
+            <td class="wcode">W144</td>
+            <td>ตะกร้าใส่เอกสาร 3 ชั้น</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">180</td>
+          </tr>
+          <tr data-name="แท่นตัดเทปใส เล็ก (แกน 1 นิ้ว)" data-unit="อัน" data-price="60">
+            <td class="wcode">W145</td>
+            <td>แท่นตัดเทปใส เล็ก (แกน 1 นิ้ว)</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">60</td>
+          </tr>
+          <tr data-name="แท่นตัดเทปใส ใหญ่ (แกน 3 นิ้ว)" data-unit="อัน" data-price="150">
+            <td class="wcode">W146</td>
+            <td>แท่นตัดเทปใส ใหญ่ (แกน 3 นิ้ว)</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">150</td>
+          </tr>
+          <tr data-name="แท่นตัดกระดาษ ขนาด A4" data-unit="อัน" data-price="900">
+            <td class="wcode">W147</td>
+            <td>แท่นตัดกระดาษ ขนาด A4</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">900</td>
+          </tr>
+          <tr data-name="ฟิวเจอร์บอร์ด แผ่นใหญ่" data-unit="แผ่น" data-price="250">
+            <td class="wcode">W148</td>
+            <td>ฟิวเจอร์บอร์ด แผ่นใหญ่</td>
+            <td class="unit-col">แผ่น</td>
+            <td class="price-col">250</td>
+          </tr>
+          <tr data-name="ฟิวเจอร์บอร์ด ตัด 4 (65x122)" data-unit="แผ่น" data-price="70">
+            <td class="wcode">W149</td>
+            <td>ฟิวเจอร์บอร์ด ตัด 4 (65x122)</td>
+            <td class="unit-col">แผ่น</td>
+            <td class="price-col">70</td>
+          </tr>
+          <tr data-name="ฟิวเจอร์บอร์ด A4" data-unit="โหล" data-price="60">
+            <td class="wcode">W150</td>
+            <td>ฟิวเจอร์บอร์ด A4</td>
+            <td class="unit-col">โหล</td>
+            <td class="price-col">60</td>
+          </tr>
+          <tr data-name="กระดาษเกียรติบัตร(ปั้มทอง) A4" data-unit="รีม" data-price="200">
+            <td class="wcode">W151</td>
+            <td>กระดาษเกียรติบัตร(ปั้มทอง) A4</td>
+            <td class="unit-col">รีม</td>
+            <td class="price-col">200</td>
+          </tr>
+          <tr data-name="แฟ้มกล่าวรายงาน ปกหนัง (ครุฑ)" data-unit="เล่ม" data-price="180">
+            <td class="wcode">W152</td>
+            <td>แฟ้มกล่าวรายงาน ปกหนัง (ครุฑ)</td>
+            <td class="unit-col">เล่ม</td>
+            <td class="price-col">180</td>
+          </tr>
+          <tr data-name="สมุดเสนอเซ็น" data-unit="เล่ม" data-price="140">
+            <td class="wcode">W153</td>
+            <td>สมุดเสนอเซ็น</td>
+            <td class="unit-col">เล่ม</td>
+            <td class="price-col">140</td>
+          </tr>
+          <tr data-name="ที่ถอดลวดเย็บ แบบคีม" data-unit="อัน" data-price="80">
+            <td class="wcode">W154</td>
+            <td>ที่ถอดลวดเย็บ แบบคีม</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">80</td>
+          </tr>
+          <tr data-name="ที่ถอดลวดเย็บ เล็บเหยี่ยว" data-unit="อัน" data-price="20">
+            <td class="wcode">W155</td>
+            <td>ที่ถอดลวดเย็บ เล็บเหยี่ยว</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">20</td>
+          </tr>
+          <tr data-name="เครื่องเหลาดินสอ" data-unit="อัน" data-price="400">
+            <td class="wcode">W156</td>
+            <td>เครื่องเหลาดินสอ</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">400</td>
+          </tr>
+          <tr data-name="กบเหลาพลาสติก" data-unit="อัน" data-price="5">
+            <td class="wcode">W157</td>
+            <td>กบเหลาพลาสติก</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">5</td>
+          </tr>
+          <tr data-name="ยางลบ (ขาว)" data-unit="ก้อน" data-price="5">
+            <td class="wcode">W158</td>
+            <td>ยางลบ (ขาว)</td>
+            <td class="unit-col">ก้อน</td>
+            <td class="price-col">5</td>
+          </tr>
+          <tr data-name="ปากกาเน้นคำ" data-unit="อัน" data-price="35">
+            <td class="wcode">W159</td>
+            <td>ปากกาเน้นคำ</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">35</td>
+          </tr>
+          <tr data-name="ป้ายชื่อตั้งโต๊ะ (อะคริลิค) 6 นิ้ว" data-unit="อัน" data-price="60">
+            <td class="wcode">W160</td>
+            <td>ป้ายชื่อตั้งโต๊ะ (อะคริลิค) 6 นิ้ว</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">60</td>
+          </tr>
+          <tr data-name="ป้ายชื่อตั้งโต๊ะ (อะคริลิค) 12 นิ้ว" data-unit="อัน" data-price="120">
+            <td class="wcode">W161</td>
+            <td>ป้ายชื่อตั้งโต๊ะ (อะคริลิค) 12 นิ้ว</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">120</td>
+          </tr>
+          <tr data-name="ธงชาติ 60 x 90" data-unit="ผืน" data-price="50">
+            <td class="wcode">W162</td>
+            <td>ธงชาติ 60 x 90</td>
+            <td class="unit-col">ผืน</td>
+            <td class="price-col">50</td>
+          </tr>
+          <tr data-name="ธงสกรีน (ทุกรุ่น) 60 x 90" data-unit="ผืน" data-price="60">
+            <td class="wcode">W163</td>
+            <td>ธงสกรีน (ทุกรุ่น) 60 x 90</td>
+            <td class="unit-col">ผืน</td>
+            <td class="price-col">60</td>
+          </tr>
+          <tr data-name="ธงชาติ 80 x 120" data-unit="ผืน" data-price="100">
+            <td class="wcode">W164</td>
+            <td>ธงชาติ 80 x 120</td>
+            <td class="unit-col">ผืน</td>
+            <td class="price-col">100</td>
+          </tr>
+          <tr data-name="ธงชาติ 100 x 150" data-unit="ผืน" data-price="250">
+            <td class="wcode">W165</td>
+            <td>ธงชาติ 100 x 150</td>
+            <td class="unit-col">ผืน</td>
+            <td class="price-col">250</td>
+          </tr>
+          <tr data-name="ธงชาติ 120 x 180" data-unit="ผืน" data-price="300">
+            <td class="wcode">W166</td>
+            <td>ธงชาติ 120 x 180</td>
+            <td class="unit-col">ผืน</td>
+            <td class="price-col">300</td>
+          </tr>
+          <tr data-name="ธงชาติ 150 x 225" data-unit="ผืน" data-price="400">
+            <td class="wcode">W167</td>
+            <td>ธงชาติ 150 x 225</td>
+            <td class="unit-col">ผืน</td>
+            <td class="price-col">400</td>
+          </tr>
+          <tr data-name="ธงชาติ 180 x 270" data-unit="ผืน" data-price="450">
+            <td class="wcode">W168</td>
+            <td>ธงชาติ 180 x 270</td>
+            <td class="unit-col">ผืน</td>
+            <td class="price-col">450</td>
+          </tr>
+          <tr data-name="ธงชาติ 200 x 300" data-unit="ผืน" data-price="500">
+            <td class="wcode">W169</td>
+            <td>ธงชาติ 200 x 300</td>
+            <td class="unit-col">ผืน</td>
+            <td class="price-col">500</td>
+          </tr>
+          <tr data-name="เสาธงไม้ 2 เมตร" data-unit="ต้น" data-price="80">
+            <td class="wcode">W170</td>
+            <td>เสาธงไม้ 2 เมตร</td>
+            <td class="unit-col">ต้น</td>
+            <td class="price-col">80</td>
+          </tr>
+          <tr data-name="กระดานไวท์บอร์ดธรรมดา 40 x 60" data-unit="บาน" data-price="200">
+            <td class="wcode">W171</td>
+            <td>กระดานไวท์บอร์ดธรรมดา 40 x 60</td>
+            <td class="unit-col">บาน</td>
+            <td class="price-col">200</td>
+          </tr>
+          <tr data-name="กระดานไวท์บอร์ดธรรมดา 60 x 80" data-unit="บาน" data-price="350">
+            <td class="wcode">W172</td>
+            <td>กระดานไวท์บอร์ดธรรมดา 60 x 80</td>
+            <td class="unit-col">บาน</td>
+            <td class="price-col">350</td>
+          </tr>
+          <tr data-name="กระดานไวท์บอร์ดธรรมดา 80 x 120" data-unit="บาน" data-price="500">
+            <td class="wcode">W173</td>
+            <td>กระดานไวท์บอร์ดธรรมดา 80 x 120</td>
+            <td class="unit-col">บาน</td>
+            <td class="price-col">500</td>
+          </tr>
+          <tr data-name="กระดานไวท์บอร์ดธรรมดา 100 x 150" data-unit="บาน" data-price="1,500">
+            <td class="wcode">W174</td>
+            <td>กระดานไวท์บอร์ดธรรมดา 100 x 150</td>
+            <td class="unit-col">บาน</td>
+            <td class="price-col">1,500</td>
+          </tr>
+          <tr data-name="ปืนยิงกาวร้อน (ใหญ่)" data-unit="อัน" data-price="250">
+            <td class="wcode">W175</td>
+            <td>ปืนยิงกาวร้อน (ใหญ่)</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">250</td>
+          </tr>
+          <tr data-name="ปืนยิงกาวร้อน (เล็ก)" data-unit="อัน" data-price="150">
+            <td class="wcode">W176</td>
+            <td>ปืนยิงกาวร้อน (เล็ก)</td>
+            <td class="unit-col">อัน</td>
+            <td class="price-col">150</td>
+          </tr>
+          <tr data-name="ลูกปืนกาวร้อน (ใหญ่) + (เล็ก) 1 กิโลกรัม" data-unit="ถุง" data-price="350">
+            <td class="wcode">W177</td>
+            <td>ลูกปืนกาวร้อน (ใหญ่) + (เล็ก) 1 กิโลกรัม</td>
+            <td class="unit-col">ถุง</td>
+            <td class="price-col">350</td>
+          </tr>
+          <tr data-name="กากเพชร หลอดเล็ก" data-unit="หลอด" data-price="10">
+            <td class="wcode">W178</td>
+            <td>กากเพชร หลอดเล็ก</td>
+            <td class="unit-col">หลอด</td>
+            <td class="price-col">10</td>
+          </tr>
+          <tr data-name="กากเพชร ขวด 100 กรัม" data-unit="ขวด" data-price="130">
+            <td class="wcode">W179</td>
+            <td>กากเพชร ขวด 100 กรัม</td>
+            <td class="unit-col">ขวด</td>
+            <td class="price-col">130</td>
+          </tr>
+          <tr data-name="ถ่าน Panasonic AA,AAA อัลคาไลน์ (แพ็ค 2 ก้อน)" data-unit="แพ็ค" data-price="60">
+            <td class="wcode">W180</td>
+            <td>ถ่าน Panasonic AA,AAA อัลคาไลน์ (แพ็ค 2 ก้อน)</td>
+            <td class="unit-col">แพ็ค</td>
+            <td class="price-col">60</td>
+          </tr>
+          <tr data-name="ถ่าน Panasonic AA,AAA ก้อนเขียว (แพ็ค 4 ก้อน)" data-unit="แพ้ค" data-price="45">
+            <td class="wcode">W181</td>
+            <td>ถ่าน Panasonic AA,AAA ก้อนเขียว (แพ็ค 4 ก้อน)</td>
+            <td class="unit-col">แพ้ค</td>
+            <td class="price-col">45</td>
+          </tr>
+    </tbody>
+  </table>
+  <div id="no-result">ไม่พบรายการที่ค้นหา</div>
+</div>
+
+<div class="footer">
+  จัดทำโดยระบบงานพัสดุ — โรงเรียนวังกระแสวิทยาคม &nbsp;|&nbsp; ร้าน ว.รุ่งโรจน์
+</div>
+
+<script>
+  function filterItems(q) {
+    q = q.trim().toLowerCase();
+    const rows = document.querySelectorAll('#tableBody tr');
+    let found = 0;
+    rows.forEach(row => {
+      const name = row.getAttribute('data-name').toLowerCase();
+      const unit = row.getAttribute('data-unit').toLowerCase();
+      const code = row.querySelector('.wcode').textContent.toLowerCase();
+      const match = !q || name.includes(q) || unit.includes(q) || code.includes(q);
+      row.classList.toggle('hidden', !match);
+      if (match) found++;
+    });
+    const chip = document.getElementById('found-chip');
+    const noResult = document.getElementById('no-result');
+    if (q) {
+      chip.style.display = '';
+      document.getElementById('found-count').textContent = found;
+      noResult.style.display = found === 0 ? '' : 'none';
+    } else {
+      chip.style.display = 'none';
+      noResult.style.display = 'none';
+    }
+  }
+</script>
+</body>
+</html>
