@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ระบบเช็คชื่อ | วังกระแสวิทยาคม</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Sarabun',sans-serif}
+
+/* ── DECK ── */
+.deck{position:relative;width:100%;height:100%;overflow:hidden}
+.slide{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  padding:36px 48px;
+  opacity:0;pointer-events:none;
+  transition:opacity .4s ease,transform .4s ease;
+  transform:translateX(56px);
+}
+.slide.active{opacity:1;pointer-events:all;transform:translateX(0)}
+.slide.prev{opacity:0;transform:translateX(-56px)}
+
+/* backgrounds */
+.bg-white{background:#f8fafc}
+.bg-navy{background:linear-gradient(135deg,#0d1b4b 0%,#1a2f6e 100%)}
+.bg-dark{background:#0f172a}
+.bg-soft{background:#f1f5f9}
+.bg-blue{background:linear-gradient(135deg,#1e3a8a 0%,#1d4ed8 100%)}
+.bg-qa{background:linear-gradient(160deg,#0f172a 0%,#1e1b4b 100%)}
+
+/* ── NAV ── */
+.nav{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;z-index:100}
+.nav-btn{width:42px;height:42px;border-radius:50%;border:1.5px solid rgba(100,116,139,.5);background:rgba(255,255,255,.85);backdrop-filter:blur(8px);color:#334155;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.nav-btn:hover{background:#fff;border-color:#94a3b8}
+.counter{font-size:12px;font-weight:600;color:#64748b;min-width:44px;text-align:center}
+.dots{display:flex;gap:5px;align-items:center}
+.dot{width:6px;height:6px;border-radius:50%;background:#cbd5e1;cursor:pointer;transition:all .25s}
+.dot.active{width:18px;border-radius:3px;background:#1d4ed8}
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,#1d4ed8,#7c3aed);transition:width .4s ease;z-index:200}
+.fs-btn{position:fixed;top:14px;left:16px;z-index:200;width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,.9);border:1px solid #e2e8f0;color:#475569;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.fs-btn:hover{background:#fff}
+.key-hint{position:fixed;top:18px;right:18px;font-size:11px;color:#94a3b8;display:flex;align-items:center;gap:5px}
+.key{border:1px solid #e2e8f0;border-radius:4px;padding:2px 6px;font-size:10px;color:#94a3b8;background:#fff}
+
+/* on dark slides, flip nav */
+.slide.dark-nav ~ * .nav-btn{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.25)}
+
+/* ── COMMON ── */
+.cw{position:relative;z-index:1;width:100%;max-width:1060px;display:flex;flex-direction:column;align-items:center}
+.badge{display:inline-flex;align-items:center;gap:5px;border-radius:20px;padding:4px 14px;font-size:11px;font-weight:700;letter-spacing:.4px;margin-bottom:10px}
+.badge-blue{background:#dbeafe;color:#1d4ed8;border:1px solid #bfdbfe}
+.badge-dark{background:rgba(99,102,241,.15);color:#a5b4fc;border:1px solid rgba(99,102,241,.3)}
+.sh{text-align:center;margin-bottom:22px}
+.sh h2{font-size:clamp(20px,3.2vw,36px);font-weight:800;line-height:1.25;color:#0f172a}
+.sh h2.light{color:#fff}
+.sh h2 em{font-style:normal;color:#1d4ed8}
+.sh h2.light em{color:#93c5fd}
+.sh p{font-size:13px;margin-top:7px;line-height:1.7}
+.sh p.light{color:rgba(255,255,255,.6)}
+.sh p.dark{color:#64748b}
+
+/* ── PHONE MOCKUP ── */
+.phone{width:200px;flex-shrink:0;background:#f8fafc;border-radius:20px;overflow:hidden;box-shadow:0 20px 50px rgba(15,23,42,.35);border:5px solid #1e293b}
+.phone.md{width:230px}
+.ph-hdr{background:linear-gradient(135deg,#1565C0,#0D47A1);color:#fff;padding:8px 10px;font-size:11px;font-weight:700;text-align:center;display:flex;align-items:center;justify-content:center;gap:4px;position:relative}
+.ph-back{position:absolute;left:8px;font-size:13px;opacity:.8}
+.ph-body{padding:10px;background:#f8fafc;min-height:270px}
+.ph-wrap{display:flex;flex-direction:column;align-items:center;gap:9px}
+.ph-lbl{font-size:11px;font-weight:600;color:#64748b;text-align:center;max-width:180px;line-height:1.5}
+
+/* flow */
+.flow{display:flex;align-items:center;gap:16px}
+.arr{font-size:24px;color:#94a3b8;flex-shrink:0}
+
+/* ── SESSION CARDS ── */
+.sess-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.sess-c{background:#fff;border:1.5px solid #e2e8f0;border-radius:9px;text-align:center;padding:6px 3px}
+.sess-c .si{font-size:15px}
+.sess-c .sl{font-size:9px;font-weight:700;color:#334155;margin-top:2px}
+.sess-c .sx{font-size:8px;color:#16a34a;margin-top:1px}
+.sess-c.done{border-color:#16a34a;background:#f0fdf4}
+
+/* ── STUDENT LIST ── */
+.att-hdr{background:#fff;padding:6px 8px;border-bottom:1px solid #e2e8f0;font-size:9px;color:#64748b;display:flex;justify-content:space-between}
+.stu{display:flex;align-items:center;background:#fff;padding:5px 7px;border-bottom:1px solid #f1f5f9;gap:4px}
+.stu-no{font-size:9px;color:#94a3b8;width:14px;flex-shrink:0}
+.stu-nm{flex:1;min-width:0}
+.stu-nm .n{font-size:10px;font-weight:700;color:#0f172a}
+.stu-nm .k{font-size:9px;color:#94a3b8}
+.care{font-size:8px;padding:1px 5px;border-radius:7px;font-weight:700;flex-shrink:0}
+.c-ok{background:#dcfce7;color:#15803d}
+.c-wn{background:#fef9c3;color:#b45309}
+.c-dg{background:#fee2e2;color:#b91c1c}
+.stbs{display:flex;gap:2px;flex-shrink:0}
+.sb{font-size:8px;padding:2px 5px;border-radius:5px;font-weight:700;border:1.5px solid transparent}
+.sb-ma{background:#dcfce7;color:#15803d;border-color:#bbf7d0}
+.sb-kh{background:#fee2e2;color:#b91c1c;border-color:#fecaca}
+.sb-sa{background:#ffedd5;color:#c2410c;border-color:#fed7aa}
+.sb-la{background:#e0e7ff;color:#4338ca;border-color:#c7d2fe}
+.sb-ga{background:#dbeafe;color:#1d4ed8;border-color:#bfdbfe}
+.sb-dim{opacity:.25}
+.fab-m{position:absolute;bottom:8px;right:8px;width:30px;height:30px;border-radius:50%;background:#1565C0;color:#fff;font-size:15px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(21,101,192,.45)}
+
+/* ── BROWSER FRAME ── */
+.browser{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 16px 40px rgba(15,23,42,.18);border:1px solid #e2e8f0}
+.br-bar{background:#f1f5f9;padding:6px 10px;display:flex;align-items:center;gap:4px;border-bottom:1px solid #e2e8f0}
+.brd{width:8px;height:8px;border-radius:50%}
+.br-url{flex:1;background:#fff;border-radius:4px;padding:3px 8px;font-size:9px;color:#64748b;margin:0 6px;border:1px solid #e2e8f0}
+.br-body{padding:10px;background:#f8fafc}
+
+/* ── DB TABLE ── */
+.db-t{width:100%;border-collapse:collapse;font-size:9px}
+.db-t th{background:#1e3a8a;color:#fff;padding:4px 5px;text-align:center;font-size:8px}
+.db-t td{padding:4px 5px;text-align:center;border-bottom:1px solid #f1f5f9;font-weight:600}
+.db-room{text-align:left!important;font-weight:700;color:#334155;background:#f8fafc}
+.db-ok{color:#15803d;background:#f0fdf4}
+.db-w{color:#b45309;background:#fffbeb}
+.db-em{color:#cbd5e1}
+
+/* ── WEEKLY TABLE ── */
+.wk-t{width:100%;border-collapse:collapse;font-size:8px}
+.wk-t th{background:#1e3a8a;color:#fff;padding:3px 4px;text-align:center}
+.wk-t td{padding:3px 4px;text-align:center;border-bottom:1px solid #f1f5f9}
+.wk-nm{text-align:left!important;font-weight:700;color:#0f172a;font-size:9px}
+.wk-ma{background:#dcfce7;color:#15803d}
+.wk-kh{background:#fee2e2;color:#b91c1c}
+.wk-sa{background:#ffedd5;color:#c2410c}
+.wk-la{background:#e0e7ff;color:#4338ca}
+.wk-ga{background:#dbeafe;color:#1d4ed8}
+.wk-no{color:#e2e8f0}
+
+/* ── SCORE LIST ── */
+.bv-row{display:flex;align-items:center;background:#fff;border-radius:8px;padding:6px 9px;margin-bottom:4px;gap:6px;border:1px solid #f1f5f9}
+.bv-nm{flex:1;font-size:10px;font-weight:700;color:#0f172a}
+.bv-sc{font-size:17px;font-weight:800}
+.sc-pos{color:#15803d}.sc-neg{color:#b91c1c}.sc-zer{color:#94a3b8}
+.bv-hist{background:#f8fafc;border-radius:8px;padding:6px 9px;margin:3px 0;border:1px solid #e2e8f0}
+.bv-hr{font-size:9px;color:#475569;padding:2px 0;border-bottom:1px solid #f1f5f9;display:flex;gap:5px}
+.bv-hr:last-child{border:none}
+
+/* ── SPLIT ── */
+.split{display:flex;gap:28px;align-items:flex-start;width:100%}
+.sl-left{flex:1;display:flex;flex-direction:column;justify-content:center}
+.sl-right{display:flex;flex-direction:column;align-items:center;gap:10px}
+.pt{display:flex;gap:10px;align-items:flex-start;padding:11px 13px;border-radius:10px;margin-bottom:8px;border:1px solid #e2e8f0;background:#fff}
+.pt.accent{border-left:3px solid #1d4ed8}
+.pt.green{border-left:3px solid #16a34a}
+.pt.orange{border-left:3px solid #ea580c}
+.pt .fi{font-size:20px;flex-shrink:0;margin-top:1px}
+.pt .ft{font-size:12px;color:#475569;line-height:1.7}
+.pt .ft b{color:#0f172a;display:block;font-size:12px;margin-bottom:1px}
+
+/* ── PIN SCREEN ── */
+.pin-disp{font-size:20px;letter-spacing:14px;color:#1d4ed8;font-weight:800;text-align:center;padding:9px 8px 6px;border-bottom:2px solid #1d4ed8;margin-bottom:8px;min-height:42px}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:0 6px}
+.pin-k{background:#fff;border:1.5px solid #e2e8f0;border-radius:50%;width:36px;height:36px;font-size:14px;font-weight:500;display:flex;align-items:center;justify-content:center;margin:auto;color:#334155}
+.pin-k.del{background:#fff7ed;border-color:#fed7aa;font-size:10px}
+
+/* ── ROLE ITEMS ── */
+.ri{background:#fff;border-radius:10px;padding:8px 10px;display:flex;align-items:center;gap:8px;margin-bottom:6px;border:1.5px solid #e2e8f0}
+.ri .ico{font-size:18px}
+.ri .rt{font-size:11px;font-weight:700;color:#1e3a8a}
+.ri .rs{font-size:9px;color:#94a3b8}
+.ri .ra{margin-left:auto;color:#cbd5e1;font-size:11px}
+.ri.sel{border-color:#1d4ed8;background:#eff6ff}
+.ri.sel .rt{color:#1d4ed8}
+
+/* ── ROOM BUTTONS ── */
+.room-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}
+.room-btn{background:#fff;border:1.5px solid #e2e8f0;border-radius:9px;padding:10px 8px;text-align:center;font-size:13px;font-weight:700;color:#1e3a8a}
+.room-lv{font-size:9px;color:#94a3b8;margin:6px 0 3px;font-weight:600}
+
+/* ── BENEFIT CARDS ── */
+.bc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;width:100%}
+.bc{background:#fff;border-radius:14px;padding:18px;border:1px solid #e2e8f0;border-top:4px solid transparent}
+.bc.blue{border-top-color:#1d4ed8}
+.bc.green{border-top-color:#16a34a}
+.bc.orange{border-top-color:#ea580c}
+.bc.purple{border-top-color:#7c3aed}
+.bc .bi{font-size:28px;margin-bottom:8px}
+.bc .bt{font-size:14px;font-weight:800;color:#0f172a;margin-bottom:6px}
+.bc .bd{font-size:12px;color:#475569;line-height:1.75}
+
+/* ── WHY CARDS ── */
+.why-row{display:flex;gap:14px;width:100%;max-width:920px}
+.why-c{flex:1;border-radius:14px;padding:20px;text-align:center}
+.why-bad{background:#fff1f2;border:1.5px solid #fecdd3}
+.why-good{background:#f0fdf4;border:1.5px solid #bbf7d0}
+.why-c .wi{font-size:32px;margin-bottom:10px}
+.why-c .wt{font-size:14px;font-weight:800;color:#0f172a;margin-bottom:10px}
+.why-bad .wt{color:#be123c}
+.why-good .wt{color:#15803d}
+.why-c .wd{font-size:11px;color:#475569;line-height:1.8;text-align:left}
+
+/* ── TITLE SLIDE ── */
+.title-wrap{text-align:center;max-width:820px}
+.t-tag{display:inline-flex;align-items:center;gap:7px;background:#dbeafe;border:1px solid #bfdbfe;border-radius:28px;padding:6px 18px;font-size:12px;color:#1d4ed8;font-weight:700;margin-bottom:22px}
+.t-h1{font-size:clamp(28px,4.5vw,52px);font-weight:800;color:#fff;line-height:1.2;margin-bottom:14px}
+.t-h1 span{background:linear-gradient(90deg,#93c5fd,#a5b4fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.t-sub{font-size:clamp(13px,1.6vw,17px);color:rgba(255,255,255,.6);margin-bottom:28px;line-height:1.8}
+.t-stats{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.t-stat{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:12px 20px;text-align:center}
+.t-stat .n{font-size:26px;font-weight:800;color:#93c5fd}
+.t-stat .l{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px}
+.deco{position:absolute;border-radius:50%;pointer-events:none;z-index:0}
+.d1{width:380px;height:380px;top:-140px;right:-80px;background:radial-gradient(circle,rgba(99,102,241,.15) 0%,transparent 70%)}
+.d2{width:280px;height:280px;bottom:-80px;left:-60px;background:radial-gradient(circle,rgba(29,78,216,.12) 0%,transparent 70%)}
+
+/* ── HOW STEPS ── */
+.steps{display:flex;gap:0;width:100%;max-width:880px;align-items:flex-start}
+.step{flex:1;text-align:center;position:relative}
+.step::after{content:'';position:absolute;top:24px;right:-50%;width:100%;height:2px;background:linear-gradient(90deg,#bfdbfe,#c7d2fe);z-index:0}
+.step:last-child::after{display:none}
+.step-num{width:48px;height:48px;border-radius:50%;background:#1d4ed8;color:#fff;font-size:18px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;position:relative;z-index:1;box-shadow:0 4px 14px rgba(29,78,216,.4)}
+.step-title{font-size:13px;font-weight:800;color:#0f172a;margin-bottom:6px}
+.step-desc{font-size:11px;color:#64748b;line-height:1.6;padding:0 8px}
+
+/* ── LINE PHONE ── */
+.line-hdr{background:#00b900;color:#fff;padding:9px;text-align:center;font-size:11px;font-weight:700}
+.line-body{padding:9px;display:flex;flex-direction:column;gap:6px;background:#d4dde6;min-height:250px}
+.lm-u{align-self:flex-end;background:#00b900;color:#fff;border-radius:12px 12px 2px 12px;padding:6px 9px;font-size:9px;max-width:75%;line-height:1.5}
+.lm-b{align-self:flex-start;background:#fff;color:#333;border-radius:12px 12px 12px 2px;padding:6px 9px;font-size:9px;max-width:82%;line-height:1.6;box-shadow:0 1px 2px rgba(0,0,0,.1)}
+
+/* ── Q&A SLIDE ── */
+.qa-wrap{text-align:center}
+.qa-wrap .qa-icon{font-size:72px;margin-bottom:20px;filter:drop-shadow(0 4px 20px rgba(99,102,241,.5))}
+.qa-wrap h2{font-size:clamp(36px,6vw,72px);font-weight:800;color:#fff;letter-spacing:-.5px;margin-bottom:14px}
+.qa-wrap p{font-size:clamp(14px,1.8vw,18px);color:rgba(255,255,255,.55);line-height:1.8}
+
+/* ── SCORE PICKER ── */
+.sp-row{display:flex;gap:5px;justify-content:center;margin:8px 0}
+.sp{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
+.sp-n{background:#fee2e2;color:#b91c1c}
+.sp-p{background:#dcfce7;color:#15803d}
+.sp-sel{box-shadow:0 0 0 2.5px #1d4ed8}
+
+/* ── STATS ROW ── */
+.stats{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.stat{background:#fff;border-radius:14px;padding:14px 20px;text-align:center;border:1px solid #e2e8f0;box-shadow:0 2px 8px rgba(15,23,42,.06)}
+.stat .n{font-size:clamp(26px,3.5vw,40px);font-weight:800}
+.stat .u{font-size:12px;font-weight:600;opacity:.6}
+.stat .l{font-size:11px;color:#64748b;margin-top:4px}
+.cn-blue{color:#1d4ed8}.cn-green{color:#16a34a}.cn-orange{color:#ea580c}.cn-purple{color:#7c3aed}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<button class="fs-btn" id="fsBtn" onclick="toggleFS()" title="เต็มจอ">⛶</button>
+<div class="key-hint"><span class="key">◀</span><span class="key">▶</span></div>
+<div class="deck" id="deck">
+
+<!-- ══════════════════════════════════════════════════════════
+     1. TITLE
+══════════════════════════════════════════════════════════ -->
+<div class="slide bg-navy">
+  <div class="deco d1"></div><div class="deco d2"></div>
+  <div class="cw"><div class="title-wrap">
+    <div class="t-tag">🏫 โรงเรียนวังกระแสวิทยาคม</div>
+    <div class="t-h1">ระบบบริหารจัดการ<br><span>การเข้าเรียนและคะแนนพฤติกรรม</span></div>
+    <div class="t-sub">
+      วันนี้เราจะมาดูด้วยกันว่าระบบนี้ทำงานยังไง<br>
+      ทำไมถึงสำคัญ และมีประโยชน์อย่างไรกับทุกคน
+    </div>
+    <div class="t-stats">
+      <div class="t-stat"><div class="n">6</div><div class="l">ระดับชั้น ม.1–6</div></div>
+      <div class="t-stat"><div class="n">10</div><div class="l">คาบต่อวัน</div></div>
+      <div class="t-stat"><div class="n">3</div><div class="l">บทบาทผู้ใช้</div></div>
+      <div class="t-stat"><div class="n">24/7</div><div class="l">นักเรียนดูเองได้</div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     2. ทำไมต้องมีระบบนี้
+══════════════════════════════════════════════════════════ -->
+<div class="slide bg-soft">
+  <div class="cw" style="max-width:920px">
+    <div class="sh">
+      <div class="badge badge-blue">🤔 ทำไมต้องทำ</div>
+      <h2>ก่อนมีระบบนี้ — <em>ข้อมูลการเข้าเรียนอยู่ที่ไหน?</em></h2>
+      <p class="dark">คำถามที่ตอบได้ยากมาก ถ้าข้อมูลอยู่แค่บนกระดาษ</p>
+    </div>
+    <div class="why-row">
+      <div class="why-c why-bad">
+        <div class="wi">📄</div>
+        <div class="wt">แบบเดิม — กระดาษ</div>
+        <div class="wd">
+          ❌ นักเรียนคนนี้ขาดเรียนเทอมนี้กี่วันแล้ว?<br>
+          ❌ ห้องไหนขาดเรียนมากที่สุดในสัปดาห์นี้?<br>
+          ❌ ใครสายบ่อยจนน่าเป็นห่วง?<br>
+          ❌ วิชานี้เปิดสอนไปกี่ % ของภาคเรียน?<br>
+          ❌ ผู้ปกครองถามว่าลูกวันนี้มาไหม ตอบได้ทันทีไหม?<br><br>
+          <span style="font-size:10px;color:#be123c;font-weight:700">ตอบไม่ได้ทันที — ต้องกลับไปนับกระดาษ</span>
+        </div>
+      </div>
+      <div class="why-c why-good">
+        <div class="wi">📱</div>
+        <div class="wt">แบบใหม่ — ระบบดิจิทัล</div>
+        <div class="wd">
+          ✅ ดูย้อนหลังได้ทันที รายนักเรียน รายวัน<br>
+          ✅ Dashboard สรุปทุกห้องทุกคาบแบบ real-time<br>
+          ✅ ระบบจัดกลุ่ม "น่าเป็นห่วง" ให้อัตโนมัติ<br>
+          ✅ รายวิชาครบทุกเปอร์เซ็นต์ตามตารางสอนจริง<br>
+          ✅ ผู้ปกครองพิมพ์ "วันนี้" ใน LINE รู้ผลเอง<br><br>
+          <span style="font-size:10px;color:#15803d;font-weight:700">ข้อมูลอยู่ที่นี่ ตอบได้เลย ไม่ต้องนับ</span>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:14px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:12px;padding:13px 20px;font-size:13px;color:#1e40af;text-align:center;max-width:700px">
+      💡 <b>ข้อมูลจะมีคุณค่าก็ต่อเมื่อมีคนบันทึก</b> — นั่นคือเหตุผลที่ระบบนี้ต้องการความร่วมมือจากทุกคน
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     3. ระบบทำอะไรได้บ้าง
+══════════════════════════════════════════════════════════ -->
+<div class="slide bg-white">
+  <div class="cw" style="max-width:920px">
+    <div class="sh">
+      <div class="badge badge-blue">🗂️ ระบบทำอะไรได้บ้าง</div>
+      <h2>ครอบคลุม <em>ทุกสิ่งที่ต้องการ</em> ในที่เดียว</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;width:100%;max-width:920px">
+      <div class="bc blue"><div class="bi">✅</div><div class="bt">เช็คชื่อ</div><div class="bd">ทุกคาบ ทุกห้อง บนมือถือ ใช้เวลาไม่ถึง 1 นาที</div></div>
+      <div class="bc green"><div class="bi">📊</div><div class="bt">รายงาน 3 แบบ</div><div class="bd">รายวัน · รายสัปดาห์ · รายวิชา Export PDF ได้เลย</div></div>
+      <div class="bc orange"><div class="bi">⭐</div><div class="bt">คะแนนพฤติกรรม</div><div class="bd">บวก/ลบ มีประวัติ โปร่งใส นักเรียนดูเองได้</div></div>
+      <div class="bc purple"><div class="bi">🏆</div><div class="bt">Score Board</div><div class="bd">กระดานอันดับทั่วโรงเรียน กระตุ้นการแข่งขัน</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:700px;margin-top:12px">
+      <div class="bc" style="border-top-color:#06b6d4"><div class="bi">📲</div><div class="bt">LINE OA</div><div class="bd">นักเรียนถามได้ตลอด 24 ชม. ไม่ต้องรบกวนครู</div></div>
+      <div class="bc" style="border-top-color:#10b981"><div class="bi">👥</div><div class="bt">ระบบดูแลนักเรียน</div><div class="bd">จัดกลุ่ม ปกติ / เฝ้าระวัง / ดูแลพิเศษ อัตโนมัติ</div></div>
+      <div class="bc" style="border-top-color:#f59e0b"><div class="bi">📅</div><div class="bt">ปฏิทินโรงเรียน</div><div class="bd">กิจกรรม วันหยุด เชื่อมกับคะแนนและรายงาน</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     4. ทำอย่างไร — 3 ขั้นตอน
+══════════════════════════════════════════════════════════ -->
+<div class="slide bg-soft">
+  <div class="cw">
+    <div class="sh">
+      <div class="badge badge-blue">⚙️ ทำอย่างไร</div>
+      <h2>เช็คชื่อ — <em>3 ขั้นตอน</em> แค่นั้นเอง</h2>
+      <p class="dark">เปิด URL บนมือถือ → เริ่มได้ทันที ไม่ต้องติดตั้งแอปอะไร</p>
+    </div>
+    <div class="steps" style="max-width:820px">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-title">เข้าสู่ระบบ</div>
+        <div class="step-desc">กรอก PIN 6 หลัก<br>ส่วนตัวของแต่ละคน<br>เลือก Role ที่เหมาะสม</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-title">เลือกคาบและห้อง</div>
+        <div class="step-desc">แตะคาบที่ต้องการ<br>เลือกห้องที่รับผิดชอบ<br>คาบที่เช็คแล้วสีเขียว</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-title">แตะสถานะ → กด ✔</div>
+        <div class="step-desc">แตะ มา/ขาด/สาย/ลา/ก<br>ระบบดึง default จากคาบก่อน<br>กด ✔ บันทึกเสร็จ</div>
+      </div>
+    </div>
+    <div style="margin-top:28px">
+      <div class="stats">
+        <div class="stat"><div class="n cn-blue">&lt;1</div><div class="u">นาที</div><div class="l">เวลาเช็คชื่อ 1 ห้อง</div></div>
+        <div class="stat"><div class="n cn-green">0</div><div class="u">กระดาษ</div><div class="l">ไม่ต้องพิมพ์อะไร</div></div>
+        <div class="stat"><div class="n cn-orange">∞</div><div class="u"></div><div class="l">เก็บข้อมูลได้ไม่จำกัด</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     5. หน้าเข้าสู่ระบบ + เลือกคาบ/ห้อง
+══════════════════════════════════════════════════════════ -->
+<div class="slide bg-white">
+  <div class="cw">
+    <div class="sh">
+      <div class="badge badge-blue">📱 ขั้นตอนที่ 1–2</div>
+      <h2>เข้าสู่ระบบ · เลือกคาบ · <em>เลือกห้อง</em></h2>
+    </div>
+    <div class="flow">
+      <!-- PIN -->
+      <div class="ph-wrap">
+        <div class="phone">
+          <div class="ph-hdr">🔑 เช็คชื่อ | วังกระแส</div>
+          <div class="ph-body">
+            <div style="font-size:9px;color:#64748b;text-align:center;margin-bottom:5px">กรอก PIN 6 หลักของคุณ</div>
+            <div class="pin-disp">●&nbsp;●&nbsp;●&nbsp;●</div>
+            <div class="pin-grid" style="margin-top:6px">
+              <div class="pin-k">1</div><div class="pin-k">2</div><div class="pin-k">3</div>
+              <div class="pin-k">4</div><div class="pin-k">5</div><div class="pin-k">6</div>
+              <div class="pin-k">7</div><div class="pin-k">8</div><div class="pin-k">9</div>
+              <div></div><div class="pin-k">0</div><div class="pin-k del">⌫</div>
+            </div>
+            <div style="font-size:8px;color:#94a3b8;text-align:center;margin-top:8px">PIN ส่วนตัว — ระบบบันทึกว่าใครเช็ค</div>
+          </div>
+        </div>
+        <div class="ph-lbl">PIN 6 หลัก<br>เฉพาะบุคคล</div>
+      </div>
+      <div class="arr">→</div>
+      <!-- SELECT SESSION -->
+      <div class="ph-wrap">
+        <div class="phone md">
+          <div class="ph-hdr">เลือกคาบ</div>
+          <div class="ph-body">
+            <div class="sess-grid">
+              <div class="sess-c done"><div class="si">🌅</div><div class="sl">เช้า</div><div class="sx">✓ เช็คแล้ว</div></div>
+              <div class="sess-c"><div class="si">1️⃣</div><div class="sl">คาบ 1</div></div>
+              <div class="sess-c"><div class="si">2️⃣</div><div class="sl">คาบ 2</div></div>
+              <div class="sess-c"><div class="si">3️⃣</div><div class="sl">คาบ 3</div></div>
+              <div class="sess-c"><div class="si">4️⃣</div><div class="sl">คาบ 4</div></div>
+              <div class="sess-c"><div class="si">5️⃣</div><div class="sl">คาบ 5</div></div>
+              <div class="sess-c done"><div class="si">6️⃣</div><div class="sl">คาบ 6</div><div class="sx">✓ เช็คแล้ว</div></div>
+              <div class="sess-c"><div class="si">7️⃣</div><div class="sl">คาบ 7</div></div>
+              <div class="sess-c"><div class="si">🌇</div><div class="sl">เย็น</div></div>
+            </div>
+            <div style="font-size:8px;color:#94a3b8;text-align:center;margin-top:8px">สีเขียว = เช็คชื่อแล้ว</div>
+          </div>
+        </div>
+        <div class="ph-lbl">เลือกคาบ<br>ป้องกันเช็คซ้ำ</div>
+      </div>
+      <div class="arr">→</div>
+      <!-- SELECT ROOM -->
+      <div class="ph-wrap">
+        <div class="phone">
+          <div class="ph-hdr">เลือกห้อง</div>
+          <div class="ph-body">
+            <div class="room-lv">มัธยมต้น</div>
+            <div class="room-grid">
+              <div class="room-btn">ม.1</div>
+              <div class="room-btn">ม.2/1</div>
+              <div class="room-btn">ม.2/2</div>
+              <div class="room-btn">ม.3/1</div>
+              <div class="room-btn">ม.3/2</div>
+            </div>
+            <div class="room-lv">มัธยมปลาย</div>
+            <div class="room-grid">
+              <div class="room-btn">ม.4</div>
+              <div class="room-btn">ม.5</div>
+              <div class="room-btn">ม.6</div>
+            </div>
+          </div>
+        </div>
+        <div class="ph-lbl">เลือกห้อง<br>แยกระดับชั้น</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     6. หน้าเช็คชื่อ
+══════════════════════════════════════════════════════════ -->
+<div class="slide bg-soft">
+  <div class="cw">
+    <div class="sh">
+      <div class="badge badge-blue">✅ ขั้นตอนที่ 3</div>
+      <h2>หน้า<em>เช็คชื่อ</em> — แตะสถานะ แล้วกด ✔</h2>
+    </div>
+    <div class="split" style="max-width:940px;align-items:center">
+      <div class="sl-left">
+        <div class="pt accent"><div class="fi">🏷️</div><div class="ft"><b>Badge ดูแลนักเรียน</b>เห็นทันทีว่าใครอยู่กลุ่มไหน — ปกติ / เฝ้าระวัง / ดูแลพิเศษ</div></div>
+        <div class="pt green"><div class="fi">🔄</div><div class="ft"><b>ระบบ Guide อัตโนมัติ</b>สถานะ default มาจากคาบล่าสุด แก้แค่คนที่เปลี่ยน ไม่ต้องแตะทุกคน</div></div>
+        <div class="pt accent"><div class="fi">😊</div><div class="ft"><b>แสดงชื่อเล่น</b>จำนักเรียนได้เร็วขึ้น เปิด/ปิดได้</div></div>
+        <div class="pt green"><div class="fi">⚡</div><div class="ft"><b>เลือกทั้งหมด "มา" ได้เลย</b>ตั้ง default ทุกคน → แก้เฉพาะคนที่ขาด/สาย เร็วมาก</div></div>
+        <div class="pt orange"><div class="fi">📝</div><div class="ft"><b>หมายเหตุรวม + รายคน</b>ใส่เหตุผลได้ทั้งระดับคาบและระดับนักเรียน</div></div>
+      </div>
+      <div class="sl-right">
+        <div class="ph-wrap">
+          <div class="phone md" style="position:relative">
+            <div class="ph-hdr"><span class="ph-back">‹</span>ม.3/1 — เช้า — 22 มิ.ย.</div>
+            <div class="att-hdr"><span>รายชื่อ 28 คน</span><span style="color:#1d4ed8;font-weight:700">เลือกทั้งหมด มา</span></div>
+            <div style="position:relative">
+              <div class="stu"><div class="stu-no">1</div><div class="stu-nm"><div class="n">กมลชนก ดาวดี</div><div class="k">(กลม)</div></div><span class="care c-ok">🟢</span><div class="stbs"><div class="sb sb-ma">มา</div><div class="sb sb-kh sb-dim">ขาด</div><div class="sb sb-sa sb-dim">สาย</div><div class="sb sb-la sb-dim">ลา</div></div></div>
+              <div class="stu"><div class="stu-no">2</div><div class="stu-nm"><div class="n">จิรายุ มานะดี</div><div class="k">(เจ)</div></div><span class="care c-dg">🔴</span><div class="stbs"><div class="sb sb-ma sb-dim">มา</div><div class="sb sb-kh">ขาด</div><div class="sb sb-sa sb-dim">สาย</div><div class="sb sb-la sb-dim">ลา</div></div></div>
+              <div class="stu"><div class="stu-no">3</div><div class="stu-nm"><div class="n">ณัฐพล สุขใจ</div><div class="k">(ต้น)</div></div><span class="care c-ok">🟢</span><div class="stbs"><div class="sb sb-ma sb-dim">มา</div><div class="sb sb-kh sb-dim">ขาด</div><div class="sb sb-sa">สาย</div><div class="sb sb-la sb-dim">ลา</div></div></div>
+              <div class="stu"><div class="stu-no">4</div><div class="stu-nm"><div class="n">ปริยากร ใจดี</div><div class="k">(หวาน)</div></div><span class="care c-wn">🟡</span><div class="stbs"><div class="sb sb-ma">มา</div><div class="sb sb-kh sb-dim">ขาด</div><div class="sb sb-sa sb-dim">สาย</div><div class="sb sb-ga">ก</div></div></div>
+              <div class="stu" style="opacity:.45"><div class="stu-no">5</div><div class="stu-nm"><div class="n">พิชญา รักเรียน</div><div class="k">(พิม)</div></div><span class="care c-ok">🟢</span><div class="stbs"><div class="sb sb-ma">มา</div><div class="sb sb-kh sb-dim">ขาด</div><div class="sb sb-sa sb-dim">สาย</div><div class="sb sb-la sb-dim">ลา</div></div></div>
+              <div style="text-align:center;font-size:8px;color:#cbd5e1;padding:5px">… 23 คนถัดไป</div>
+              <div class="fab-m">✔</div>
+            </div>
+          </div>
+          <div class="ph-lbl">แตะสถานะ → กด ✔<br>บันทึกเสร็จใน &lt;1 นาที</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     7. ผลลัพธ์ที่ครูได้รับ
+══════════════════════════════════════════════════════════ -->
+<div class="slide bg-white">
+  <div class="cw" style="max-width:940px">
+    <div class="sh">
+      <div class="badge badge-blue">📊 ผลลัพธ์</div>
+      <h2>สิ่งที่ <em>ครูได้รับกลับมา</em> จากการบันทึก</h2>
+      <p class="dark">ข้อมูลที่บันทึกไว้ กลายเป็นรายงานที่ใช้งานได้จริง ไม่ต้องนับเอง</p>
+    </div>
+    <div class="split" style="gap:20px;align-items:flex-start">
+      <!-- Dashboard -->
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="browser" style="width:390px">
+          <div class="br-bar"><div class="brd" style="background:#ff5f57"></div><div class="brd" style="background:#febc2e"></div><div class="brd" style="background:#28c840"></div><div class="br-url">Dashboard รายวัน — 22 มิ.ย. 2569</div></div>
+          <div class="br-body">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">
+              <div style="font-size:11px;font-weight:700;color:#1e3a8a">📊 สรุปทุกห้องวันนี้</div>
+              <div style="font-size:9px;background:#1d4ed8;color:#fff;padding:2px 8px;border-radius:5px">🖨 PDF</div>
+            </div>
+            <table class="db-t">
+              <tr><th>ห้อง</th><th>เช้า</th><th>คาบ1</th><th>คาบ3</th><th>คาบ6</th><th>เย็น</th></tr>
+              <tr><td class="db-room">ม.1</td><td class="db-ok">28/0</td><td class="db-ok">27/1</td><td class="db-em">—</td><td class="db-em">—</td><td class="db-ok">28/0</td></tr>
+              <tr><td class="db-room">ม.2/1</td><td class="db-w">24/4</td><td class="db-ok">25/2</td><td class="db-ok">26/1</td><td class="db-em">—</td><td class="db-w">23/4</td></tr>
+              <tr><td class="db-room">ม.3/1</td><td class="db-ok">27/1</td><td class="db-ok">28/0</td><td class="db-em">—</td><td class="db-ok">27/1</td><td class="db-ok">28/0</td></tr>
+              <tr><td class="db-room">ม.4</td><td class="db-w">20/5</td><td class="db-em">—</td><td class="db-ok">22/3</td><td class="db-em">—</td><td class="db-w">19/6</td></tr>
+            </table>
+            <div style="font-size:8px;color:#94a3b8;margin-top:5px">มา/ขาด &nbsp;·&nbsp; เหลือง = ขาดเยอะ</div>
+          </div>
+        </div>
+        <!-- Weekly -->
+        <div class="browser" style="width:390px">
+          <div class="br-bar"><div class="brd" style="background:#ff5f57"></div><div class="brd" style="background:#febc2e"></div><div class="brd" style="background:#28c840"></div><div class="br-url">รายงานรายสัปดาห์ — ม.3/1 — สัปดาห์ 4</div></div>
+          <div class="br-body">
+            <table class="wk-t">
+              <tr><th style="text-align:left">ชื่อ</th><th>จ.เช้า</th><th>จ.ค1</th><th>อ.เช้า</th><th>พ.เช้า</th><th>พฤ.ค1</th><th>ศ.เช้า</th></tr>
+              <tr><td class="wk-nm">กมลชนก ด.</td><td class="wk-ma">✓</td><td class="wk-ma">✓</td><td class="wk-ma">✓</td><td class="wk-sa">ส</td><td class="wk-ma">✓</td><td class="wk-ma">✓</td></tr>
+              <tr><td class="wk-nm">จิรายุ ม.</td><td class="wk-kh">✗</td><td class="wk-kh">✗</td><td class="wk-kh">✗</td><td class="wk-ma">✓</td><td class="wk-kh">✗</td><td class="wk-la">ลา</td></tr>
+              <tr><td class="wk-nm">ณัฐพล ส.</td><td class="wk-ma">✓</td><td class="wk-ma">✓</td><td class="wk-ma">✓</td><td class="wk-ma">✓</td><td class="wk-ma">✓</td><td class="wk-ma">✓</td></tr>
+              <tr><td class="wk-nm">ปริยากร ใ.</td><td class="wk-ga">ก</td><td class="wk-ga">ก</td><td class="wk-kh">✗</td><td class="wk-ma">✓</td><td class="wk-ma">✓</td><td class="wk-sa">ส</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- right side -->
+      <div style="flex:1;display:flex;flex-direction:column;gap:10px;justify-content:center">
+        <div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:12px;padding:14px;font-size:12px;color:#1e40af">
+          <b style="display:block;font-size:13px;margin-bottom:6px">🔔 แจ้งเตือนลืมเช็คชื่อ</b>
+          ระบบแจ้งครูที่ยังไม่ได้บันทึกคาบที่รับผิดชอบ ไม่ต้องรอให้ใครมาถาม
+        </div>
+        <div class="pt green"><div class="fi">📈</div><div class="ft"><b>รายงานรายวิชา</b>เปอร์เซ็นต์เข้าเรียนรายคน ตามตารางสอนจริง ตามหน่วยกิตจริง</div></div>
+        <div class="pt accent"><div class="fi">🔙</div><div class="ft"><b>แก้ไขย้อนหลังได้</b>ลืมบันทึก บันทึกผิด แก้ได้ มี Log บันทึกทุกการเปลี่ยนแปลง</div></div>
+        <div class="pt orange"><div class="fi">🎯</div><div class="ft"><b>ระบบดูแลนักเรียน</b>เห็น Badge ขณะเช็คชื่อ ว่าใครอยู่กลุ่มเสี่ยง ก่อนที่จะสายเกินไป</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     8. นักเรียนและผู้ปกครองได้อะไร + LINE OA
+══════════════════════════════════════════════════════════ -->
+<div class="slide bg-soft">
+  <div class="cw">
+    <div class="sh">
+      <div class="badge badge-blue">📲 นักเรียนและผู้ปกครอง</div>
+      <h2>ข้อมูลของครู → <em>ประโยชน์ถึงนักเรียนโดยตรง</em></h2>
+      <p class="dark">ทุก 1 การเช็คชื่อที่บันทึก นักเรียนและผู้ปกครองดูได้ทันทีผ่าน LINE</p>
+    </div>
+    <div class="flow" style="align-items:flex-start;gap:24px">
+      <div class="ph-wrap">
+        <div class="phone md" style="border-color:#111827">
+          <div class="line-hdr">🤖 วังกระแสวิทยาคม</div>
+          <div class="line-body">
+            <div class="lm-u">วันนี้</div>
+            <div class="lm-b">📋 วันนี้ (22 มิ.ย.) — จิรายุ<br>เช้า: ❌ ขาด<br>คาบ1: ❌ ขาด<br>คาบ3: ✅ มา<br>เย็น: ⏳ รอข้อมูล</div>
+            <div class="lm-u">คะแนน</div>
+            <div class="lm-b">⭐ คะแนนพฤติกรรม<br>รวม: <b>−3 คะแนน</b><br>📌 ทะเลาะวิวาท −2 (15/6)<br>🌟 ช่วยงานสภา +3 (10/6)<br>📌 ขาดสะสม −1<br><br>อันดับ: 24 ของโรงเรียน</div>
+            <div class="lm-u">ประวัติ</div>
+            <div class="lm-b">📅 7 วันล่าสุด<br>22/6 เช้า: ❌ ขาด<br>21/6 เช้า: ❌ ขาด<br>20/6 เช้า: ✅ มา</div>
+          </div>
+        </div>
+        <div class="ph-lbl">พิมพ์ "วันนี้" / "คะแนน" / "ประวัติ"<br>ใน LINE รู้ผลทันที 24 ชม.</div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:10px;max-width:440px">
+        <div style="background:#fff;border-radius:14px;padding:16px;border:1px solid #e2e8f0">
+          <div style="font-size:13px;font-weight:800;color:#0f172a;margin-bottom:10px">นักเรียนได้อะไร</div>
+          <div class="pt green" style="margin-bottom:6px"><div class="fi">📋</div><div class="ft"><b>ดูการมาเรียนได้เองทันที</b>ไม่ต้องถามครู ไม่ต้องรอ เปิด LINE ตอบได้เลย</div></div>
+          <div class="pt accent" style="margin-bottom:6px"><div class="fi">⭐</div><div class="ft"><b>รู้คะแนนพฤติกรรมพร้อมเหตุผล</b>โปร่งใส ไม่มีข้อสงสัย ไม่มี "ทำไมถูกหัก?"</div></div>
+          <div class="pt" style="border-left:3px solid #7c3aed;margin-bottom:0"><div class="fi">🏆</div><div class="ft"><b>Score Board กระตุ้นการแข่งขัน</b>เห็นอันดับตัวเองและเพื่อน มีแรงจูงใจพัฒนา</div></div>
+        </div>
+        <div style="background:#fff;border-radius:14px;padding:16px;border:1px solid #e2e8f0">
+          <div style="font-size:13px;font-weight:800;color:#0f172a;margin-bottom:10px">ผู้ปกครองได้อะไร</div>
+          <div class="pt orange" style="margin-bottom:6px"><div class="fi">👨‍👩‍👧</div><div class="ft"><b>ติดตามลูกได้ตลอด 24 ชม.</b>ผ่าน LINE เดียวกับที่ลูกใช้ ไม่ต้องโทรถามโรงเรียน</div></div>
+          <div class="pt green" style="margin-bottom:0"><div class="fi">🔔</div><div class="ft"><b>รู้เร็วเมื่อลูกขาดเรียน</b>แทนที่จะรู้หลังสิ้นภาคเรียนจากรายงาน</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     9. คะแนนพฤติกรรม
+══════════════════════════════════════════════════════════ -->
+<div class="slide bg-white">
+  <div class="cw">
+    <div class="sh">
+      <div class="badge badge-blue">⭐ คะแนนพฤติกรรม</div>
+      <h2>บวก/ลบคะแนน <em>โปร่งใส มีประวัติ</em> ทุกรายการ</h2>
+    </div>
+    <div class="flow" style="gap:20px;align-items:flex-start">
+      <!-- View -->
+      <div class="ph-wrap">
+        <div class="phone md">
+          <div class="ph-hdr"><span class="ph-back">‹</span>คะแนนพฤติกรรม — ม.3/1</div>
+          <div class="ph-body">
+            <div style="font-size:9px;color:#64748b;margin-bottom:6px">แตะชื่อเพื่อดูประวัติ</div>
+            <div class="bv-row"><div class="bv-nm">1. กมลชนก ดาวดี</div><div class="bv-sc sc-pos">+18</div></div>
+            <div class="bv-row"><div class="bv-nm">2. จิรายุ มานะดี</div><div class="bv-sc sc-neg">−3</div></div>
+            <div class="bv-hist">
+              <div style="font-size:9px;font-weight:700;color:#1e3a8a;margin-bottom:4px">📋 ประวัติ — จิรายุ</div>
+              <div class="bv-hr"><span style="color:#b91c1c;font-weight:700">−1</span><span>ขาดเรียนสะสม (อัตโนมัติ)</span></div>
+              <div class="bv-hr"><span style="color:#b91c1c;font-weight:700">−2</span><span>ทะเลาะวิวาท — ครูสมหญิง</span></div>
+              <div class="bv-hr"><span style="color:#15803d;font-weight:700">+3</span><span>ช่วยงานสภา — สภา (10/6)</span></div>
+              <div class="bv-hr"><span style="color:#b91c1c;font-weight:700">−3</span><span>ผิดกฎระเบียบ — ครูสมหญิง</span></div>
+            </div>
+            <div class="bv-row" style="opacity:.5"><div class="bv-nm">3. ณัฐพล สุขใจ</div><div class="bv-sc sc-pos">+25</div></div>
+          </div>
+        </div>
+        <div class="ph-lbl">กดชื่อ → ประวัติสไลด์ลงมา<br>ทุกรายการมีเหตุผลและผู้บันทึก</div>
+      </div>
+      <div class="arr">→</div>
+      <!-- Record -->
+      <div class="ph-wrap">
+        <div class="phone md">
+          <div class="ph-hdr"><span class="ph-back">‹</span>บันทึกคะแนน — ม.3/1</div>
+          <div class="ph-body">
+            <div style="font-size:9px;color:#334155;margin-bottom:3px;font-weight:700">เลือกคะแนน</div>
+            <div class="sp-row">
+              <div class="sp sp-n">−3</div><div class="sp sp-n">−2</div><div class="sp sp-n">−1</div>
+              <div class="sp sp-p sp-sel">+1</div><div class="sp sp-p">+2</div><div class="sp sp-p">+3</div>
+            </div>
+            <div style="font-size:9px;color:#334155;margin-bottom:3px;font-weight:700">ประเภท / เหตุผล</div>
+            <div style="background:#fff;border:1.5px solid #bfdbfe;border-radius:7px;padding:5px 8px;font-size:10px;color:#1d4ed8;font-weight:700;margin-bottom:7px">ช่วยงานโรงเรียน</div>
+            <div style="font-size:9px;color:#334155;margin-bottom:4px;font-weight:700">เลือกนักเรียน (หลายคนได้)</div>
+            <div style="display:flex;align-items:center;gap:5px;padding:5px 0;border-bottom:1px solid #f1f5f9"><input type="checkbox" checked style="accent-color:#1d4ed8"><span style="font-size:10px;font-weight:700">1. กมลชนก ดาวดี</span></div>
+            <div style="display:flex;align-items:center;gap:5px;padding:5px 0;border-bottom:1px solid #f1f5f9"><input type="checkbox" style="accent-color:#1d4ed8"><span style="font-size:10px">2. จิรายุ มานะดี</span></div>
+            <div style="display:flex;align-items:center;gap:5px;padding:5px 0"><input type="checkbox" checked style="accent-color:#1d4ed8"><span style="font-size:10px;font-weight:700">3. ณัฐพล สุขใจ</span></div>
+            <div style="background:#1d4ed8;color:#fff;border-radius:8px;padding:7px;text-align:center;font-size:10px;font-weight:700;margin-top:8px">✔ บันทึก 2 คน (+1 คะแนน)</div>
+          </div>
+        </div>
+        <div class="ph-lbl">เลือกคะแนน → เหตุผล → นักเรียน<br>บันทึกหลายคนพร้อมกันได้</div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:8px;max-width:260px">
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:13px">
+          <div style="font-size:12px;font-weight:800;color:#14532d;margin-bottom:8px">คะแนนรวมมาจาก</div>
+          <div style="font-size:11px;color:#166534;line-height:2">
+            🌟 Manual บวก (ครู/สภา)<br>
+            ⏰ สาย 2 ครั้ง = −1 คะแนน<br>
+            ❌ ขาด 2 ครั้ง = −1 คะแนน<br>
+            <span style="font-size:10px;color:#15803d">↑ คิดอัตโนมัติจากการเช็คชื่อ</span>
+          </div>
+        </div>
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:13px">
+          <div style="font-size:12px;font-weight:800;color:#1e40af;margin-bottom:6px">🏆 Score Board</div>
+          <div style="font-size:11px;color:#1e40af;line-height:1.8">Top 20 ทั่วโรงเรียน<br>เปิดผ่าน LINE Rich Menu<br>แยกดูรายระดับชั้นได้</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     10. Q&A
+══════════════════════════════════════════════════════════ -->
+<div class="slide bg-qa">
+  <div class="deco d1"></div><div class="deco d2"></div>
+  <div class="cw"><div class="qa-wrap">
+    <div class="qa-icon">💬</div>
+    <h2>ถาม — ตอบ</h2>
+    <p>
+      มีคำถาม ข้อสงสัย หรืออยากแชร์ประสบการณ์การใช้งาน<br>
+      ยินดีรับฟังทุกความคิดเห็น
+    </p>
+  </div></div>
+</div>
+
+</div><!-- /deck -->
+
+<div class="nav">
+  <button class="nav-btn" onclick="go(-1)">‹</button>
+  <div class="dots" id="dots"></div>
+  <span class="counter" id="counter"></span>
+  <button class="nav-btn" onclick="go(1)">›</button>
+</div>
+
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;
+let cur=0;
+const dotsEl=document.getElementById('dots');
+for(let i=0;i<total;i++){
+  const d=document.createElement('div');
+  d.className='dot'+(i===0?' active':'');
+  d.addEventListener('click',()=>goTo(i));
+  dotsEl.appendChild(d);
+}
+function update(){
+  slides.forEach((s,i)=>{
+    s.classList.remove('active','prev');
+    if(i===cur)s.classList.add('active');
+    else if(i<cur)s.classList.add('prev');
+  });
+  document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===cur));
+  document.getElementById('counter').textContent=(cur+1)+' / '+total;
+  document.getElementById('progress').style.width=((cur+1)/total*100)+'%';
+  // flip nav color on dark slides
+  const isDark=slides[cur].classList.contains('bg-navy')||slides[cur].classList.contains('bg-dark')||slides[cur].classList.contains('bg-blue')||slides[cur].classList.contains('bg-qa');
+  document.querySelectorAll('.nav-btn').forEach(b=>{
+    b.style.background=isDark?'rgba(255,255,255,.12)':'rgba(255,255,255,.9)';
+    b.style.color=isDark?'#fff':'#334155';
+    b.style.borderColor=isDark?'rgba(255,255,255,.25)':'rgba(100,116,139,.4)';
+  });
+  document.getElementById('counter').style.color=isDark?'rgba(255,255,255,.55)':'#64748b';
+  document.querySelectorAll('.dot').forEach(d=>{
+    d.style.background=d.classList.contains('active')?(isDark?'#93c5fd':'#1d4ed8'):(isDark?'rgba(255,255,255,.25)':'#cbd5e1');
+  });
+  document.getElementById('fsBtn').style.background=isDark?'rgba(255,255,255,.12)':'rgba(255,255,255,.9)';
+  document.getElementById('fsBtn').style.color=isDark?'#fff':'#475569';
+  document.getElementById('fsBtn').style.borderColor=isDark?'rgba(255,255,255,.2)':'#e2e8f0';
+}
+function go(d){goTo(cur+d);}
+function goTo(i){if(i<0||i>=total)return;cur=i;update();}
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' ')go(1);
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp')go(-1);
+  if(e.key==='f'||e.key==='F')toggleFS();
+});
+let tx=0;
+document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX},{passive:true});
+document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>50)go(dx<0?1:-1);},{passive:true});
+function toggleFS(){
+  const el=document.documentElement;
+  if(!document.fullscreenElement)(el.requestFullscreen||el.webkitRequestFullscreen||el.mozRequestFullScreen||el.msRequestFullscreen).call(el);
+  else(document.exitFullscreen||document.webkitExitFullscreen||document.mozCancelFullScreen||document.msExitFullscreen).call(document);
+}
+document.addEventListener('fullscreenchange',()=>{const b=document.getElementById('fsBtn');b.textContent=document.fullscreenElement?'✕':'⛶';});
+update();
+</script>
+</body>
+</html>
