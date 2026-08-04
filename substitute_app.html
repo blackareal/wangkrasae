@@ -8,6 +8,7 @@
   :root{
     --blue:#1e4d8b; --blue-light:#e8f0fb; --gray:#f4f5f7; --border:#dcdfe4;
     --red:#c0392b; --green:#1e8449; --amber:#b9770e; --text:#1f2937;
+    --purple:#6b3fa0; --purple-light:#f1eafb;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html{-webkit-text-size-adjust:100%;}
@@ -22,15 +23,16 @@
   .field{flex:1;min-width:140px;}
   label{display:block;font-size:13px;margin-bottom:4px;color:#555;}
   input[type=date], select, input[type=text]{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:16px;font-family:inherit;min-height:44px;}
-  .teacher-list{max-height:280px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:4px;}
-  .t-row{display:flex;align-items:center;flex-wrap:wrap;gap:6px;font-size:14px;color:var(--text);padding:8px 6px;margin:0;cursor:pointer;border-bottom:1px solid #f0f1f3;}
+  .teacher-list{max-height:320px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:4px;}
+  .t-row{padding:10px 8px;border-bottom:1px solid #f0f1f3;}
   .t-row:last-child{border-bottom:none;}
   .t-row:active{background:var(--blue-light);}
-  .t-row input[type=checkbox]{width:20px;height:20px;flex:none;margin:0;}
-  .t-name{flex:1;min-width:120px;}
-  .reasonSel{width:auto;min-width:90px;flex:none;padding:4px 6px;font-size:12px;min-height:32px;opacity:.35;pointer-events:none;border-radius:6px;}
-  .reasonSel.active{opacity:1;pointer-events:auto;}
-  .badge{display:inline-block;font-size:11px;padding:1px 7px;border-radius:10px;background:var(--gray);color:#555;white-space:nowrap;}
+  .t-main{display:flex;align-items:center;gap:10px;cursor:pointer;}
+  .t-main input[type=checkbox]{width:22px;height:22px;flex:none;margin:0;}
+  .t-name{flex:1;font-size:15px;line-height:1.35;word-break:break-word;}
+  .t-extra{display:none;margin-top:8px;padding-left:32px;}
+  .t-extra.active{display:block;}
+  .badge{display:inline-block;font-size:11px;padding:1px 7px;border-radius:10px;background:var(--gray);color:#555;white-space:nowrap;margin-left:4px;}
   .badge.warn{background:#fdecea;color:var(--red);}
   button{background:var(--blue);color:#fff;border:none;padding:12px 18px;border-radius:8px;font-size:15px;cursor:pointer;font-family:inherit;min-height:44px;}
   button:hover{background:#163a6b;}
@@ -60,41 +62,48 @@
   .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#1f2937;color:#fff;padding:10px 18px;border-radius:8px;font-size:14px;opacity:0;transition:opacity .3s;pointer-events:none;max-width:90%;text-align:center;z-index:20;}
   .toast.show{opacity:1;}
 
-  /* ---------- Official order document (screenshot / print ready) ---------- */
-  .order-settings{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
-  .order-settings .field{min-width:130px;}
-  #orderDoc{
-    background:#fff;color:#000;border:1px solid #999;border-radius:4px;
-    padding:18px 14px;font-family:"TH Sarabun New","Sarabun",sans-serif;
+  /* ---------- Share card (screenshot-ready summary) ---------- */
+  #shareCard{
+    background:linear-gradient(180deg,#ffffff, #fbfbfd);
+    border:1px solid var(--border);border-radius:16px;overflow:hidden;
   }
-  .seal{width:56px;height:56px;margin:0 auto 4px;border:2px solid #333;border-radius:50%;
-    display:flex;align-items:center;justify-content:center;font-size:26px;color:#333;}
-  .order-header{text-align:center;margin-bottom:10px;}
-  .order-title{font-size:19px;font-weight:700;margin-top:2px;}
-  .order-no{font-size:16px;margin-top:2px;}
-  .order-no [contenteditable]{display:inline-block;border-bottom:1px dashed #999;padding:0 4px;min-width:40px;}
-  .order-subject{font-size:16px;margin-top:2px;text-decoration:underline;}
-  .order-table th, .order-table td{border:1px solid #333;padding:5px 6px;font-size:13px;}
-  .order-table th{background:#eee;color:#000;text-align:center;}
-  .order-table td.center{text-align:center;}
-  .sign-blank{color:#999;}
-  .order-footer{margin-top:14px;font-size:14px;}
-  .order-date{margin-top:10px;}
-  .order-date [contenteditable]{display:inline-block;border-bottom:1px dashed #999;padding:0 4px;min-width:20px;text-align:center;}
-  .order-sign{margin-top:34px;text-align:center;}
-  .order-sign [contenteditable]{display:inline-block;border-bottom:1px dashed #999;padding:0 4px;min-width:120px;text-align:center;}
-  @media (max-width:400px){
-    .order-table th,.order-table td{font-size:11px;padding:3px 4px;}
-    .order-title{font-size:16px;}
-    .order-no,.order-subject{font-size:14px;}
+  .share-head{
+    background:linear-gradient(135deg, var(--blue), #16345f);
+    color:#fff;padding:18px 18px 16px;text-align:center;
+  }
+  .share-school{font-size:14px;opacity:.9;}
+  .share-title{font-size:20px;font-weight:700;margin-top:4px;}
+  .share-date{font-size:14px;margin-top:6px;opacity:.95;}
+  .share-body{padding:14px 14px 4px;}
+  .share-group{border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:12px;border-left-width:5px;}
+  .share-group.reason-sick{border-left-color:var(--red);}
+  .share-group.reason-personal{border-left-color:var(--amber);}
+  .share-group.reason-official{border-left-color:var(--blue);}
+  .share-group.reason-other{border-left-color:#888;}
+  .share-group-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
+  .share-teacher{font-size:16px;font-weight:700;}
+  .reason-pill{font-size:12px;padding:2px 10px;border-radius:10px;font-weight:600;}
+  .reason-pill.reason-sick{background:#fdecea;color:var(--red);}
+  .reason-pill.reason-personal{background:#fdf3e3;color:var(--amber);}
+  .reason-pill.reason-official{background:var(--blue-light);color:var(--blue);}
+  .reason-pill.reason-other{background:#eee;color:#555;}
+  .share-row{display:flex;align-items:center;gap:8px;font-size:14px;padding:6px 0;border-top:1px dashed #eee;flex-wrap:wrap;}
+  .share-row:first-of-type{border-top:none;}
+  .share-tag{background:var(--gray);border-radius:6px;padding:2px 8px;font-size:12px;color:#555;white-space:nowrap;}
+  .share-arrow{color:#aaa;}
+  .share-sub{font-weight:600;flex:1;min-width:100px;}
+  .share-foot{text-align:center;color:#999;font-size:11px;padding:10px 14px 16px;}
+  @media (max-width:360px){
+    .share-title{font-size:18px;}
+    .share-teacher{font-size:15px;}
   }
 
   @media print{
     body{background:#fff;}
     body *{visibility:hidden;}
-    #orderDoc, #orderDoc *{visibility:visible;}
-    #orderDoc{display:block;position:absolute;top:0;left:0;width:100%;border:none;}
-    header, .tabs, .actions, .order-settings{display:none !important;}
+    #shareCard, #shareCard *{visibility:visible;}
+    #shareCard{display:block;position:absolute;top:0;left:0;width:100%;}
+    header, .tabs, .actions{display:none !important;}
   }
 </style>
 </head>
@@ -156,49 +165,23 @@
       <div class="muted" id="saveMsg" style="margin-top:6px;"></div>
     </div>
 
-    <div class="card" id="printCard" style="display:none;">
-      <h2>3. คำสั่งสอนแทน (พร้อมแคปส่งไลน์กลุ่ม)</h2>
-      <div class="order-settings">
-        <div class="field">
-          <label>เลขที่คำสั่ง</label>
-          <input type="text" id="orderNoInput" value="พิเศษ">
-        </div>
-        <div class="field">
-          <label>ผู้อำนวยการ</label>
-          <input type="text" id="principalInput" value="นางนฤมล ทัดสา">
-        </div>
-      </div>
+    <div class="card" id="shareOuter" style="display:none;">
+      <h2>3. สรุปสอนแทน (พร้อมแคปส่งไลน์กลุ่ม)</h2>
 
-      <div id="orderDoc">
-        <div class="order-header">
-          <div class="seal">🦅</div>
-          <div class="order-title">คำสั่งโรงเรียนวังกระแสวิทยาคม</div>
-          <div class="order-no">ที่ <span id="oNo">พิเศษ</span> / <span id="oYear2"></span></div>
-          <div class="order-subject">เรื่อง แต่งตั้งบุคลากรเข้าสอนแทน</div>
+      <div id="shareCard">
+        <div class="share-head">
+          <div class="share-school">โรงเรียนวังกระแสวิทยาคม</div>
+          <div class="share-title">🗓️ ตารางจัดสอนแทน</div>
+          <div class="share-date" id="sDate"></div>
         </div>
-        <div class="table-scroll">
-        <table class="order-table">
-          <thead>
-            <tr><th>ที่</th><th>ชื่อ-สกุล</th><th>เหตุผล</th><th>ครูสอนแทน</th><th>คาบ</th><th>ชั้น</th><th>ลงชื่อ</th></tr>
-          </thead>
-          <tbody id="orderBody"></tbody>
-        </table>
-        </div>
-        <div class="order-footer">
-          <p>ให้ผู้ได้รับการแต่งตั้งปฏิบัติหน้าที่ด้วยความรับผิดชอบ เพื่อก่อให้เกิดผลดีแก่ราชการต่อไป</p>
-          <p class="order-date">สั่ง ณ วันที่ <span id="oDay"></span> เดือน <span id="oMonth"></span> พ.ศ. <span id="oYear"></span></p>
-          <div class="order-sign">
-            <p>ลงชื่อ....................................................</p>
-            <p>( <span id="oPrincipal" contenteditable="true">นางนฤมล ทัดสา</span> )</p>
-            <p>ผู้อำนวยการโรงเรียนวังกระแสวิทยาคม</p>
-          </div>
-        </div>
+        <div class="share-body" id="shareBody"></div>
+        <div class="share-foot">จัดทำโดยระบบจัดสอนแทน</div>
       </div>
 
       <div class="actions">
         <button class="secondary block" id="btnPrint">พิมพ์ / บันทึก PDF</button>
       </div>
-      <div class="muted" style="margin-top:8px;">เลื่อนดูเอกสารด้านบน แล้วแคปหน้าจอส่งเข้ากลุ่มไลน์ได้เลย</div>
+      <div class="muted" style="margin-top:8px;">เลื่อนดูสรุปด้านบน แล้วแคปหน้าจอส่งเข้ากลุ่มไลน์ได้เลย</div>
     </div>
   </div>
 
@@ -269,10 +252,16 @@
 <script>
 const TIMETABLE = {"meta": {"term": "1/2569", "school": "โรงเรียนวังกระแสวิทยาคม", "source": "Schedule_Term1_2569.html"}, "periods": [{"p": 1, "time": "08.30–09.20"}, {"p": 2, "time": "09.20–10.10"}, {"p": 3, "time": "10.10–11.00"}, {"p": 4, "time": "11.00–11.50"}, {"p": "lunch", "time": "11.50–13.00", "label": "พักกลางวัน"}, {"p": 5, "time": "13.00–13.50"}, {"p": 6, "time": "13.50–14.40"}, {"p": 7, "time": "14.40–15.30"}, {"p": 8, "time": "15.30–16.30"}], "classes": ["ม.1/1", "ม.2/1", "ม.2/2", "ม.3/1", "ม.3/2", "ม.4", "ม.5", "ม.6"], "timetable": {"จันทร์": {"1": {"ม.1/1": {"code": "ว21102", "subject": "วิทยาการคำนวณ 1", "teacher": "อนัญชุดา", "type": "sci"}, "ม.2/1": {"code": "ค22101", "subject": "คณิตศาสตร์ พฐ 3", "teacher": "อนุพงศ์", "type": "math"}, "ม.2/2": {"code": "ท22101", "subject": "ภาษาไทย พฐ 3", "teacher": "ทักษญา", "type": "thai"}, "ม.3/1": {"code": "อ23101", "subject": "ภาษาอังกฤษ พฐ 5", "teacher": "วิชชุกร", "type": "eng"}, "ม.3/2": {"code": "ค23101", "subject": "คณิตศาสตร์ พฐ 5", "teacher": "รัตนา", "type": "math"}, "ม.4": {"code": "ว31201", "subject": "ฟิสิกส์ พต 1", "teacher": "สุภาวดี", "type": "sci"}, "ม.5": {"code": "ว32241", "subject": "ชีววิทยา พต 2", "teacher": "วรสิทธิ์", "type": "sci"}, "ม.6": {"code": "ง33101", "subject": "การจัดการงานบ้าน", "teacher": "ปรารถนา", "type": "career"}}, "2": {"ม.1/1": {"code": "ส21101", "subject": "สังคมศึกษา พฐ 1", "teacher": "อลิษา", "type": "social"}, "ม.2/1": {"code": "ว22102", "subject": "วิทยาการคำนวณ 2", "teacher": "อนัญชุดา", "type": "sci"}, "ม.2/2": {"code": "ค22101", "subject": "คณิตศาสตร์ พฐ 3", "teacher": "รัตนา", "type": "math"}, "ม.3/1": {"code": "ส23101", "subject": "สังคมศึกษา พฐ 5", "teacher": "วิชุตา", "type": "social"}, "ม.3/2": {"code": "อ23101", "subject": "ภาษาอังกฤษ พฐ 5", "teacher": "วิชชุกร", "type": "eng"}, "ม.4": {"code": "ว31103", "subject": "วิทยาศาสตร์ พฐ 2 (ชีววิทยา)", "teacher": "วรสิทธิ์", "type": "sci"}, "ม.5": {"code": "ท32101", "subject": "ภาษาไทย พฐ 3", "teacher": "ทักษญา", "type": "thai"}, "ม.6": {"code": "ค33101", "subject": "คณิตศาสตร์ พฐ 5", "teacher": "อนุพงศ์", "type": "math"}}, "3": {"ม.1/1": {"code": "ค21101", "subject": "คณิตศาสตร์ พฐ 1", "teacher": "อนุพงศ์", "type": "math"}, "ม.2/1": {"code": "ส22101", "subject": "สังคมศึกษา พฐ 3", "teacher": "อลิษา", "type": "social"}, "ม.2/2": {"code": "อ22101", "subject": "ภาษาอังกฤษ พฐ 3", "teacher": "วิชุตา", "type": "eng"}, "ม.3/1": {"code": "ท23101", "subject": "ภาษาไทย พฐ 5", "teacher": "สุทธิดา", "type": "thai"}, "ม.3/2": {"code": "พ23101", "subject": "สุขศึกษา พฐ 5", "teacher": "ศิริชัย", "type": "health"}, "ม.4": {"code": "ศ31101", "subject": "ดนตรีนาฏศิลป์ พฐ 1", "teacher": "ชัชพงศ์", "type": "art"}, "ม.5": {"code": "ว32201", "subject": "ฟิสิกส์ พต 3", "teacher": "สุภาวดี", "type": "sci"}, "ม.6": {"code": "ว33221", "subject": "เคมี พต 4", "teacher": "เนตรชนก", "type": "sci"}}, "4": {"ม.1/1": {"code": "อ21101", "subject": "ภาษาอังกฤษ พฐ 1", "teacher": "วิชุตา", "type": "eng"}, "ม.2/1": {"code": "ศ22101", "subject": "ดนตรีนาฏศิลป์ พฐ 3", "teacher": "ชัชพงศ์", "type": "art"}, "ม.2/2": {"code": "ส22101", "subject": "สังคมศึกษา พฐ 3", "teacher": "อลิษา", "type": "social"}, "ม.3/1": {"code": "พ23102", "subject": "พลศึกษา พฐ 5", "teacher": "ศิริชัย", "type": "health"}, "ม.3/2": {"code": "ท23101", "subject": "ภาษาไทย พฐ 5", "teacher": "สุทธิดา", "type": "thai"}, "ม.4": {"code": "ค31101", "subject": "คณิตศาสตร์ พฐ 1", "teacher": "อนุพงศ์", "type": "math"}, "ม.5": {"code": "ว32201", "subject": "ฟิสิกส์ พต 3", "teacher": "สุภาวดี", "type": "sci"}, "ม.6": {"code": "ว33221", "subject": "เคมี พต 4", "teacher": "เนตรชนก", "type": "sci"}}, "5": {"ม.1/1": {"code": "ศ21101", "subject": "ดนตรีนาฏศิลป์ พฐ 1", "teacher": "ชัชพงศ์", "type": "art"}, "ม.2/1": {"code": "ท22101", "subject": "ภาษาไทย พฐ 3", "teacher": "ทักษญา", "type": "thai"}, "ม.2/2": {"code": "พ22102", "subject": "พลศึกษา พฐ 3", "teacher": "ศิริชัย", "type": "health"}, "ม.3/1": {"code": "ว23202", "subject": "โครงงานวิทยาศาสตร์ 1", "teacher": "วรสิทธิ์", "type": "sci"}, "ม.3/2": {"code": "ว23101", "subject": "วิทยาศาสตร์ พฐ 5", "teacher": "สุภาวดี", "type": "sci"}, "ม.4": {"code": "ว31101", "subject": "วิทยาการคำนวณ 1", "teacher": "อนัญชุดา", "type": "sci"}, "ม.5": {"code": "ง32101", "subject": "งานบ้าน พฐ 1", "teacher": "ปรารถนา", "type": "career"}, "ม.6": {"code": "อ33101", "subject": "ภาษาอังกฤษ พฐ 5", "teacher": "วิชชุกร", "type": "eng"}}, "6": {"ม.1/1": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.2/1": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.2/2": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.3/1": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.3/2": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.4": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.5": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.6": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}}, "7": {"ม.1/1": {"code": "", "subject": "กิจกรรมเพื่อสังคม และสาธารณประโยชน์ ชุมนุม", "teacher": "", "type": "other"}, "ม.2/1": {"code": "", "subject": "กิจกรรมเพื่อสังคม และสาธารณประโยชน์ ชุมนุม", "teacher": "", "type": "other"}, "ม.2/2": {"code": "", "subject": "กิจกรรมเพื่อสังคม และสาธารณประโยชน์ ชุมนุม", "teacher": "", "type": "other"}, "ม.3/1": {"code": "", "subject": "กิจกรรมเพื่อสังคม และสาธารณประโยชน์ ชุมนุม", "teacher": "", "type": "other"}, "ม.3/2": {"code": "", "subject": "กิจกรรมเพื่อสังคม และสาธารณประโยชน์ ชุมนุม", "teacher": "", "type": "other"}, "ม.4": {"code": "", "subject": "กิจกรรมเพื่อสังคม", "teacher": "", "type": "other"}, "ม.5": {"code": "", "subject": "กิจกรรมเพื่อสังคม และสาธารณประโยชน์", "teacher": "", "type": "other"}, "ม.6": {"code": "", "subject": "กิจกรรมเพื่อสังคม", "teacher": "", "type": "other"}}, "8": {"ม.1/1": null, "ม.2/1": null, "ม.2/2": null, "ม.3/1": null, "ม.3/2": null, "ม.4": null, "ม.5": null, "ม.6": null}}, "อังคาร": {"1": {"ม.1/1": {"code": "ค21101", "subject": "คณิตศาสตร์ พฐ 1", "teacher": "อนุพงศ์", "type": "math"}, "ม.2/1": {"code": "ว22102", "subject": "วิทยาการคำนวณ 2", "teacher": "อนัญชุดา", "type": "sci"}, "ม.2/2": {"code": "ง22101", "subject": "งานบ้าน พฐ 3", "teacher": "ปรารถนา", "type": "career"}, "ม.3/1": {"code": "ท23101", "subject": "ภาษาไทย พฐ 5", "teacher": "สุทธิดา", "type": "thai"}, "ม.3/2": {"code": "อ23101", "subject": "ภาษาอังกฤษ พฐ 5", "teacher": "วิชชุกร", "type": "eng"}, "ม.4": {"code": "ว31102", "subject": "วิทยาศาสตร์ พฐ 1 (เคมี)", "teacher": "เนตรชนก", "type": "sci"}, "ม.5": {"code": "ค32101", "subject": "คณิตศาสตร์ พฐ 3", "teacher": "รัตนา", "type": "math"}, "ม.6": {"code": "พ33101", "subject": "สุขศึกษา พฐ 5", "teacher": "ศิริชัย", "type": "health"}}, "2": {"ม.1/1": {"code": "ว21102", "subject": "วิทยาการคำนวณ 1", "teacher": "อนัญชุดา", "type": "sci"}, "ม.2/1": {"code": "ค22101", "subject": "คณิตศาสตร์ พฐ 3", "teacher": "อนุพงศ์", "type": "math"}, "ม.2/2": {"code": "อ22201", "subject": "ภาษาอังกฤษอ่าน-เขียน 1", "teacher": "วิชุตา", "type": "eng"}, "ม.3/1": {"code": "ค23101", "subject": "คณิตศาสตร์ พฐ 5", "teacher": "รัตนา", "type": "math"}, "ม.3/2": {"code": "ง23101", "subject": "งานบ้าน พฐ 5", "teacher": "ปรารถนา", "type": "career"}, "ม.4": {"code": "ท31101", "subject": "ภาษาไทย พฐ 1", "teacher": "ทักษญา", "type": "thai"}, "ม.5": {"code": "ว32221", "subject": "เคมี พต 2", "teacher": "เนตรชนก", "type": "sci"}, "ม.6": {"code": "ว33241", "subject": "ชีววิทยา พต 4", "teacher": "วรสิทธิ์", "type": "sci"}}, "3": {"ม.1/1": {"code": "ส21101", "subject": "สังคมศึกษา พฐ 1", "teacher": "อลิษา", "type": "social"}, "ม.2/1": {"code": "ง22101", "subject": "งานบ้าน พฐ 3", "teacher": "ปรารถนา", "type": "career"}, "ม.2/2": {"code": "ว22101", "subject": "วิทยาศาสตร์ พฐ 3", "teacher": "อนัญชุดา", "type": "sci"}, "ม.3/1": {"code": "ศ23102", "subject": "ทัศนศิลป์ พฐ 5", "teacher": "รัฐศาสตร์", "type": "art"}, "ม.3/2": {"code": "ว23101", "subject": "วิทยาศาสตร์ พฐ 5", "teacher": "สุภาวดี", "type": "sci"}, "ม.4": {"code": "อ31103", "subject": "ภาษาอังกฤษ พฐ 1", "teacher": "วิชชุกร", "type": "eng"}, "ม.5": {"code": "ว32221", "subject": "เคมี พต 2", "teacher": "เนตรชนก", "type": "sci"}, "ม.6": {"code": "ว33241", "subject": "ชีววิทยา พต 4", "teacher": "วรสิทธิ์", "type": "sci"}}, "4": {"ม.1/1": {"code": "ท21101", "subject": "ภาษาไทย พฐ 1", "teacher": "สุทธิดา", "type": "thai"}, "ม.2/1": {"code": "พ22102", "subject": "พลศึกษา พฐ 3", "teacher": "ศิริชัย", "type": "health"}, "ม.2/2": {"code": "ศ22101", "subject": "ดนตรีนาฏศิลป์ พฐ 3", "teacher": "ชัชพงศ์", "type": "art"}, "ม.3/1": {"code": "ว23102", "subject": "วิทยาการคำนวณ 3", "teacher": "อนัญชุดา", "type": "sci"}, "ม.3/2": {"code": "ส23103", "subject": "หน้าที่พลเมือง 5", "teacher": "รัฐศาสตร์", "type": "social"}, "ม.4": {"code": "ส31101", "subject": "สังคมศึกษา พฐ 1", "teacher": "อลิษา", "type": "social"}, "ม.5": {"code": "อ32101", "subject": "ภาษาอังกฤษ พฐ 3", "teacher": "วิชชุกร", "type": "eng"}, "ม.6": {"code": "ท33101", "subject": "ภาษาไทย พฐ 5", "teacher": "ทักษญา", "type": "thai"}}, "5": {"ม.1/1": {"code": "พ21102", "subject": "พลศึกษา พฐ 1", "teacher": "ศิริชัย", "type": "health"}, "ม.2/1": {"code": "อ22101", "subject": "ภาษาอังกฤษ พฐ 3", "teacher": "วิชุตา", "type": "eng"}, "ม.2/2": {"code": "ท22201", "subject": "ภาษาไทย พต 3", "teacher": "สุทธิดา", "type": "thai"}, "ม.3/1": {"code": "ส23102", "subject": "ประวัติศาสตร์ พฐ 5", "teacher": "สุภาวดี", "type": "social"}, "ม.3/2": {"code": "ศ23101", "subject": "ดนตรีนาฏศิลป์ พฐ 5", "teacher": "ชัชพงศ์", "type": "art"}, "ม.4": {"code": "ง31101", "subject": "งานประดับผ้า 1", "teacher": "วรสิทธิ์", "type": "career"}, "ม.5": {"code": "ส32101", "subject": "สังคมศึกษา พฐ 3", "teacher": "อลิษา", "type": "social"}, "ม.6": {"code": "ศ33201", "subject": "ทัศนศิลป์ พฐ 2", "teacher": "รัฐศาสตร์", "type": "art"}}, "6": {"ม.1/1": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.2/1": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.2/2": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.3/1": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.3/2": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.4": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.5": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.6": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}}, "7": {"ม.1/1": {"code": "", "subject": "เพิ่มเวลารู้สู่อาชีพ และ ลดเวลาเรียนเพิ่มเวลารู้", "teacher": "", "type": "other"}, "ม.2/1": {"code": "", "subject": "เพิ่มเวลารู้สู่อาชีพ และ ลดเวลาเรียนเพิ่มเวลารู้", "teacher": "", "type": "other"}, "ม.2/2": {"code": "", "subject": "เพิ่มเวลารู้สู่อาชีพ และ ลดเวลาเรียนเพิ่มเวลารู้", "teacher": "", "type": "other"}, "ม.3/1": {"code": "", "subject": "เพิ่มเวลารู้สู่อาชีพ และ ลดเวลาเรียนเพิ่มเวลารู้", "teacher": "", "type": "other"}, "ม.3/2": {"code": "", "subject": "เพิ่มเวลารู้สู่อาชีพ และ ลดเวลาเรียนเพิ่มเวลารู้", "teacher": "", "type": "other"}, "ม.4": {"code": "", "subject": "ชุมนุม", "teacher": "", "type": "other"}, "ม.5": {"code": "", "subject": "ชุมนุม", "teacher": "", "type": "other"}, "ม.6": {"code": "", "subject": "ชุมนุม", "teacher": "", "type": "other"}}, "8": {"ม.1/1": null, "ม.2/1": null, "ม.2/2": null, "ม.3/1": null, "ม.3/2": null, "ม.4": null, "ม.5": null, "ม.6": null}}, "พุธ": {"1": {"ม.1/1": {"code": "ท21101", "subject": "ภาษาไทย พฐ 1", "teacher": "สุทธิดา", "type": "thai"}, "ม.2/1": {"code": "อ22201", "subject": "ภาษาอังกฤษอ่าน-เขียน 1", "teacher": "วิชุตา", "type": "eng"}, "ม.2/2": {"code": "ค22101", "subject": "คณิตศาสตร์ พฐ 3", "teacher": "รัตนา", "type": "math"}, "ม.3/1": {"code": "ส23101", "subject": "สังคมศึกษา พฐ 5", "teacher": "รัฐศาสตร์", "type": "social"}, "ม.3/2": {"code": "อ23101", "subject": "ภาษาอังกฤษ พฐ 5", "teacher": "วิชชุกร", "type": "eng"}, "ม.4": {"code": "ค31101", "subject": "คณิตศาสตร์ พฐ 1", "teacher": "อนุพงศ์", "type": "math"}, "ม.5": {"code": "ท32101", "subject": "ภาษาไทย พฐ 3", "teacher": "ทักษญา", "type": "thai"}, "ม.6": {"code": "ส33101", "subject": "สังคมศึกษา พฐ 5", "teacher": "อลิษา", "type": "social"}}, "2": {"ม.1/1": {"code": "ค21101", "subject": "คณิตศาสตร์ พฐ 1", "teacher": "อนุพงศ์", "type": "math"}, "ม.2/1": {"code": "ส22101", "subject": "สังคมศึกษา พฐ 3", "teacher": "อลิษา", "type": "social"}, "ม.2/2": {"code": "ส22103", "subject": "หน้าที่พลเมือง 3", "teacher": "รัฐศาสตร์", "type": "social"}, "ม.3/1": {"code": "ว23101", "subject": "วิทยาศาสตร์ พฐ 5", "teacher": "สุภาวดี", "type": "sci"}, "ม.3/2": {"code": "ส23101", "subject": "สังคมศึกษา พฐ 5", "teacher": "ชัชพงศ์", "type": "social"}, "ม.4": {"code": "อ31103", "subject": "ภาษาอังกฤษ พฐ 1", "teacher": "วิชชุกร", "type": "eng"}, "ม.5": {"code": "ค32101", "subject": "คณิตศาสตร์ พฐ 3", "teacher": "รัตนา", "type": "math"}, "ม.6": {"code": "ว33221", "subject": "เคมี พต 4", "teacher": "เนตรชนก", "type": "sci"}}, "3": {"ม.1/1": {"code": "ศ21102", "subject": "ทัศนศิลป์ พฐ 1", "teacher": "รัฐศาสตร์", "type": "art"}, "ม.2/1": {"code": "ว22101", "subject": "วิทยาศาสตร์ พฐ 3", "teacher": "เนตรชนก", "type": "sci"}, "ม.2/2": {"code": "ท22101", "subject": "ภาษาไทย พฐ 3", "teacher": "ทักษญา", "type": "thai"}, "ม.3/1": {"code": "พ23101", "subject": "สุขศึกษา พฐ 5", "teacher": "ศิริชัย", "type": "health"}, "ม.3/2": {"code": "ว23102", "subject": "วิทยาการคำนวณ 3", "teacher": "อนัญชุดา", "type": "sci"}, "ม.4": {"code": "ว31201", "subject": "ฟิสิกส์ พต 1", "teacher": "สุภาวดี", "type": "sci"}, "ม.5": {"code": "อ32101", "subject": "ภาษาอังกฤษ พฐ 3", "teacher": "วิชชุกร", "type": "eng"}, "ม.6": {"code": "ว33241", "subject": "ชีววิทยา พต 4", "teacher": "วรสิทธิ์", "type": "sci"}}, "4": {"ม.1/1": {"code": "ว21101", "subject": "วิทยาศาสตร์ พฐ 1", "teacher": "วรสิทธิ์", "type": "sci"}, "ม.2/1": {"code": "ท22101", "subject": "ภาษาไทย พฐ 3", "teacher": "ทักษญา", "type": "thai"}, "ม.2/2": {"code": "พ22101", "subject": "สุขศึกษา พฐ 3", "teacher": "ศิริชัย", "type": "health"}, "ม.3/1": {"code": "อ23101", "subject": "ภาษาอังกฤษ พฐ 5", "teacher": "วิชชุกร", "type": "eng"}, "ม.3/2": {"code": "ท23101", "subject": "ภาษาไทย พฐ 5", "teacher": "สุทธิดา", "type": "thai"}, "ม.4": {"code": "ว31201", "subject": "ฟิสิกส์ พต 1", "teacher": "สุภาวดี", "type": "sci"}, "ม.5": {"code": "ว32101", "subject": "วิทยาการคำนวณ 2", "teacher": "อนัญชุดา", "type": "sci"}, "ม.6": {"code": "ค33201", "subject": "คณิตศาสตร์ พต 5", "teacher": "อนุพงศ์", "type": "math"}}, "5": {"ม.1/1": {"code": "อ21101", "subject": "ภาษาอังกฤษ พฐ 1", "teacher": "วิชุตา", "type": "eng"}, "ม.2/1": {"code": "พ22101", "subject": "สุขศึกษา พฐ 3", "teacher": "ศิริชัย", "type": "health"}, "ม.2/2": {"code": "ว22101", "subject": "วิทยาศาสตร์ พฐ 3", "teacher": "อนัญชุดา", "type": "sci"}, "ม.3/1": {"code": "ศ23101", "subject": "ดนตรีนาฏศิลป์ พฐ 5", "teacher": "ชัชพงศ์", "type": "art"}, "ม.3/2": {"code": "ง23101", "subject": "งานบ้าน พฐ 5", "teacher": "ปรารถนา", "type": "career"}, "ม.4": {"code": "ง31101", "subject": "งานประดับผ้า 1", "teacher": "วรสิทธิ์", "type": "career"}, "ม.5": {"code": "ส32102", "subject": "ประวัติศาสตร์ พฐ 3", "teacher": "อลิษา", "type": "social"}, "ม.6": {"code": "ว30201", "subject": "ฟิสิกส์ พต 5", "teacher": "สุภาวดี", "type": "sci"}}, "6": {"ม.1/1": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.2/1": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.2/2": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.3/1": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.3/2": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.4": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.5": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.6": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}}, "7": {"ม.1/1": {"code": "", "subject": "ลูกเสือ ยุวกาชาด", "teacher": "", "type": "other"}, "ม.2/1": {"code": "", "subject": "ลูกเสือ ยุวกาชาด", "teacher": "", "type": "other"}, "ม.2/2": {"code": "", "subject": "ลูกเสือ ยุวกาชาด", "teacher": "", "type": "other"}, "ม.3/1": {"code": "", "subject": "ลูกเสือ ยุวกาชาด", "teacher": "", "type": "other"}, "ม.3/2": {"code": "", "subject": "ลูกเสือ ยุวกาชาด", "teacher": "", "type": "other"}, "ม.4": {"code": "", "subject": "ลูกเสือ ยุวกาชาด นศท", "teacher": "", "type": "other"}, "ม.5": {"code": "", "subject": "ลูกเสือ ยุวกาชาด นศท", "teacher": "", "type": "other"}, "ม.6": {"code": "", "subject": "ลูกเสือ ยุวกาชาด นศท", "teacher": "", "type": "other"}}, "8": {"ม.1/1": null, "ม.2/1": null, "ม.2/2": null, "ม.3/1": null, "ม.3/2": null, "ม.4": null, "ม.5": null, "ม.6": null}}, "พฤหัสบดี": {"1": {"ม.1/1": {"code": "ว21101", "subject": "วิทยาศาสตร์ พฐ 1", "teacher": "วรสิทธิ์", "type": "sci"}, "ม.2/1": {"code": "ท22101", "subject": "ภาษาไทย พฐ 3", "teacher": "ทักษญา", "type": "thai"}, "ม.2/2": {"code": "ส22102", "subject": "ประวัติศาสตร์ พฐ 3", "teacher": "ปรารถนา", "type": "social"}, "ม.3/1": {"code": "ท23101", "subject": "ภาษาไทย พฐ 5", "teacher": "สุทธิดา", "type": "thai"}, "ม.3/2": {"code": "ว23102", "subject": "วิทยาการคำนวณ 3", "teacher": "อนัญชุดา", "type": "sci"}, "ม.4": {"code": "ค31201", "subject": "คณิตศาสตร์ พต 1", "teacher": "รัตนา", "type": "math"}, "ม.5": {"code": "ค32201", "subject": "คณิตศาสตร์ พต 3", "teacher": "อนุพงศ์", "type": "math"}, "ม.6": {"code": "อ33101", "subject": "ภาษาอังกฤษ พฐ 5", "teacher": "วิชชุกร", "type": "eng"}}, "2": {"ม.1/1": {"code": "ง21101", "subject": "งานบ้าน พฐ 1", "teacher": "ปรารถนา", "type": "career"}, "ม.2/1": {"code": "ส22103", "subject": "หน้าที่พลเมือง 3", "teacher": "รัฐศาสตร์", "type": "social"}, "ม.2/2": {"code": "อ22101", "subject": "ภาษาอังกฤษ พฐ 3", "teacher": "วิชุตา", "type": "eng"}, "ม.3/1": {"code": "ค23101", "subject": "คณิตศาสตร์ พฐ 5", "teacher": "รัตนา", "type": "math"}, "ม.3/2": {"code": "ส23101", "subject": "สังคมศึกษา พฐ 5", "teacher": "ทักษญา", "type": "social"}, "ม.4": {"code": "ว31102", "subject": "วิทยาศาสตร์ พฐ 1 (เคมี)", "teacher": "เนตรชนก", "type": "sci"}, "ม.5": {"code": "พ32101", "subject": "สุขศึกษา พฐ 2", "teacher": "ศิริชัย", "type": "health"}, "ม.6": {"code": "ค33201", "subject": "คณิตศาสตร์ พต 5", "teacher": "อนุพงศ์", "type": "math"}}, "3": {"ม.1/1": {"code": "ส21103", "subject": "หน้าที่พลเมือง 1", "teacher": "ศิริชัย", "type": "social"}, "ม.2/1": {"code": "ค22101", "subject": "คณิตศาสตร์ พฐ 3", "teacher": "อนุพงศ์", "type": "math"}, "ม.2/2": {"code": "ค22101", "subject": "คณิตศาสตร์ พฐ 3", "teacher": "รัตนา", "type": "math"}, "ม.3/1": {"code": "ง23101", "subject": "งานบ้าน พฐ 5", "teacher": "ปรารถนา", "type": "career"}, "ม.3/2": {"code": "ศ23102", "subject": "ทัศนศิลป์ พฐ 5", "teacher": "รัฐศาสตร์", "type": "art"}, "ม.4": {"code": "ว31101", "subject": "วิทยาการคำนวณ 1", "teacher": "อนัญชุดา", "type": "sci"}, "ม.5": {"code": "ว32241", "subject": "ชีววิทยา พต 2", "teacher": "วรสิทธิ์", "type": "sci"}, "ม.6": {"code": "ท33101", "subject": "ภาษาไทย พฐ 5", "teacher": "ทักษญา", "type": "thai"}}, "4": {"ม.1/1": {"code": "ท21101", "subject": "ภาษาไทย พฐ 1", "teacher": "สุทธิดา", "type": "thai"}, "ม.2/1": {"code": "อ22101", "subject": "ภาษาอังกฤษ พฐ 3", "teacher": "วิชุตา", "type": "eng"}, "ม.2/2": {"code": "ว22101", "subject": "วิทยาศาสตร์ พฐ 3", "teacher": "เนตรชนก", "type": "sci"}, "ม.3/1": {"code": "ว23101", "subject": "วิทยาศาสตร์ พฐ 5", "teacher": "สุภาวดี", "type": "sci"}, "ม.3/2": {"code": "ค23101", "subject": "คณิตศาสตร์ พฐ 5", "teacher": "รัตนา", "type": "math"}, "ม.4": {"code": "ส31102", "subject": "ประวัติศาสตร์ พฐ 1", "teacher": "อลิษา", "type": "social"}, "ม.5": {"code": "ว32241", "subject": "ชีววิทยา พต 2", "teacher": "วรสิทธิ์", "type": "sci"}, "ม.6": {"code": "ศ33101", "subject": "ดนตรีนาฏศิลป์ พฐ 5", "teacher": "ชัชพงศ์", "type": "art"}}, "5": {"ม.1/1": {"code": "อ21201", "subject": "ภาษาอังกฤษฟัง-พูด 1", "teacher": "วิชุตา", "type": "eng"}, "ม.2/1": {"code": "ง22101", "subject": "งานบ้าน พฐ 3", "teacher": "ปรารถนา", "type": "career"}, "ม.2/2": {"code": "ท22101", "subject": "ภาษาไทย พฐ 3", "teacher": "ทักษญา", "type": "thai"}, "ม.3/1": {"code": "อ23201", "subject": "ภาษาอังกฤษเพื่อการสื่อสาร 1", "teacher": "วิชชุกร", "type": "eng"}, "ม.3/2": {"code": "พ23102", "subject": "พลศึกษา พฐ 5", "teacher": "ศิริชัย", "type": "health"}, "ม.4": {"code": "ศ31101", "subject": "ดนตรีนาฏศิลป์ พฐ 1", "teacher": "ชัชพงศ์", "type": "art"}, "ม.5": {"code": "ว32221", "subject": "เคมี พต 2", "teacher": "เนตรชนก", "type": "sci"}, "ม.6": {"code": "ว33101", "subject": "วิทยาการคำนวณ 3", "teacher": "อนัญชุดา", "type": "sci"}}, "6": {"ม.1/1": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.2/1": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.2/2": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.3/1": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.3/2": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.4": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.5": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.6": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}}, "7": {"ม.1/1": {"code": "", "subject": "แนะแนว", "teacher": "", "type": "other"}, "ม.2/1": {"code": "", "subject": "แนะแนว", "teacher": "", "type": "other"}, "ม.2/2": {"code": "", "subject": "แนะแนว", "teacher": "", "type": "other"}, "ม.3/1": {"code": "", "subject": "แนะแนว", "teacher": "", "type": "other"}, "ม.3/2": {"code": "", "subject": "แนะแนว", "teacher": "", "type": "other"}, "ม.4": {"code": "", "subject": "แนะแนว", "teacher": "", "type": "other"}, "ม.5": {"code": "", "subject": "แนะแนว", "teacher": "", "type": "other"}, "ม.6": {"code": "", "subject": "แนะแนว", "teacher": "", "type": "other"}}, "8": {"ม.1/1": null, "ม.2/1": null, "ม.2/2": null, "ม.3/1": null, "ม.3/2": null, "ม.4": null, "ม.5": null, "ม.6": null}}, "ศุกร์": {"1": {"ม.1/1": {"code": "พ21101", "subject": "สุขศึกษา พฐ 1", "teacher": "ศิริชัย", "type": "health"}, "ม.2/1": {"code": "ส22102", "subject": "ประวัติศาสตร์ พฐ 3", "teacher": "ปรารถนา", "type": "social"}, "ม.2/2": {"code": "ศ22102", "subject": "ทัศนศิลป์ พฐ 3", "teacher": "รัฐศาสตร์", "type": "art"}, "ม.3/1": {"code": "ค23101", "subject": "คณิตศาสตร์ พฐ 5", "teacher": "รัตนา", "type": "math"}, "ม.3/2": {"code": "อ23201", "subject": "ภาษาอังกฤษเพื่อการสื่อสาร 1", "teacher": "วิชชุกร", "type": "eng"}, "ม.4": {"code": "ส31101", "subject": "สังคมศึกษา พฐ 1", "teacher": "อลิษา", "type": "social"}, "ม.5": {"code": "ว32203", "subject": "ฟิสิกส์ พต 3", "teacher": "สุภาวดี", "type": "sci"}, "ม.6": {"code": "ค33101", "subject": "คณิตศาสตร์ พฐ 5", "teacher": "อนุพงศ์", "type": "math"}}, "2": {"ม.1/1": {"code": "อ21101", "subject": "ภาษาอังกฤษ พฐ 1", "teacher": "วิชุตา", "type": "eng"}, "ม.2/1": {"code": "ศ22102", "subject": "ทัศนศิลป์ พฐ 3", "teacher": "รัฐศาสตร์", "type": "art"}, "ม.2/2": {"code": "ง22101", "subject": "งานบ้าน พฐ 3", "teacher": "ปรารถนา", "type": "career"}, "ม.3/1": {"code": "ว23102", "subject": "วิทยาการคำนวณ 3", "teacher": "อนัญชุดา", "type": "sci"}, "ม.3/2": {"code": "ค23101", "subject": "คณิตศาสตร์ พฐ 5", "teacher": "รัตนา", "type": "math"}, "ม.4": {"code": "ท31101", "subject": "ภาษาไทย พฐ 1", "teacher": "ทักษญา", "type": "thai"}, "ม.5": {"code": "ค32201", "subject": "คณิตศาสตร์ พต 3", "teacher": "อนุพงศ์", "type": "math"}, "ม.6": {"code": "ว33201", "subject": "ฟิสิกส์ พต 5", "teacher": "สุภาวดี", "type": "sci"}}, "3": {"ม.1/1": {"code": "ส21101", "subject": "สังคมศึกษา พฐ 1", "teacher": "วรสิทธิ์", "type": "social"}, "ม.2/1": {"code": "อ22101", "subject": "ภาษาอังกฤษ พฐ 3", "teacher": "วิชุตา", "type": "eng"}, "ม.2/2": {"code": "ว22101", "subject": "วิทยาศาสตร์ พฐ 3", "teacher": "เนตรชนก", "type": "sci"}, "ม.3/1": {"code": "ง23101", "subject": "งานบ้าน พฐ 5", "teacher": "ปรารถนา", "type": "career"}, "ม.3/2": {"code": "ท23101", "subject": "ภาษาไทย พฐ 5", "teacher": "สุทธิดา", "type": "thai"}, "ม.4": {"code": "ค31201", "subject": "คณิตศาสตร์ พต 1", "teacher": "รัตนา", "type": "math"}, "ม.5": {"code": "ส32101", "subject": "สังคมศึกษา พฐ 3", "teacher": "อลิษา", "type": "social"}, "ม.6": {"code": "ว33201", "subject": "ฟิสิกส์ พต 5", "teacher": "สุภาวดี", "type": "sci"}}, "4": {"ม.1/1": {"code": "ท21201", "subject": "ภาษาไทย พต 1", "teacher": "สุทธิดา", "type": "thai"}, "ม.2/1": {"code": "ว22101", "subject": "วิทยาศาสตร์ พฐ 3", "teacher": "เนตรชนก", "type": "sci"}, "ม.2/2": {"code": "ส22101", "subject": "สังคมศึกษา พฐ 3", "teacher": "อลิษา", "type": "social"}, "ม.3/1": {"code": "อ23101", "subject": "ภาษาอังกฤษ พฐ 5", "teacher": "วิชชุกร", "type": "eng"}, "ม.3/2": {"code": "ส23102", "subject": "ประวัติศาสตร์ พฐ 5", "teacher": "สุภาวดี", "type": "social"}, "ม.4": {"code": "ว31103", "subject": "วิทยาศาสตร์ พฐ 2 (ชีววิทยา)", "teacher": "วรสิทธิ์", "type": "sci"}, "ม.5": {"code": "ศ32101", "subject": "ดนตรีนาฏศิลป์ พฐ 3", "teacher": "ชัชพงศ์", "type": "art"}, "ม.6": {"code": "ว33101", "subject": "วิทยาการคำนวณ 3", "teacher": "อนัญชุดา", "type": "sci"}}, "5": {"ม.1/1": {"code": "ง21101", "subject": "งานบ้าน พฐ 1", "teacher": "ปรารถนา", "type": "career"}, "ม.2/1": {"code": "ท22201", "subject": "ภาษาไทย พต 3", "teacher": "สุทธิดา", "type": "thai"}, "ม.2/2": {"code": "อ22101", "subject": "ภาษาอังกฤษ พฐ 3", "teacher": "วิชุตา", "type": "eng"}, "ม.3/1": {"code": "ส23103", "subject": "หน้าที่พลเมือง 5", "teacher": "รัฐศาสตร์", "type": "social"}, "ม.3/2": {"code": "ว23202", "subject": "โครงงานวิทยาศาสตร์ 1", "teacher": "วรสิทธิ์", "type": "sci"}, "ม.4": {"code": "พ31101", "subject": "สุขศึกษา พฐ 1", "teacher": "ศิริชัย", "type": "health"}, "ม.5": {"code": "ว32101", "subject": "วิทยาการคำนวณ 2", "teacher": "อนัญชุดา", "type": "sci"}, "ม.6": {"code": "ส33101", "subject": "สังคมศึกษา พฐ 5", "teacher": "อลิษา", "type": "social"}}, "6": {"ม.1/1": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.2/1": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.2/2": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.3/1": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.3/2": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.4": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.5": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}, "ม.6": {"code": "", "subject": "PBL", "teacher": "", "type": "pbl"}}, "7": {"ม.1/1": {"code": "", "subject": "สวดมนต์", "teacher": "", "type": "other"}, "ม.2/1": {"code": "", "subject": "สวดมนต์", "teacher": "", "type": "other"}, "ม.2/2": {"code": "", "subject": "สวดมนต์", "teacher": "", "type": "other"}, "ม.3/1": {"code": "", "subject": "สวดมนต์", "teacher": "", "type": "other"}, "ม.3/2": {"code": "", "subject": "สวดมนต์", "teacher": "", "type": "other"}, "ม.4": {"code": "", "subject": "สวดมนต์", "teacher": "", "type": "other"}, "ม.5": {"code": "", "subject": "สวดมนต์", "teacher": "", "type": "other"}, "ม.6": {"code": "", "subject": "สวดมนต์", "teacher": "", "type": "other"}}, "8": {"ม.1/1": null, "ม.2/1": null, "ม.2/2": null, "ม.3/1": null, "ม.3/2": null, "ม.4": null, "ม.5": null, "ม.6": null}}}, "teachers": [{"name": "นางสาวสุทธิดา  เชื้อชาติ", "advisor": "ครูที่ปรึกษานักเรียนระดับชั้นมัธยมศึกษาปีที่ 6", "schedule": {"จันทร์": {"3": {"code": "ท23101", "subject": "ภาษาไทย พฐ 5", "class": "ม.3/1"}, "4": {"code": "ท23101", "subject": "ภาษาไทย พฐ 5", "class": "ม.3/2"}}, "อังคาร": {"1": {"code": "ท23101", "subject": "ภาษาไทย พฐ 5", "class": "ม.3/1"}, "4": {"code": "ท21101", "subject": "ภาษาไทย พฐ 1", "class": "ม.1/1"}, "5": {"code": "ท22201", "subject": "ภาษาไทย พต 3", "class": "ม.2/2"}}, "พุธ": {"1": {"code": "ท21101", "subject": "ภาษาไทย พฐ 1", "class": "ม.1/1"}, "4": {"code": "ท23101", "subject": "ภาษาไทย พฐ 5", "class": "ม.3/2"}}, "พฤหัสบดี": {"1": {"code": "ท23101", "subject": "ภาษาไทย พฐ 5", "class": "ม.3/1"}, "4": {"code": "ท21101", "subject": "ภาษาไทย พฐ 1", "class": "ม.1/1"}}, "ศุกร์": {"3": {"code": "ท23101", "subject": "ภาษาไทย พฐ 5", "class": "ม.3/2"}, "4": {"code": "ท21201", "subject": "ภาษาไทย พต 1", "class": "ม.1/1"}, "5": {"code": "ท22201", "subject": "ภาษาไทย พต 3", "class": "ม.2/2"}}}}, {"name": "นางสาวทักษญา  วรเชษฐ์", "advisor": "ครูที่ปรึกษานักเรียนระดับชั้นมัธยมศึกษาปีที่ 3/2", "schedule": {"จันทร์": {"1": {"code": "ท22101", "subject": "ภาษาไทย พฐ 3", "class": "ม.2/2"}, "2": {"code": "ท32101", "subject": "ภาษาไทย พฐ 3", "class": "ม.5"}, "5": {"code": "ท22101", "subject": "ภาษาไทย พฐ 3", "class": "ม.2/1"}}, "อังคาร": {"2": {"code": "ท31101", "subject": "ภาษาไทย พฐ 1", "class": "ม.4"}, "4": {"code": "ท33101", "subject": "ภาษาไทย พฐ 5", "class": "ม.6"}}, "พุธ": {"1": {"code": "ท32101", "subject": "ภาษาไทย พฐ 3", "class": "ม.5"}, "3": {"code": "ท22101", "subject": "ภาษาไทย พฐ 3", "class": "ม.2/2"}, "4": {"code": "ท22101", "subject": "ภาษาไทย พฐ 3", "class": "ม.2/1"}}, "พฤหัสบดี": {"1": {"code": "ท22101", "subject": "ภาษาไทย พฐ 3", "class": "ม.2/1"}, "3": {"code": "ท33101", "subject": "ภาษาไทย พฐ 5", "class": "ม.6"}, "5": {"code": "ท22101", "subject": "ภาษาไทย พฐ 3", "class": "ม.2/2"}}, "ศุกร์": {"2": {"code": "ท31101", "subject": "ภาษาไทย พฐ 1", "class": "ม.4"}}}}, {"name": "นายอนุพงศ์  ไชยบุตร", "advisor": "ครูที่ปรึกษานักเรียนระดับชั้นมัธยมศึกษาปีที่ 2/1", "schedule": {"จันทร์": {"1": {"code": "ค22101", "subject": "คณิตศาสตร์ พฐ 3", "class": "ม.2/1"}, "2": {"code": "ค33101", "subject": "คณิตศาสตร์ พฐ 5", "class": "ม.6"}, "3": {"code": "ค21101", "subject": "คณิตศาสตร์ พฐ 1", "class": "ม.1/1"}, "4": {"code": "ค31101", "subject": "คณิตศาสตร์ พฐ 1", "class": "ม.4"}}, "อังคาร": {"1": {"code": "ค21101", "subject": "คณิตศาสตร์ พฐ 1", "class": "ม.1/1"}, "2": {"code": "ค22101", "subject": "คณิตศาสตร์ พฐ 3", "class": "ม.2/1"}}, "พุธ": {"1": {"code": "ค31101", "subject": "คณิตศาสตร์ พฐ 1", "class": "ม.4"}, "2": {"code": "ค21101", "subject": "คณิตศาสตร์ พฐ 1", "class": "ม.1/1"}, "4": {"code": "ค33201", "subject": "คณิตศาสตร์ พต 5", "class": "ม.6"}}, "พฤหัสบดี": {"1": {"code": "ค32201", "subject": "คณิตศาสตร์ พต 3", "class": "ม.5"}, "2": {"code": "ค33201", "subject": "คณิตศาสตร์ พต 5", "class": "ม.6"}, "3": {"code": "ค22101", "subject": "คณิตศาสตร์ พฐ 3", "class": "ม.2/1"}}, "ศุกร์": {"1": {"code": "ค33101", "subject": "คณิตศาสตร์ พฐ 5", "class": "ม.6"}, "2": {"code": "ค32201", "subject": "คณิตศาสตร์ พต 3", "class": "ม.5"}}}}, {"name": "นางสาวรัตนา  บุญรอด", "advisor": "ครูที่ปรึกษานักเรียนระดับชั้นมัธยมศึกษาปีที่ 3/1", "schedule": {"จันทร์": {"1": {"code": "ค23101", "subject": "คณิตศาสตร์ พฐ 5", "class": "ม.3/2"}, "2": {"code": "ค22101", "subject": "คณิตศาสตร์ พฐ 3", "class": "ม.2/2"}}, "อังคาร": {"1": {"code": "ค32101", "subject": "คณิตศาสตร์ พฐ 3", "class": "ม.5"}, "2": {"code": "ค23101", "subject": "คณิตศาสตร์ พฐ 5", "class": "ม.3/1"}}, "พุธ": {"1": {"code": "ค22101", "subject": "คณิตศาสตร์ พฐ 3", "class": "ม.2/2"}, "2": {"code": "ค32101", "subject": "คณิตศาสตร์ พฐ 3", "class": "ม.5"}}, "พฤหัสบดี": {"1": {"code": "ค31201", "subject": "คณิตศาสตร์ พต 1", "class": "ม.4"}, "2": {"code": "ค23101", "subject": "คณิตศาสตร์ พฐ 5", "class": "ม.3/1"}, "3": {"code": "ค22101", "subject": "คณิตศาสตร์ พฐ 3", "class": "ม.2/2"}, "4": {"code": "ค23101", "subject": "คณิตศาสตร์ พฐ 5", "class": "ม.3/2"}}, "ศุกร์": {"1": {"code": "ค23101", "subject": "คณิตศาสตร์ พฐ 5", "class": "ม.3/1"}, "2": {"code": "ค23101", "subject": "คณิตศาสตร์ พฐ 5", "class": "ม.3/2"}, "3": {"code": "ค31201", "subject": "คณิตศาสตร์ พต 1", "class": "ม.4"}}}}, {"name": "นายวรสิทธิ์  กิจเจริญ", "advisor": "ครูที่ปรึกษานักเรียนระดับชั้นมัธยมศึกษาปีที่ 1/1", "schedule": {"จันทร์": {"1": {"code": "ว32241", "subject": "ชีววิทยา พต 2", "class": "ม.5"}, "2": {"code": "ว31103", "subject": "วิทยาศาสตร์ พฐ 2 (ชีววิทยา)", "class": "ม.4"}, "5": {"code": "ว23202", "subject": "โครงงานวิทยาศาสตร์ 1", "class": "ม.3/1"}}, "อังคาร": {"2": {"code": "ว33241", "subject": "ชีววิทยา พต 4", "class": "ม.6"}, "3": {"code": "ว33241", "subject": "ชีววิทยา พต 4", "class": "ม.6"}, "5": {"code": "ง31101", "subject": "งานประดับผ้า 1", "class": "ม.4"}}, "พุธ": {"3": {"code": "ว33241", "subject": "ชีววิทยา พต 4", "class": "ม. 6"}, "4": {"code": "ว21101", "subject": "วิทยาศาสตร์ พฐ 1", "class": "ม.1/1"}, "5": {"code": "ง31101", "subject": "งานประดับผ้า 1", "class": "ม.4"}}, "พฤหัสบดี": {"1": {"code": "ว21101", "subject": "วิทยาศาสตร์ พฐ 1", "class": "ม.1/1"}, "3": {"code": "ว32241", "subject": "ชีววิทยา พต 2", "class": "ม.5"}, "4": {"code": "ว32241", "subject": "ชีววิทยา พต 2", "class": "ม.5"}}, "ศุกร์": {"3": {"code": "ส21102", "subject": "ประวัติศาสตร์ พฐ 1", "class": "ม.1/1"}, "4": {"code": "ว31103", "subject": "วิทยาศาสตร์ พฐ 2 (ชีววิทยา)", "class": "ม.4"}, "5": {"code": "ว23202", "subject": "โครงงานวิทยาศาสตร์ 1", "class": "ม.3/2"}}}}, {"name": "นางสาวอนัญชุดา  วราคุณาศัย", "advisor": "ครูที่ปรึกษานักเรียนระดับชั้นมัธยมศึกษาปีที่ 3/1", "schedule": {"จันทร์": {"1": {"code": "ว21102", "subject": "วิทยาการคำนวณ 1", "class": "ม.1/1"}, "2": {"code": "ว22102", "subject": "วิทยาการคำนวณ 2", "class": "ม.2/1"}}, "อังคาร": {"1": {"code": "ว22102", "subject": "วิทยาการคำนวณ 2", "class": "ม.2/1"}, "2": {"code": "ว21102", "subject": "วิทยาการคำนวณ 1", "class": "ม.1/1"}, "3": {"code": "ว22102", "subject": "วิทยาการคำนวณ 2", "class": "ม.2/2"}, "4": {"code": "ว23102", "subject": "วิทยาการคำนวณ 3", "class": "ม.3/1"}}, "พุธ": {"3": {"code": "ว23102", "subject": "วิทยาการคำนวณ 3", "class": "ม.3/2"}, "4": {"code": "ว32101", "subject": "วิทยาการคำนวณ 2", "class": "ม.5"}, "5": {"code": "ว22102", "subject": "วิทยาการคำนวณ 2", "class": "ม.2/2"}}, "พฤหัสบดี": {"1": {"code": "ว23102", "subject": "วิทยาการคำนวณ 3", "class": "ม.3/2"}, "3": {"code": "ว31101", "subject": "วิทยาการคำนวณ 1", "class": "ม.4"}, "5": {"code": "ว33101", "subject": "วิทยาการคำนวณ 3", "class": "ม.6"}}, "ศุกร์": {"2": {"code": "ว23102", "subject": "วิทยาการคำนวณ 3", "class": "ม.3/1"}, "4": {"code": "ว33101", "subject": "วิทยาการคำนวณ 3", "class": "ม.6"}, "5": {"code": "ว32101", "subject": "วิทยาการคำนวณ 2", "class": "ม.5"}}}}, {"name": "นางสาวเนตรชนก  จารุโกน", "advisor": "ครูที่ปรึกษานักเรียนระดับชั้นมัธยมศึกษาปีที่ 5", "schedule": {"จันทร์": {"3": {"code": "ว33221", "subject": "เคมี พต 4", "class": "ม.6"}, "4": {"code": "ว33221", "subject": "เคมี พต 4", "class": "ม.6"}}, "อังคาร": {"1": {"code": "ว31102", "subject": "วิทยาศาสตร์ พฐ 1 (เคมี)", "class": "ม.4"}, "2": {"code": "ว32221", "subject": "เคมี พต 2", "class": "ม.5"}, "3": {"code": "ว32221", "subject": "เคมี พต 2", "class": "ม.5"}}, "พุธ": {"2": {"code": "ว33221", "subject": "เคมี พต 4", "class": "ม.6"}, "3": {"code": "ว22101", "subject": "วิทยาศาสตร์ พฐ 3", "class": "ม.2/1"}}, "พฤหัสบดี": {"2": {"code": "ว31102", "subject": "วิทยาศาสตร์ พฐ 1 (เคมี)", "class": "ม.4"}, "4": {"code": "ว22101", "subject": "วิทยาศาสตร์ พฐ 3", "class": "ม.2/2"}, "5": {"code": "ว32221", "subject": "เคมี พต 2", "class": "ม.5"}}, "ศุกร์": {"3": {"code": "ว22101", "subject": "วิทยาศาสตร์ พฐ 3", "class": "ม.2/2"}, "4": {"code": "ว22101", "subject": "วิทยาศาสตร์ พฐ 3", "class": "ม.2/1"}}}}, {"name": "นางสุภาวดี  วรรณวงศ์", "advisor": "ครูที่ปรึกษานักเรียนระดับชั้นมัธยมศึกษาปีที่ 2/1", "schedule": {"จันทร์": {"1": {"code": "ว31201", "subject": "ฟิสิกส์ พต 1", "class": "ม.4"}, "3": {"code": "ว32201", "subject": "ฟิสิกส์ พต 3", "class": "ม.5"}, "4": {"code": "ว32201", "subject": "ฟิสิกส์ พต 3", "class": "ม.5"}, "5": {"code": "ว23101", "subject": "วิทยาศาสตร์ พฐ 5", "class": "ม.3/2"}}, "อังคาร": {"3": {"code": "ว23101", "subject": "วิทยาศาสตร์ พฐ 5", "class": "ม.3/2"}, "5": {"code": "ส23102", "subject": "ประวัติศาสตร์ พฐ 5", "class": "ม.3/1"}}, "พุธ": {"2": {"code": "ว23101", "subject": "วิทยาศาสตร์ พฐ 5", "class": "ม.3/1"}, "3": {"code": "ว31201", "subject": "ฟิสิกส์ พต 1", "class": "ม.4"}, "4": {"code": "ว31201", "subject": "ฟิสิกส์ พต 1", "class": "ม.4"}, "5": {"code": "ว33201", "subject": "ฟิสิกส์ พต 5", "class": "ม.6"}}, "พฤหัสบดี": {"4": {"code": "ว23101", "subject": "วิทยาศาสตร์ พฐ 5", "class": "ม.3/1"}}, "ศุกร์": {"1": {"code": "ว32201", "subject": "ฟิสิกส์ พต 3", "class": "ม.5"}, "2": {"code": "ว33201", "subject": "ฟิสิกส์ พต 5", "class": "ม.6"}, "3": {"code": "ว33201", "subject": "ฟิสิกส์ พต 5", "class": "ม.6"}, "4": {"code": "ส23102", "subject": "ประวัติศาสตร์ พฐ 5", "class": "ม.3/2"}}}}, {"name": "นางมิรัณตี  อัมพา", "advisor": "ครูที่ปรึกษานักเรียนระดับชั้นมัธยมศึกษาปีที่ 1/1", "schedule": {"จันทร์": {"2": {"code": "ส23101", "subject": "สังคมศึกษา พฐ 5", "class": "ม.3/1"}}, "อังคาร": {"4": {"code": "ส23103", "subject": "หน้าที่พลเมือง 5", "class": "ม.3/2"}, "5": {"code": "ส23102", "subject": "ประวัติศาสตร์ พฐ 5", "class": "ม.3/1"}}, "พุธ": {"2": {"code": "ส23101", "subject": "สังคมศึกษา พฐ 5", "class": "ม.3/2"}, "3": {"code": "ส23101", "subject": "สังคมศึกษา พฐ 5", "class": "ม.3/1"}}, "พฤหัสบดี": {"1": {"code": "ส22102", "subject": "ประวัติศาสตร์ พฐ 3", "class": "ม.2/2"}, "2": {"code": "ส23101", "subject": "สังคมศึกษา พฐ 5", "class": "ม.3/2"}, "3": {"code": "ส21103", "subject": "หน้าที่พลเมือง 1", "class": "ม.1/1"}}, "ศุกร์": {"1": {"code": "ส22102", "subject": "ประวัติศาสตร์ พฐ 3", "class": "ม.2/1"}, "3": {"code": "ส21102", "subject": "ประวัติศาสตร์ พฐ 1", "class": "ม.1/1"}, "4": {"code": "ส23102", "subject": "ประวัติศาสตร์ พฐ 5", "class": "ม.3/2"}, "5": {"code": "ส23103", "subject": "หน้าที่พลเมือง 5", "class": "ม.3/1"}}}}, {"name": "นางสาวอลิษา  ไชยธรรม", "advisor": "ครูที่ปรึกษานักเรียนระดับชั้นมัธยมศึกษาปีที่ 3/2", "schedule": {"จันทร์": {"2": {"code": "ส21101", "subject": "สังคมศึกษา พฐ 1", "class": "ม.1/1"}, "3": {"code": "ส22101", "subject": "สังคมศึกษา พฐ 3", "class": "ม.2/1"}, "4": {"code": "ส22101", "subject": "สังคมศึกษา พฐ 3", "class": "ม.2/2"}}, "อังคาร": {"3": {"code": "ส21101", "subject": "สังคมศึกษา พฐ 1", "class": "ม.1/1"}, "4": {"code": "ส31101", "subject": "สังคมศึกษา พฐ 1", "class": "ม.4"}, "5": {"code": "ส32101", "subject": "สังคมศึกษา พฐ 3", "class": "ม.5"}}, "พุธ": {"1": {"code": "ส33101", "subject": "สังคมศึกษา พฐ 5", "class": "ม.6"}, "2": {"code": "ส22101", "subject": "สังคมศึกษา พฐ 3", "class": "ม.2/1"}, "5": {"code": "ส32102", "subject": "ประวัติศาสตร์ พฐ 3", "class": "ม.5"}}, "พฤหัสบดี": {"4": {"code": "ส31102", "subject": "ประวัติศาสตร์ พฐ 1", "class": "ม.4"}}, "ศุกร์": {"1": {"code": "ส31101", "subject": "สังคมศึกษา พฐ 1", "class": "ม.4"}, "3": {"code": "ส32101", "subject": "สังคมศึกษา พฐ 3", "class": "ม.5"}, "4": {"code": "ส22101", "subject": "สังคมศึกษา พฐ 3", "class": "ม.2/2"}, "5": {"code": "ส33101", "subject": "สังคมศึกษา พฐ 5", "class": "ม.6"}}}}, {"name": "นางสาววิชุตา  คำสิงสัย", "advisor": "ครูที่ปรึกษานักเรียนระดับชั้นมัธยมศึกษาปีที่ 6", "schedule": {"จันทร์": {"3": {"code": "อ22101", "subject": "ภาษาอังกฤษ พฐ 3", "class": "ม.2/2"}, "4": {"code": "อ21101", "subject": "ภาษาอังกฤษ พฐ 1", "class": "ม.1/1"}}, "อังคาร": {"2": {"code": "อ22201", "subject": "ภาษาอังกฤษอ่าน-เขียน 1", "class": "ม.2/2"}, "5": {"code": "อ22101", "subject": "ภาษาอังกฤษ พฐ 3", "class": "ม.2/1"}}, "พุธ": {"1": {"code": "อ22201", "subject": "ภาษาอังกฤษอ่าน-เขียน 1", "class": "ม.2/1"}, "5": {"code": "อ21101", "subject": "ภาษาอังกฤษ พฐ 1", "class": "ม.1/1"}}, "พฤหัสบดี": {"2": {"code": "อ22101", "subject": "ภาษาอังกฤษ พฐ 3", "class": "ม.2/2"}, "4": {"code": "อ22101", "subject": "ภาษาอังกฤษ พฐ 3", "class": "ม.2/1"}, "5": {"code": "อ21201", "subject": "ภาษาอังกฤษฟัง-พูด 1", "class": "ม.1/1"}}, "ศุกร์": {"2": {"code": "อ21101", "subject": "ภาษาอังกฤษ พฐ 1", "class": "ม.1/1"}, "3": {"code": "อ22101", "subject": "ภาษาอังกฤษ พฐ 3", "class": "ม.2/1"}, "5": {"code": "อ22101", "subject": "ภาษาอังกฤษ พฐ 3", "class": "ม.2/2"}}}}, {"name": "นายวิชชุกร  อินทรเทศ", "advisor": "ครูที่ปรึกษานักเรียนระดับชั้นมัธยมศึกษาปีที่ 6", "schedule": {"จันทร์": {"1": {"code": "อ23101", "subject": "ภาษาอังกฤษ พฐ 5", "class": "ม.3/1"}, "2": {"code": "อ23101", "subject": "ภาษาอังกฤษ พฐ 5", "class": "ม.3/2"}, "5": {"code": "อ33101", "subject": "ภาษาอังกฤษ พฐ 5", "class": "ม.6"}}, "อังคาร": {"1": {"code": "อ23101", "subject": "ภาษาอังกฤษ พฐ 5", "class": "ม.3/2"}, "3": {"code": "อ31101", "subject": "ภาษาอังกฤษ พฐ 1", "class": "ม.4"}, "4": {"code": "อ32101", "subject": "ภาษาอังกฤษ พฐ 3", "class": "ม.5"}}, "พุธ": {"1": {"code": "อ23101", "subject": "ภาษาอังกฤษ พฐ 5", "class": "ม.3/2"}, "2": {"code": "อ31101", "subject": "ภาษาอังกฤษ พฐ 1", "class": "ม.4"}, "3": {"code": "อ32101", "subject": "ภาษาอังกฤษ พฐ 3", "class": "ม.5"}, "4": {"code": "อ23101", "subject": "ภาษาอังกฤษ พฐ 5", "class": "ม.3/1"}}, "พฤหัสบดี": {"1": {"code": "อ33101", "subject": "ภาษาอังกฤษ พฐ 5", "class": "ม.6"}, "5": {"code": "อ23201", "subject": "ภาษาอังกฤษเพื่อการสื่อสาร 1", "class": "ม.3/1"}}, "ศุกร์": {"1": {"code": "อ23201", "subject": "ภาษาอังกฤษเพื่อการสื่อสาร 1", "class": "ม.3/2"}, "4": {"code": "อ23101", "subject": "ภาษาอังกฤษ พฐ 5", "class": "ม.3/1"}}}}, {"name": "นายชัชพงศ์  ไชยรัตน์", "advisor": "ครูที่ปรึกษานักเรียนระดับชั้นมัธยมศึกษาปีที่ 3/2", "schedule": {"จันทร์": {"3": {"code": "ศ31102", "subject": "ทัศนศิลป์ พฐ 1", "class": "ม.4"}, "4": {"code": "ศ22101", "subject": "ดนตรีนาฏศิลป์ พฐ 3", "class": "ม.2/1"}, "5": {"code": "ศ21101", "subject": "ดนตรีนาฏศิลป์ พฐ 1", "class": "ม.1/1"}}, "อังคาร": {"4": {"code": "ศ22101", "subject": "ดนตรีนาฏศิลป์ พฐ 3", "class": "ม.2/2"}, "5": {"code": "ศ23101", "subject": "ดนตรีนาฏศิลป์ พฐ 5", "class": "ม.3/2"}}, "พุธ": {"2": {"code": "ส23101", "subject": "สังคมศึกษา พฐ 5", "class": "ม.3/2"}, "5": {"code": "ศ23101", "subject": "ดนตรีนาฏศิลป์ พฐ 5", "class": "ม.3/1"}}, "พฤหัสบดี": {"2": {"code": "ส23101", "subject": "สังคมศึกษา พฐ 5", "class": "ม.3/2"}, "4": {"code": "ศ33101", "subject": "ดนตรีนาฏศิลป์ พฐ 5", "class": "ม.6"}, "5": {"code": "ศ31101", "subject": "ดนตรีนาฏศิลป์ พฐ 1", "class": "ม.4"}}, "ศุกร์": {"4": {"code": "ศ32101", "subject": "ดนตรีนาฏศิลป์ พฐ 3", "class": "ม.5"}}}}, {"name": "นายรัฐศาสตร์  มลาศาสตร์", "advisor": "ครูที่ปรึกษานักเรียนระดับชั้นมัธยมศึกษาปีที่ 4", "schedule": {"จันทร์": {"2": {"code": "ส23101", "subject": "สังคมศึกษา พฐ 5", "class": "ม.3/1"}}, "อังคาร": {"3": {"code": "ศ23102", "subject": "ทัศนศิลป์ พฐ 5", "class": "ม.3/1"}, "4": {"code": "ส23103", "subject": "หน้าที่พลเมือง 5", "class": "ม.3/2"}, "5": {"code": "ศ33102", "subject": "ทัศนศิลป์ พฐ 2", "class": "ม.6"}}, "พุธ": {"1": {"code": "ส23101", "subject": "สังคมศึกษา พฐ 5", "class": "ม.3/1"}, "2": {"code": "ส22103", "subject": "หน้าที่พลเมือง 3", "class": "ม.2/2"}, "3": {"code": "ศ22102", "subject": "ทัศนศิลป์ พฐ 3", "class": "ม.1/1"}}, "พฤหัสบดี": {"2": {"code": "ส22103", "subject": "หน้าที่พลเมือง 3", "class": "ม.2/1"}, "3": {"code": "ศ23102", "subject": "ทัศนศิลป์ พฐ 5", "class": "ม.3/2"}}, "ศุกร์": {"1": {"code": "ศ22102", "subject": "ทัศนศิลป์ พฐ 3", "class": "ม.2/2"}, "2": {"code": "ศ22102", "subject": "ทัศนศิลป์ พฐ 3", "class": "ม.2/1"}, "5": {"code": "ส23103", "subject": "หน้าที่พลเมือง 5", "class": "ม.3/2"}}}}, {"name": "นายศิริชัย  ลี้พล", "advisor": "ครูที่ปรึกษานักเรียนระดับชั้นมัธยมศึกษาปีที่ 2/2", "schedule": {"จันทร์": {"3": {"code": "พ23101", "subject": "สุขศึกษา พฐ 5", "class": "ม.3/2"}, "4": {"code": "พ23102", "subject": "พลศึกษา พฐ 5", "class": "ม.3/1"}, "5": {"code": "พ22102", "subject": "พลศึกษา พฐ 3", "class": "ม.2/2"}}, "อังคาร": {"1": {"code": "พ33101", "subject": "สุขศึกษา พฐ 5", "class": "ม.6"}, "4": {"code": "พ22102", "subject": "พลศึกษา พฐ 3", "class": "ม.2/1"}, "5": {"code": "พ21102", "subject": "พลศึกษา พฐ 1", "class": "ม.1/1"}}, "พุธ": {"3": {"code": "พ23101", "subject": "สุขศึกษา พฐ 5", "class": "ม.3/1"}, "4": {"code": "พ22101", "subject": "สุขศึกษา พฐ 3", "class": "ม.2/2"}, "5": {"code": "พ22101", "subject": "สุขศึกษา พฐ 3", "class": "ม.2/1"}}, "พฤหัสบดี": {"2": {"code": "พ32101", "subject": "สุขศึกษา พฐ 2", "class": "ม.5"}, "3": {"code": "ส21103", "subject": "หน้าที่พลเมือง 1", "class": "ม.1/1"}, "5": {"code": "พ23102", "subject": "พลศึกษา พฐ 5", "class": "ม.3/2"}}, "ศุกร์": {"1": {"code": "พ21101", "subject": "สุขศึกษา พฐ 1", "class": "ม.1/1"}, "5": {"code": "พ31101", "subject": "สุขศึกษา พฐ 1", "class": "ม.4"}}}}, {"name": "นางสาวปรารถนา  ยุบลพันธุ์", "advisor": "ครูที่ปรึกษานักเรียนระดับชั้นมัธยมศึกษาปีที่ 4", "schedule": {"จันทร์": {"1": {"code": "ง33101", "subject": "การจัดการงานบ้าน", "class": "ม.6"}, "5": {"code": "ง32101", "subject": "งานบ้าน พฐ 1", "class": "ม.5"}}, "อังคาร": {"1": {"code": "ง22101", "subject": "งานบ้าน พฐ 3", "class": "ม.2/2"}, "2": {"code": "ง23101", "subject": "งานบ้าน พฐ 5", "class": "ม.3/2"}, "3": {"code": "ง22101", "subject": "งานบ้าน พฐ 3", "class": "ม.2/1"}}, "พุธ": {"5": {"code": "ง23101", "subject": "งานบ้าน พฐ 5", "class": "ม.3/2"}}, "พฤหัสบดี": {"1": {"code": "ส22102", "subject": "ประวัติศาสตร์ พฐ 3", "class": "ม.2/2"}, "2": {"code": "ง21101", "subject": "งานบ้าน พฐ 1", "class": "ม.1/1"}, "3": {"code": "ง23101", "subject": "งานบ้าน พฐ 5", "class": "ม.3/1"}, "5": {"code": "ง22101", "subject": "งานบ้าน พฐ 3", "class": "ม.2/1"}}, "ศุกร์": {"1": {"code": "ส22102", "subject": "ประวัติศาสตร์ พฐ 3", "class": "ม.2/1"}, "2": {"code": "ง22101", "subject": "งานบ้าน พฐ 3", "class": "ม.2/2"}, "3": {"code": "ง23101", "subject": "งานบ้าน พฐ 5", "class": "ม.3/1"}, "5": {"code": "ง21101", "subject": "งานบ้าน พฐ 1", "class": "ม.1/1"}}}}]};
 const LOG_STORAGE_KEY = 'sub_log_2569';
-const PRINCIPAL_STORAGE_KEY = 'sub_principal_name';
 const WORKLOAD_WARN_THRESHOLD = 5;
 const THAI_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 const REASONS = ['ลาป่วย','ลากิจ','ไปราชการ','อื่น ๆ'];
+
+function reasonClass(reason){
+  if(reason === 'ลาป่วย') return 'reason-sick';
+  if(reason === 'ลากิจ') return 'reason-personal';
+  if(reason === 'ไปราชการ') return 'reason-official';
+  return 'reason-other';
+}
 
 let subLog = [];
 try{
@@ -344,22 +333,25 @@ function renderTeacherList(filter){
     .forEach(t=>{
       const id = 'chk_' + t.name.replace(/\s+/g,'_');
       const ppw = weeklyPeriods(t.name);
-      const row = document.createElement('label');
+      const row = document.createElement('div');
       row.className = 't-row';
       row.innerHTML = `
-        <input type="checkbox" value="${t.name}" id="${id}" class="absentChk">
-        <span class="t-name">${t.name} <span class="badge">${ppw} คาบ/สัปดาห์</span></span>
-        <select class="reasonSel" id="reason_${id}">
-          ${REASONS.map(r=>`<option ${r==='ลาป่วย'?'selected':''}>${r}</option>`).join('')}
-        </select>
+        <label class="t-main">
+          <input type="checkbox" value="${t.name}" id="${id}" class="absentChk">
+          <span class="t-name">${t.name}<span class="badge">${ppw} คาบ/สัปดาห์</span></span>
+        </label>
+        <div class="t-extra" id="extra_${id}">
+          <select class="reasonSel" id="reason_${id}">
+            ${REASONS.map(r=>`<option ${r==='ลาป่วย'?'selected':''}>${r}</option>`).join('')}
+          </select>
+        </div>
       `;
       list.appendChild(row);
       const chk = row.querySelector('.absentChk');
-      const sel = row.querySelector('.reasonSel');
+      const extra = row.querySelector('.t-extra');
       chk.addEventListener('change', ()=>{
-        sel.classList.toggle('active', chk.checked);
+        extra.classList.toggle('active', chk.checked);
       });
-      sel.addEventListener('click', e=>{ if(!chk.checked) e.preventDefault(); });
     });
 }
 renderTeacherList('');
@@ -413,7 +405,7 @@ function renderResultTable(day){
   const body = document.getElementById('resultBody');
   body.innerHTML = '';
   document.getElementById('resultCard').style.display = 'block';
-  document.getElementById('printCard').style.display = 'none';
+  document.getElementById('shareOuter').style.display = 'none';
 
   if(currentNeeds.length === 0){
     body.innerHTML = '<tr class="empty-row"><td colspan="6">วันนี้ครูที่เลือกไม่มีคาบสอน ไม่ต้องจัดสอนแทน</td></tr>';
@@ -499,14 +491,14 @@ document.getElementById('btnSave').addEventListener('click', ()=>{
   toast('บันทึกการจัดสอนแทนเรียบร้อย');
   document.getElementById('saveMsg').textContent = `บันทึกแล้ว ${assignments.length} รายการ`;
 
-  renderOrderDoc(date, assignments);
-  document.getElementById('printCard').style.display = 'block';
-  const printCardEl = document.getElementById('printCard');
-  if(typeof printCardEl.scrollIntoView === 'function') printCardEl.scrollIntoView({behavior:'smooth'});
+  renderShareCard(date, assignments);
+  document.getElementById('shareOuter').style.display = 'block';
+  const shareEl = document.getElementById('shareOuter');
+  if(typeof shareEl.scrollIntoView === 'function') shareEl.scrollIntoView({behavior:'smooth'});
 });
 
-// ---------- Official order document ----------
-function renderOrderDoc(date, assignments){
+// ---------- Share card (screenshot-ready summary) ----------
+function renderShareCard(date, assignments){
   // group by absent teacher, preserving first-seen order
   const groups = [];
   const idxByTeacher = new Map();
@@ -518,51 +510,34 @@ function renderOrderDoc(date, assignments){
     groups[idxByTeacher.get(a.absentTeacher)].rows.push(a);
   });
 
-  const body = document.getElementById('orderBody');
-  body.innerHTML = '';
-  groups.forEach((g, gi)=>{
-    g.rows.forEach((r, ri)=>{
-      const tr = document.createElement('tr');
-      let cells = '';
-      if(ri === 0){
-        cells += `<td class="center" rowspan="${g.rows.length}">${gi+1}</td>`;
-        cells += `<td rowspan="${g.rows.length}">${g.teacher}</td>`;
-        cells += `<td class="center" rowspan="${g.rows.length}">${g.reason}</td>`;
-      }
-      cells += `<td>${r.substitute}</td>`;
-      cells += `<td class="center">${r.period}</td>`;
-      cells += `<td class="center">${r.class}</td>`;
-      cells += `<td class="sign-blank">..........................</td>`;
-      tr.innerHTML = cells;
-      body.appendChild(tr);
-    });
-  });
-
   const d = new Date(date);
   const buddhistYear = d.getFullYear() + 543;
-  document.getElementById('oDay').textContent = d.getDate();
-  document.getElementById('oMonth').textContent = THAI_MONTHS[d.getMonth()];
-  document.getElementById('oYear').textContent = buddhistYear;
-  document.getElementById('oYear2').textContent = buddhistYear;
-  document.getElementById('oNo').textContent = document.getElementById('orderNoInput').value || 'พิเศษ';
-  document.getElementById('oPrincipal').textContent = document.getElementById('principalInput').value || 'นางนฤมล ทัดสา';
-}
+  const dayName = THAI_DAYS[d.getDay()];
+  document.getElementById('sDate').textContent =
+    `วัน${dayName}ที่ ${d.getDate()} ${THAI_MONTHS[d.getMonth()]} ${buddhistYear}`;
 
-// keep order doc in sync if settings change after generation
-document.getElementById('orderNoInput').addEventListener('input', e=>{
-  document.getElementById('oNo').textContent = e.target.value || 'พิเศษ';
-});
-document.getElementById('principalInput').addEventListener('input', e=>{
-  document.getElementById('oPrincipal').textContent = e.target.value || 'นางนฤมล ทัดสา';
-  localStorage.setItem(PRINCIPAL_STORAGE_KEY, e.target.value);
-});
-try{
-  const savedPrincipal = localStorage.getItem(PRINCIPAL_STORAGE_KEY);
-  if(savedPrincipal){
-    document.getElementById('principalInput').value = savedPrincipal;
-    document.getElementById('oPrincipal').textContent = savedPrincipal;
-  }
-}catch(e){}
+  const body = document.getElementById('shareBody');
+  body.innerHTML = groups.map(g=>{
+    const rc = reasonClass(g.reason);
+    const rows = g.rows.map(r=>`
+      <div class="share-row">
+        <span class="share-tag">คาบ ${r.period}</span>
+        <span class="share-tag">${r.class}</span>
+        <span class="share-arrow">→</span>
+        <span class="share-sub">${r.substitute}</span>
+      </div>
+    `).join('');
+    return `
+      <div class="share-group ${rc}">
+        <div class="share-group-head">
+          <span class="share-teacher">${g.teacher}</span>
+          <span class="reason-pill ${rc}">${g.reason}</span>
+        </div>
+        ${rows}
+      </div>
+    `;
+  }).join('');
+}
 
 document.getElementById('btnPrint').addEventListener('click', ()=>window.print());
 
