@@ -1764,42 +1764,52 @@ const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbyXy9Ne2GFr35g2vk
 function entryKey(a){
   return [a.date, a.absent_teacher, a.period, a.class, a.substitute].join('|');
 }
+// Google Sheet คือแหล่งข้อมูลจริงเพียงแหล่งเดียว (single source of truth) —
+// ทุกครั้งที่ซิงค์ ให้ใช้ข้อมูลจาก Sheet แทนที่ข้อมูลในเครื่องทั้งหมด ไม่เอาข้อมูลเก่าที่ค้างในเครื่อง
+// (ไม่มีการส่งข้อมูลในเครื่องย้อนกลับขึ้น Sheet อีกต่อไป)
 function mergeRemoteLog(remoteLog){
   if(!Array.isArray(remoteLog)) return;
-  const seen = new Set(subLog.map(entryKey));
-  let added = 0;
-  remoteLog.forEach(r=>{
-    const norm = {
-      date: toISODateStr(r.date),
-      absent_teacher: r.absent_teacher || '',
-      reason: r.reason || '',
-      period: r.period,
-      class: r.class || '',
-      subject: r.subject || '',
-      substitute: r.substitute || ''
-    };
-    const k = entryKey(norm);
-    if(!seen.has(k)){
-      subLog.push(norm);
-      seen.add(k);
-      added++;
-    }
-  });
-  if(added > 0){
-    saveLog();
-    renderTeacherList();
-    if(document.getElementById('tab-dashboard').classList.contains('active')) renderDashboard();
-  }
+  subLog = remoteLog.map(r=>({
+    date: toISODateStr(r.date),
+    absent_teacher: r.absent_teacher || '',
+    reason: r.reason || '',
+    period: r.period,
+    class: r.class || '',
+    subject: r.subject || '',
+    substitute: r.substitute || ''
+  }));
+  saveLog();
+  renderTeacherList();
+  if(document.getElementById('tab-dashboard').classList.contains('active')) renderDashboard();
+}
+// ถ้าหน้านี้ถูก serve จาก Apps Script เอง (เช่น เปิดผ่าน .../exec) จะมี google.script.run
+// ให้ใช้ทางนั้นแทน fetch() เสมอ เพราะไม่มีปัญหา CORS ข้าม origin เหมือน fetch จาก iframe sandbox
+function hasScriptRun(){
+  return typeof google !== 'undefined' && google.script && google.script.run;
 }
 function syncFromSheet(){
+  if(hasScriptRun()){
+    google.script.run
+      .withSuccessHandler(data=>{ if(data && data.ok) mergeRemoteLog(data.log); })
+      .withFailureHandler(()=>{ /* เงียบไว้ ใช้ข้อมูลในเครื่องต่อ */ })
+      .getLogData();
+    return;
+  }
   if(!SHEET_API_URL) return;
-  fetch(SHEET_API_URL, { method: 'GET' })
+  fetch(SHEET_API_URL + '?data=1', { method: 'GET' })
     .then(r=>r.json())
     .then(data=>{ if(data && data.ok) mergeRemoteLog(data.log); })
     .catch(()=>{ /* ออฟไลน์หรือเชื่อม Sheet ไม่ได้ — เงียบไว้ ใช้ข้อมูลในเครื่องต่อ */ });
 }
 function pushToSheet(entries){
-  if(!SHEET_API_URL || !entries || entries.length === 0) return;
+  if(!entries || entries.length === 0) return;
+  if(hasScriptRun()){
+    google.script.run
+      .withFailureHandler(()=>{ toast('บันทึกในเครื่องแล้ว แต่ซิงค์ขึ้น Sheet ไม่สำเร็จ (เช็คอินเทอร์เน็ต)'); })
+      .pushLogEntries(entries);
+    return;
+  }
+  if(!SHEET_API_URL) return;
   fetch(SHEET_API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
