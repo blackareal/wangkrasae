@@ -44,6 +44,11 @@
   th,td{border:1px solid var(--border);padding:6px 8px;text-align:left;}
   th{background:var(--blue-light);color:var(--blue);font-weight:600;}
   th.th-amber{background:#fdf3e3;color:var(--amber);}
+  th.sortable{cursor:pointer;user-select:none;white-space:nowrap;}
+  th.sortable:hover{background:#f0f0f0;}
+  th.sortable.th-amber:hover{background:#faeacb;}
+  th.sortable .sort-arrow{display:inline-block;margin-left:4px;opacity:0.4;font-size:11px;}
+  th.sortable.sort-active .sort-arrow{opacity:1;}
   .center{text-align:center;}
   .muted{color:#888;font-size:13px;}
   .empty-row td{color:#999;font-style:italic;}
@@ -190,7 +195,13 @@
       <h2>สรุปจำนวนคาบสอนและการสอนแทน</h2>
       <div class="table-scroll">
       <table>
-        <thead><tr><th>ครู</th><th class="center">คาบ/ภาคเรียน</th><th class="center">สอนแทน/คาบ</th><th class="center th-amber">จัดสอนแทน/คาบ</th><th class="center">สรุปคาบสอน 1/2569</th></tr></thead>
+        <thead><tr>
+          <th class="sortable" data-sort="name">ครู</th>
+          <th class="center sortable" data-sort="base">คาบ/ภาคเรียน</th>
+          <th class="center sortable" data-sort="sub">สอนแทน/คาบ</th>
+          <th class="center th-amber sortable" data-sort="absent">จัดสอนแทน/คาบ</th>
+          <th class="center sortable" data-sort="net">สรุปคาบสอน 1/2569</th>
+        </tr></thead>
         <tbody id="dashBody"></tbody>
       </table>
       </div>
@@ -1971,6 +1982,8 @@ function renderShareCard(date, assignments){
 document.getElementById('btnPrint').addEventListener('click', ()=>window.print());
 
 // ---------- Dashboard ----------
+let dashSortState = { col: 'net', dir: 'desc' }; // ค่าเริ่มต้น: เรียงตาม "สรุปคาบสอน" มากไปน้อย
+
 function renderDashboard(){
   const subCounts = {};
   const absentCounts = {};
@@ -1980,22 +1993,41 @@ function renderDashboard(){
     subCounts[a.substitute] = (subCounts[a.substitute]||0) + 1;
     absentCounts[a.absent_teacher] = (absentCounts[a.absent_teacher]||0) + 1;
   });
-  const entries = Object.keys(subCounts).sort((a,b)=>semesterPeriods(b)-semesterPeriods(a));
-  const body = document.getElementById('dashBody');
-  body.innerHTML = entries.map(name=>{
+  let rows = Object.keys(subCounts).map(name=>{
     const base = semesterPeriods(name);
     const sub = subCounts[name] || 0;
     const absent = absentCounts[name] || 0;
-    const netSummary = base + sub - absent;
-    return `
+    return { name, base, sub, absent, net: base + sub - absent };
+  });
+
+  const { col, dir } = dashSortState;
+  const mul = dir === 'asc' ? 1 : -1;
+  rows.sort((a,b)=>{
+    if(col === 'name') return mul * a.name.localeCompare(b.name, 'th');
+    return mul * (a[col] - b[col]);
+  });
+
+  const body = document.getElementById('dashBody');
+  body.innerHTML = rows.map(r=>`
     <tr>
-      <td class="dash-name">${name}</td>
-      <td class="center">${base}</td>
-      <td class="center">${sub}</td>
-      <td class="center">${absent}</td>
-      <td class="center">${netSummary}</td>
-    </tr>`;
-  }).join('');
+      <td class="dash-name">${r.name}</td>
+      <td class="center">${r.base}</td>
+      <td class="center">${r.sub}</td>
+      <td class="center">${r.absent}</td>
+      <td class="center">${r.net}</td>
+    </tr>`).join('');
+
+  document.querySelectorAll('#tab-dashboard .card:first-child th.sortable').forEach(th=>{
+    const isActive = th.dataset.sort === col;
+    th.classList.toggle('sort-active', isActive);
+    let arrow = th.querySelector('.sort-arrow');
+    if(!arrow){
+      arrow = document.createElement('span');
+      arrow.className = 'sort-arrow';
+      th.appendChild(arrow);
+    }
+    arrow.textContent = isActive ? (dir === 'asc' ? '▲' : '▼') : '↕';
+  });
 
   const logBody = document.getElementById('logBody');
   const filterInput = document.getElementById('historyDateFilter');
@@ -2010,6 +2042,20 @@ function renderDashboard(){
     <tr><td>${a.date}</td><td>${a.absent_teacher}</td><td>${a.reason}</td><td>${a.period}</td><td>${a.class}</td><td>${a.subject}</td><td>${a.substitute}</td></tr>
   `).join('') || `<tr class="empty-row"><td colspan="7">${filterDate ? 'ไม่มีข้อมูลวันที่เลือก' : 'ยังไม่มีข้อมูล'}</td></tr>`;
 }
+
+// คลิกหัวตารางเพื่อเปลี่ยนการเรียงลำดับ (คลิกซ้ำสลับ มาก<->น้อย)
+const DASH_SORT_DEFAULT_DIR = { name: 'asc', base: 'desc', sub: 'desc', absent: 'desc', net: 'desc' };
+document.querySelectorAll('#tab-dashboard .card:first-child th.sortable').forEach(th=>{
+  th.addEventListener('click', ()=>{
+    const col = th.dataset.sort;
+    if(dashSortState.col === col){
+      dashSortState.dir = dashSortState.dir === 'asc' ? 'desc' : 'asc';
+    } else {
+      dashSortState = { col, dir: DASH_SORT_DEFAULT_DIR[col] || 'desc' };
+    }
+    renderDashboard();
+  });
+});
 
 document.getElementById('historyDateFilter').addEventListener('change', renderDashboard);
 document.getElementById('btnClearHistoryFilter').addEventListener('click', ()=>{
