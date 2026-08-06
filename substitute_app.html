@@ -1621,7 +1621,77 @@ const NEW_PERIODS_1TO5_OVERRIDE = {
   'นางสุภาวดี  วรรณวงศ์': 13
 };
 const THAI_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const THAI_MONTHS_SHORT = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 const REASONS = ['ลาป่วย','ลากิจ','ไปราชการ','อื่น ๆ'];
+
+// ── แปลงค่าวันที่ที่อาจเพี้ยน (เช่น Date object / toString แปลก ๆ) ให้เป็น "yyyy-MM-dd" เสมอ ──
+function toISODateStr(v){
+  if(!v) return '';
+  if(typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+  const d = new Date(v);
+  if(isNaN(d.getTime())) return String(v);
+  const p2 = n => n < 10 ? '0'+n : ''+n;
+  return d.getFullYear() + '-' + p2(d.getMonth()+1) + '-' + p2(d.getDate());
+}
+// ── แสดงวันที่แบบไทย พ.ศ. (รับ "yyyy-MM-dd" ที่ normalize แล้ว) ──
+function formatDateBE(iso){
+  if(!iso) return '';
+  const parts = String(iso).split('-');
+  if(parts.length !== 3) return toISODateStr(iso) ? formatDateBE(toISODateStr(iso)) : String(iso);
+  const y = Number(parts[0]), m = Number(parts[1]), d = Number(parts[2]);
+  if(!y || !m || !d) return String(iso);
+  return `${d} ${THAI_MONTHS_SHORT[m-1]} ${y+543}`;
+}
+
+// ── ซิงค์กับ Google Sheets แบบเงียบ ๆ เบื้องหลัง (ไม่มีปุ่ม/ช่องกรอกให้ผู้ใช้เห็น) ──
+const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbyXy9Ne2GFr35g2vkD2WJtVO9dyfQ2fcqZ32b-xMgg8k0eKYGL9eNmxtaVLgA8E7KN1/exec';
+function entryKey(a){
+  return [a.date, a.absent_teacher, a.period, a.class, a.substitute].join('|');
+}
+function mergeRemoteLog(remoteLog){
+  if(!Array.isArray(remoteLog)) return;
+  const seen = new Set(subLog.map(entryKey));
+  let added = 0;
+  remoteLog.forEach(r=>{
+    const norm = {
+      date: toISODateStr(r.date),
+      absent_teacher: r.absent_teacher || '',
+      reason: r.reason || '',
+      period: r.period,
+      class: r.class || '',
+      subject: r.subject || '',
+      substitute: r.substitute || ''
+    };
+    const k = entryKey(norm);
+    if(!seen.has(k)){
+      subLog.push(norm);
+      seen.add(k);
+      added++;
+    }
+  });
+  if(added > 0){
+    saveLog();
+    renderTeacherList(document.getElementById('teacherSearch').value);
+    if(document.getElementById('tab-dashboard').classList.contains('active')) renderDashboard();
+  }
+}
+function syncFromSheet(){
+  if(!SHEET_API_URL) return;
+  fetch(SHEET_API_URL, { method: 'GET' })
+    .then(r=>r.json())
+    .then(data=>{ if(data && data.ok) mergeRemoteLog(data.log); })
+    .catch(()=>{ /* ออฟไลน์หรือเชื่อม Sheet ไม่ได้ — เงียบไว้ ใช้ข้อมูลในเครื่องต่อ */ });
+}
+function pushToSheet(entries){
+  if(!SHEET_API_URL || !entries || entries.length === 0) return;
+  fetch(SHEET_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(entries)
+  }).catch(()=>{
+    toast('บันทึกในเครื่องแล้ว แต่ซิงค์ขึ้น Sheet ไม่สำเร็จ (เช็คอินเทอร์เน็ต)');
+  });
+}
 
 function reasonClass(reason){
   if(reason === 'ลาป่วย') return 'reason-sick';
@@ -1635,6 +1705,8 @@ try{
   const saved = localStorage.getItem(LOG_STORAGE_KEY);
   if(saved) subLog = JSON.parse(saved);
 }catch(e){ subLog = []; }
+// ซ่อมวันที่เพี้ยนที่อาจหลงเหลือจากข้อมูลเก่า ให้เป็น "yyyy-MM-dd" เสมอ
+subLog.forEach(a=>{ if(a.date) a.date = toISODateStr(a.date); });
 
 const teachers = TIMETABLE.teachers;
 const periods = TIMETABLE.periods.filter(p => p.p !== 'lunch');
@@ -1642,6 +1714,7 @@ const periods = TIMETABLE.periods.filter(p => p.p !== 'lunch');
 function saveLog(){
   localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(subLog));
 }
+syncFromSheet();
 
 function toast(msg){
   const t = document.getElementById('toast');
@@ -1928,6 +2001,7 @@ document.getElementById('btnSave').addEventListener('click', ()=>{
   }));
   newEntries.forEach(e=>subLog.push(e));
   saveLog();
+  pushToSheet(newEntries);
   toast('บันทึกการจัดสอนแทนเรียบร้อย');
   document.getElementById('saveMsg').textContent = `บันทึกแล้ว ${assignments.length} รายการ`;
 
@@ -2039,7 +2113,7 @@ function renderDashboard(){
     historyRows = [...subLog].reverse().slice(0,50);
   }
   logBody.innerHTML = historyRows.map(a=>`
-    <tr><td>${a.date}</td><td>${a.absent_teacher}</td><td>${a.reason}</td><td>${a.period}</td><td>${a.class}</td><td>${a.subject}</td><td>${a.substitute}</td></tr>
+    <tr><td>${formatDateBE(a.date)}</td><td>${a.absent_teacher}</td><td>${a.reason}</td><td>${a.period}</td><td>${a.class}</td><td>${a.subject}</td><td>${a.substitute}</td></tr>
   `).join('') || `<tr class="empty-row"><td colspan="7">${filterDate ? 'ไม่มีข้อมูลวันที่เลือก' : 'ยังไม่มีข้อมูล'}</td></tr>`;
 }
 
@@ -2081,6 +2155,7 @@ document.getElementById('fileImport').addEventListener('change', (e)=>{
       const imported = JSON.parse(reader.result);
       if(Array.isArray(imported)){
         subLog = imported;
+        subLog.forEach(a=>{ if(a.date) a.date = toISODateStr(a.date); });
         saveLog();
         toast('นำเข้า Log สำเร็จ ' + imported.length + ' รายการ');
         renderDashboard();
