@@ -23,15 +23,30 @@
   .field{flex:1;min-width:140px;}
   label{display:block;font-size:13px;margin-bottom:4px;color:#555;}
   input[type=date], select, input[type=text]{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:16px;font-family:inherit;min-height:44px;}
-  .teacher-list{max-height:320px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:4px;}
-  .t-row{padding:10px 8px;border-bottom:1px solid #f0f1f3;}
-  .t-row:last-child{border-bottom:none;}
+  .teacher-list{max-height:420px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:6px;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;align-content:start;}
+  @media (max-width:400px){ .teacher-list{grid-template-columns:repeat(2,1fr);} }
+  .t-row{padding:6px 5px;border:1px solid #f0f1f3;border-radius:6px;}
   .t-row:active{background:var(--blue-light);}
-  .t-main{display:flex;align-items:center;gap:10px;cursor:pointer;}
-  .t-main input[type=checkbox]{width:22px;height:22px;flex:none;margin:0;}
-  .t-name{flex:1;font-size:15px;line-height:1.35;word-break:break-word;}
-  .t-extra{display:none;margin-top:8px;padding-left:32px;}
+  .t-main{display:flex;align-items:flex-start;gap:5px;cursor:pointer;}
+  .t-main input[type=checkbox]{width:18px;height:18px;flex:none;margin:1px 0 0;}
+  .t-name{flex:1;font-size:12px;line-height:1.3;word-break:break-word;}
+  .t-extra{display:none;margin-top:6px;}
   .t-extra.active{display:block;}
+  .t-extra select{font-size:13px;padding:6px;min-height:36px;}
+
+  /* ---------- Custom Buddhist-year calendar popup ---------- */
+  .cal-popup{position:absolute;top:100%;left:0;z-index:15;background:#fff;border:1px solid var(--border);border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.15);padding:10px;width:260px;}
+  .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .cal-title{font-weight:600;color:var(--blue);font-size:14px;}
+  .cal-nav{background:none;border:none;color:var(--blue);font-size:18px;padding:2px 10px;min-height:auto;cursor:pointer;}
+  .cal-nav:hover{background:var(--blue-light);border-radius:6px;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:12px;}
+  .cal-weekdays{color:#888;margin-bottom:4px;font-size:11px;}
+  .cal-cell{padding:7px 0;border-radius:6px;cursor:pointer;}
+  .cal-cell.cal-empty{cursor:default;}
+  .cal-day:hover{background:var(--blue-light);}
+  .cal-day.cal-selected{background:var(--blue);color:#fff;font-weight:600;}
+  .cal-day.cal-today:not(.cal-selected){border:1px solid var(--blue);}
   .badge{display:inline-block;font-size:11px;padding:1px 7px;border-radius:10px;background:var(--gray);color:#555;white-space:nowrap;margin-left:4px;}
   .badge.warn{background:#fdecea;color:var(--red);}
   button{background:var(--blue);color:#fff;border:none;padding:12px 18px;border-radius:8px;font-size:15px;cursor:pointer;font-family:inherit;min-height:44px;}
@@ -134,9 +149,11 @@
     <div class="card">
       <h2>1. ครูที่ไม่มา</h2>
       <div class="row">
-        <div class="field">
+        <div class="field" style="position:relative;">
           <label>วันที่</label>
-          <input type="date" id="absentDate">
+          <input type="hidden" id="absentDate">
+          <input type="text" id="absentDateDisplay" readonly placeholder="เลือกวันที่" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:16px;font-family:inherit;min-height:44px;cursor:pointer;background:#fff;">
+          <div class="cal-popup" id="calPopup" style="display:none;"></div>
         </div>
         <div class="field">
           <label>วัน (ใช้ตรวจตารางสอน)</label>
@@ -150,7 +167,6 @@
         </div>
       </div>
       <label>เลือกครูที่ไม่มา (แตะชื่อ แล้วเลือกเหตุผลของแต่ละคน)</label>
-      <input type="text" id="teacherSearch" placeholder="พิมพ์ค้นหาชื่อครู...">
       <div class="teacher-list" id="teacherList"></div>
       <div class="actions">
         <button class="block" id="btnFind">ค้นหาคาบที่ต้องจัดสอนแทน</button>
@@ -196,6 +212,15 @@
   <!-- TAB: DASHBOARD -->
   <div class="tab-panel" id="tab-dashboard">
     <div class="card">
+      <h2>จำนวนคาบสอน (ไม่รวมสืบเสาะ)</h2>
+      <div class="table-scroll">
+      <table>
+        <thead><tr><th>ชื่อ</th><th class="center">ก่อน 5 สิงหาคม</th><th class="center">หลัง 5 สิงหาคม</th></tr></thead>
+        <tbody id="periodsBody"></tbody>
+      </table>
+      </div>
+    </div>
+    <div class="card" id="dashSummaryCard">
       <h2>สรุปจำนวนคาบสอนและการสอนแทน</h2>
       <div class="table-scroll">
       <table>
@@ -213,21 +238,15 @@
     <div class="card">
       <h2>ประวัติการจัดสอนแทน</h2>
       <div class="actions" style="margin-bottom:10px;">
-        <input type="date" id="historyDateFilter" style="flex:1;min-width:140px;padding:12px;border:1px solid var(--border);border-radius:8px;font-size:16px;box-sizing:border-box;">
-        <button class="secondary" id="btnClearHistoryFilter">ดูทั้งหมด</button>
+        <select id="histDay" style="flex:1;min-width:64px;padding:12px;border:1px solid var(--border);border-radius:8px;font-size:16px;box-sizing:border-box;"></select>
+        <select id="histMonth" style="flex:2;min-width:110px;padding:12px;border:1px solid var(--border);border-radius:8px;font-size:16px;box-sizing:border-box;"></select>
+        <select id="histYear" style="flex:1;min-width:80px;padding:12px;border:1px solid var(--border);border-radius:8px;font-size:16px;box-sizing:border-box;"></select>
       </div>
       <div class="table-scroll">
       <table>
         <thead><tr><th>วันที่</th><th>ครูที่ขาด</th><th>เหตุผล</th><th>คาบ</th><th>ห้อง</th><th>วิชา</th><th>ครูสอนแทน</th></tr></thead>
         <tbody id="logBody"></tbody>
       </table>
-      </div>
-      <div class="actions">
-        <button class="secondary" id="btnExport">ดาวน์โหลด Log (JSON)</button>
-        <label class="secondary" style="border:1px solid var(--blue);color:var(--blue);padding:12px 18px;border-radius:8px;cursor:pointer;text-align:center;flex:1;min-width:140px;">
-          นำเข้า Log JSON
-          <input type="file" id="fileImport" accept=".json" style="display:none;">
-        </label>
       </div>
     </div>
   </div>
@@ -1646,6 +1665,70 @@ function formatDateBE(iso){
   if(!y || !m || !d) return String(iso);
   return `${d} ${THAI_MONTHS_SHORT[m-1]} ${y+543}`;
 }
+// ── แสดงวันที่แบบไทย พ.ศ. เต็ม (ชื่อเดือนเต็ม) สำหรับช่องแสดงผลวันที่หลัก ──
+function formatDateBEFull(iso){
+  if(!iso) return '';
+  const parts = String(iso).split('-');
+  if(parts.length !== 3) return String(iso);
+  const y = Number(parts[0]), m = Number(parts[1]), d = Number(parts[2]);
+  if(!y || !m || !d) return String(iso);
+  return `${d} ${THAI_MONTHS[m-1]} ${y+543}`;
+}
+
+// ── ตัวเลือกวันที่ (วัน/เดือน/ปี) แบบ พ.ศ. สำหรับกรองประวัติการจัดสอนแทน ──
+function pad2(n){ return n < 10 ? '0'+n : ''+n; }
+function daysInMonth(y, m){ return new Date(y, m, 0).getDate(); } // m = 1-12 (ค.ศ.)
+
+function populateHistoryPicker(){
+  const daySel = document.getElementById('histDay');
+  const monthSel = document.getElementById('histMonth');
+  const yearSel = document.getElementById('histYear');
+  if(!daySel || !monthSel || !yearSel) return;
+
+  const curCEYear = today.getFullYear();
+  const dataYears = subLog.map(a=>Number((a.date||'').slice(0,4))).filter(y=>y>1900);
+  const minY = Math.min(curCEYear, ...(dataYears.length ? dataYears : [curCEYear]));
+  const maxY = Math.max(curCEYear + 1, ...(dataYears.length ? dataYears : [curCEYear]));
+  yearSel.innerHTML = '';
+  for(let y = minY; y <= maxY; y++){
+    const opt = document.createElement('option');
+    opt.value = y;
+    opt.textContent = y + 543; // แสดงเป็น พ.ศ.
+    yearSel.appendChild(opt);
+  }
+
+  monthSel.innerHTML = THAI_MONTHS.map((m,i)=>`<option value="${i+1}">${m}</option>`).join('');
+
+  function refreshDayOptions(keepDay){
+    const y = Number(yearSel.value) || curCEYear;
+    const m = Number(monthSel.value) || (today.getMonth()+1);
+    const dCount = daysInMonth(y, m);
+    const wanted = keepDay || Number(daySel.value) || today.getDate();
+    daySel.innerHTML = '';
+    for(let d = 1; d <= dCount; d++){
+      const opt = document.createElement('option');
+      opt.value = d; opt.textContent = d;
+      daySel.appendChild(opt);
+    }
+    daySel.value = Math.min(wanted, dCount);
+  }
+
+  yearSel.value = curCEYear;
+  monthSel.value = today.getMonth() + 1;
+  refreshDayOptions(today.getDate());
+
+  yearSel.addEventListener('change', ()=>{ refreshDayOptions(); renderDashboard(); });
+  monthSel.addEventListener('change', ()=>{ refreshDayOptions(); renderDashboard(); });
+  daySel.addEventListener('change', renderDashboard);
+}
+
+function getHistoryFilterISO(){
+  const daySel = document.getElementById('histDay');
+  const monthSel = document.getElementById('histMonth');
+  const yearSel = document.getElementById('histYear');
+  if(!daySel || !monthSel || !yearSel || !daySel.value || !monthSel.value || !yearSel.value) return '';
+  return `${yearSel.value}-${pad2(Number(monthSel.value))}-${pad2(Number(daySel.value))}`;
+}
 
 // ── ซิงค์กับ Google Sheets แบบเงียบ ๆ เบื้องหลัง (ไม่มีปุ่ม/ช่องกรอกให้ผู้ใช้เห็น) ──
 const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbyXy9Ne2GFr35g2vkD2WJtVO9dyfQ2fcqZ32b-xMgg8k0eKYGL9eNmxtaVLgA8E7KN1/exec';
@@ -1675,7 +1758,7 @@ function mergeRemoteLog(remoteLog){
   });
   if(added > 0){
     saveLog();
-    renderTeacherList(document.getElementById('teacherSearch').value);
+    renderTeacherList();
     if(document.getElementById('tab-dashboard').classList.contains('active')) renderDashboard();
   }
 }
@@ -1741,9 +1824,11 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
 // ---------- Date -> day of week ----------
 const THAI_DAYS = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
 const dateInput = document.getElementById('absentDate');
+const dateDisplay = document.getElementById('absentDateDisplay');
 const dayInput = document.getElementById('dayOfWeek');
 const today = new Date();
 dateInput.value = today.toISOString().slice(0,10);
+if(dateDisplay) dateDisplay.value = formatDateBEFull(dateInput.value);
 function syncDayFromDate(){
   const d = new Date(dateInput.value);
   const dayName = THAI_DAYS[d.getDay()];
@@ -1752,6 +1837,69 @@ function syncDayFromDate(){
   }
 }
 syncDayFromDate();
+
+// ---------- ปฏิทินเลือกวันที่แบบ พ.ศ. (custom popup) สำหรับช่องวันที่หลัก ----------
+let calCurrentView = new Date();
+function renderCalendarPopup(){
+  const pop = document.getElementById('calPopup');
+  if(!pop) return;
+  const y = calCurrentView.getFullYear();
+  const m = calCurrentView.getMonth(); // 0-based
+  const selectedISO = dateInput.value;
+  const firstDay = new Date(y, m, 1).getDay();
+  const dCount = new Date(y, m+1, 0).getDate();
+  const todayISO = today.toISOString().slice(0,10);
+
+  let cells = '';
+  for(let i=0;i<firstDay;i++) cells += '<div class="cal-cell cal-empty"></div>';
+  for(let d=1; d<=dCount; d++){
+    const iso = `${y}-${pad2(m+1)}-${pad2(d)}`;
+    const isSel = iso === selectedISO;
+    const isToday = iso === todayISO;
+    cells += `<div class="cal-cell cal-day${isSel?' cal-selected':''}${isToday?' cal-today':''}" data-iso="${iso}">${d}</div>`;
+  }
+
+  pop.innerHTML = `
+    <div class="cal-header">
+      <button type="button" class="cal-nav" id="calPrev">‹</button>
+      <div class="cal-title">${THAI_MONTHS[m]} ${y+543}</div>
+      <button type="button" class="cal-nav" id="calNext">›</button>
+    </div>
+    <div class="cal-grid cal-weekdays"><div>อา</div><div>จ</div><div>อ</div><div>พ</div><div>พฤ</div><div>ศ</div><div>ส</div></div>
+    <div class="cal-grid">${cells}</div>
+  `;
+
+  pop.querySelectorAll('.cal-day').forEach(cell=>{
+    cell.addEventListener('click', ()=>{
+      dateInput.value = cell.dataset.iso;
+      dateDisplay.value = formatDateBEFull(cell.dataset.iso);
+      pop.style.display = 'none';
+      syncDayFromDate();
+    });
+  });
+  const prevBtn = document.getElementById('calPrev');
+  const nextBtn = document.getElementById('calNext');
+  if(prevBtn) prevBtn.addEventListener('click', ()=>{ calCurrentView = new Date(y, m-1, 1); renderCalendarPopup(); });
+  if(nextBtn) nextBtn.addEventListener('click', ()=>{ calCurrentView = new Date(y, m+1, 1); renderCalendarPopup(); });
+}
+
+if(dateDisplay){
+  dateDisplay.addEventListener('click', ()=>{
+    const pop = document.getElementById('calPopup');
+    const isOpen = pop.style.display === 'block';
+    if(isOpen){ pop.style.display = 'none'; return; }
+    calCurrentView = dateInput.value ? new Date(dateInput.value) : new Date(today);
+    renderCalendarPopup();
+    pop.style.display = 'block';
+  });
+  document.addEventListener('click', (e)=>{
+    const pop = document.getElementById('calPopup');
+    if(!pop) return;
+    if(pop.style.display === 'block' && !pop.contains(e.target) && e.target !== dateDisplay){
+      pop.style.display = 'none';
+    }
+  });
+}
 dateInput.addEventListener('change', syncDayFromDate);
 
 // ---------- Teacher checklist (with per-teacher reason) ----------
@@ -1782,6 +1930,28 @@ function weeklyPeriods1to5(teacherName){
   return count;
 }
 
+// นับคาบ 1-5/สัปดาห์ ไม่รวมวิชา "สืบเสาะ" (ใช้ตารางสอนปัจจุบัน = หลัง 5 ส.ค. 69)
+function weeklyPeriods1to5ExclSueksao(teacherName){
+  const t = teachers.find(x=>x.name===teacherName);
+  if(!t || !t.schedule) return 0;
+  let count = 0;
+  Object.keys(t.schedule).forEach(day=>{
+    Object.keys(t.schedule[day]).forEach(p=>{
+      if(Number(p) > 5) return;
+      const info = t.schedule[day][p];
+      if(info && info.subject && info.subject.includes('สืบเสาะ')) return;
+      count++;
+    });
+  });
+  return count;
+}
+// คาบ 1-5/สัปดาห์ "หลัง 5 ส.ค. 69" ไม่รวมสืบเสาะ (ใช้ค่า override ถ้ามีระบุไว้)
+function periodsAfterExclSueksao(teacherName){
+  return (teacherName in NEW_PERIODS_1TO5_OVERRIDE)
+    ? NEW_PERIODS_1TO5_OVERRIDE[teacherName]
+    : weeklyPeriods1to5ExclSueksao(teacherName);
+}
+
 // คาบรวมทั้งภาคเรียน (20 สัปดาห์) = คาบ/สัปดาห์ช่วงก่อนแก้ไข x 11 + คาบ/สัปดาห์ช่วงหลังแก้ไข (ปัจจุบัน) x 9
 function semesterPeriods(teacherName){
   const oldPerWeek = OLD_PERIODS_1TO5[teacherName] || 0;
@@ -1791,20 +1961,17 @@ function semesterPeriods(teacherName){
   return (oldPerWeek * WEEKS_BEFORE_REVISION) + (newPerWeek * WEEKS_AFTER_REVISION);
 }
 
-function renderTeacherList(filter){
+function renderTeacherList(){
   const list = document.getElementById('teacherList');
   list.innerHTML = '';
-  teachers
-    .filter(t => !filter || t.name.includes(filter))
-    .forEach(t=>{
+  teachers.forEach(t=>{
       const id = 'chk_' + t.name.replace(/\s+/g,'_');
-      const ppw = weeklyPeriods(t.name);
       const row = document.createElement('div');
       row.className = 't-row';
       row.innerHTML = `
         <label class="t-main">
           <input type="checkbox" value="${t.name}" id="${id}" class="absentChk">
-          <span class="t-name">${t.name}<span class="badge">${ppw} คาบ/สัปดาห์</span></span>
+          <span class="t-name">${t.name}</span>
         </label>
         <div class="t-extra" id="extra_${id}">
           <select class="reasonSel" id="reason_${id}">
@@ -1820,8 +1987,7 @@ function renderTeacherList(filter){
       });
     });
 }
-renderTeacherList('');
-document.getElementById('teacherSearch').addEventListener('input', e=>renderTeacherList(e.target.value));
+renderTeacherList();
 
 // ---------- Period lookup helpers ----------
 function getPeriodInfo(p){ return periods.find(x => String(x.p) === String(p)); }
@@ -2062,7 +2228,18 @@ document.getElementById('btnPrint').addEventListener('click', ()=>window.print()
 // ---------- Dashboard ----------
 let dashSortState = { col: 'net', dir: 'desc' }; // ค่าเริ่มต้น: เรียงตาม "สรุปคาบสอน" มากไปน้อย
 
+function renderPeriodsTable(){
+  const body = document.getElementById('periodsBody');
+  if(!body) return;
+  body.innerHTML = teachers.map(t=>{
+    const before = OLD_PERIODS_1TO5[t.name] || 0;
+    const after = periodsAfterExclSueksao(t.name);
+    return `<tr><td class="dash-name">${t.name}</td><td class="center">${before}</td><td class="center">${after}</td></tr>`;
+  }).join('');
+}
+
 function renderDashboard(){
+  renderPeriodsTable();
   const subCounts = {};
   const absentCounts = {};
   teachers.forEach(t=>{ subCounts[t.name]=0; absentCounts[t.name]=0; });
@@ -2095,7 +2272,7 @@ function renderDashboard(){
       <td class="center">${r.net}</td>
     </tr>`).join('');
 
-  document.querySelectorAll('#tab-dashboard .card:first-child th.sortable').forEach(th=>{
+  document.querySelectorAll('#dashSummaryCard th.sortable').forEach(th=>{
     const isActive = th.dataset.sort === col;
     th.classList.toggle('sort-active', isActive);
     let arrow = th.querySelector('.sort-arrow');
@@ -2108,22 +2285,16 @@ function renderDashboard(){
   });
 
   const logBody = document.getElementById('logBody');
-  const filterInput = document.getElementById('historyDateFilter');
-  const filterDate = filterInput ? filterInput.value : '';
-  let historyRows;
-  if(filterDate){
-    historyRows = subLog.filter(a=>a.date === filterDate).slice().reverse();
-  } else {
-    historyRows = [...subLog].reverse().slice(0,50);
-  }
+  const filterDate = getHistoryFilterISO();
+  const historyRows = subLog.filter(a=>a.date === filterDate).slice().reverse();
   logBody.innerHTML = historyRows.map(a=>`
     <tr><td>${formatDateBE(a.date)}</td><td>${a.absent_teacher}</td><td>${a.reason}</td><td>${a.period}</td><td>${a.class}</td><td>${a.subject}</td><td>${a.substitute}</td></tr>
-  `).join('') || `<tr class="empty-row"><td colspan="7">${filterDate ? 'ไม่มีข้อมูลวันที่เลือก' : 'ยังไม่มีข้อมูล'}</td></tr>`;
+  `).join('') || `<tr class="empty-row"><td colspan="7">ไม่มีข้อมูลวันที่เลือก</td></tr>`;
 }
 
 // คลิกหัวตารางเพื่อเปลี่ยนการเรียงลำดับ (คลิกซ้ำสลับ มาก<->น้อย)
 const DASH_SORT_DEFAULT_DIR = { name: 'asc', base: 'desc', sub: 'desc', absent: 'desc', net: 'desc' };
-document.querySelectorAll('#tab-dashboard .card:first-child th.sortable').forEach(th=>{
+document.querySelectorAll('#dashSummaryCard th.sortable').forEach(th=>{
   th.addEventListener('click', ()=>{
     const col = th.dataset.sort;
     if(dashSortState.col === col){
@@ -2135,42 +2306,7 @@ document.querySelectorAll('#tab-dashboard .card:first-child th.sortable').forEac
   });
 });
 
-document.getElementById('historyDateFilter').addEventListener('change', renderDashboard);
-document.getElementById('btnClearHistoryFilter').addEventListener('click', ()=>{
-  document.getElementById('historyDateFilter').value = '';
-  renderDashboard();
-});
-
-document.getElementById('btnExport').addEventListener('click', ()=>{
-  const blob = new Blob([JSON.stringify(subLog, null, 2)], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'sub_log_2569.json';
-  a.click();
-  URL.revokeObjectURL(url);
-});
-
-document.getElementById('fileImport').addEventListener('change', (e)=>{
-  const file = e.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = ()=>{
-    try{
-      const imported = JSON.parse(reader.result);
-      if(Array.isArray(imported)){
-        subLog = imported;
-        subLog.forEach(a=>{ if(a.date) a.date = toISODateStr(a.date); });
-        saveLog();
-        toast('นำเข้า Log สำเร็จ ' + imported.length + ' รายการ');
-        renderDashboard();
-        renderTeacherList(document.getElementById('teacherSearch').value);
-      } else {
-        toast('ไฟล์ไม่ถูกต้อง');
-      }
-    }catch(err){ toast('อ่านไฟล์ไม่สำเร็จ'); }
-  };
-  reader.readAsText(file);
-});
+populateHistoryPicker();
 </script>
 </body>
 </html>
