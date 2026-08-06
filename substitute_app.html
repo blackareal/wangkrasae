@@ -190,13 +190,17 @@
       <h2>สรุปจำนวนคาบสอนและการสอนแทน</h2>
       <div class="table-scroll">
       <table>
-        <thead><tr><th>ครู</th><th class="center">คาบ/ภาคเรียน</th><th class="center">สอนแทน/คาบ</th><th class="center th-amber">จัดสอนแทน/ครั้ง</th></tr></thead>
+        <thead><tr><th>ครู</th><th class="center">คาบ/ภาคเรียน</th><th class="center">สอนแทน/คาบ</th><th class="center th-amber">จัดสอนแทน/คาบ</th><th class="center">สรุปคาบสอน 1/2569</th></tr></thead>
         <tbody id="dashBody"></tbody>
       </table>
       </div>
     </div>
     <div class="card">
-      <h2>Log ล่าสุด</h2>
+      <h2>ประวัติการจัดสอนแทน</h2>
+      <div class="actions" style="margin-bottom:10px;">
+        <input type="date" id="historyDateFilter" style="flex:1;min-width:140px;padding:12px;border:1px solid var(--border);border-radius:8px;font-size:16px;box-sizing:border-box;">
+        <button class="secondary" id="btnClearHistoryFilter">ดูทั้งหมด</button>
+      </div>
       <div class="table-scroll">
       <table>
         <thead><tr><th>วันที่</th><th>ครูที่ขาด</th><th>เหตุผล</th><th>คาบ</th><th>ห้อง</th><th>วิชา</th><th>ครูสอนแทน</th></tr></thead>
@@ -210,17 +214,6 @@
           <input type="file" id="fileImport" accept=".json" style="display:none;">
         </label>
       </div>
-    </div>
-
-    <div class="card">
-      <h2>ซิงค์กับ Google Sheets</h2>
-      <div class="muted" style="margin-bottom:8px;">วาง URL ของ Apps Script Web App (SubLog) เพื่อให้บันทึก/โหลด Log จาก Google Sheets แทน localStorage เครื่องเดียว</div>
-      <input type="text" id="sheetApiUrl" placeholder="https://script.google.com/macros/s/xxxx/exec" style="width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;font-size:16px;margin-bottom:10px;box-sizing:border-box;">
-      <div class="actions">
-        <button class="secondary" id="btnSaveApiUrl">บันทึก URL</button>
-        <button class="secondary" id="btnSyncNow">ซิงค์ข้อมูลในเครื่องขึ้น Sheet</button>
-      </div>
-      <div class="muted" id="syncStatus" style="margin-top:8px;"></div>
     </div>
   </div>
 
@@ -1584,6 +1577,7 @@ const TIMETABLE = {
 };
 const LOG_STORAGE_KEY = 'sub_log_2569';
 const WORKLOAD_WARN_THRESHOLD = 5;
+const NO_SUB_VALUE = 'ไม่มีการจัดสอนแทน';
 
 // ---------- ภาคเรียน 1/2569: 20 สัปดาห์ แบ่งก่อน/หลังตารางสอนแก้ไข 5 ส.ค. 69 ----------
 // เริ่มภาคเรียน 18 พ.ค. 69 -> ถึง 5 ส.ค. 69 ครบ 11 สัปดาห์เต็ม เหลืออีก 9 สัปดาห์ (รวม 20)
@@ -1637,73 +1631,6 @@ const periods = TIMETABLE.periods.filter(p => p.p !== 'lunch');
 function saveLog(){
   localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(subLog));
 }
-
-// ---------- Google Sheets sync ----------
-const API_URL_KEY = 'sub_sheet_api_url';
-const DEFAULT_SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbyXy9Ne2GFr35g2vkD2WJtVO9dyfQ2fcqZ32b-xMgg8k0eKYGL9eNmxtaVLgA8E7KN1/exec';
-let SHEET_API_URL = localStorage.getItem(API_URL_KEY) || DEFAULT_SHEET_API_URL;
-
-function setSyncStatus(msg){
-  const el = document.getElementById('syncStatus');
-  if(el) el.textContent = msg;
-}
-
-async function loadLogFromSheet(){
-  if(!SHEET_API_URL) return;
-  setSyncStatus('กำลังโหลดข้อมูลจาก Sheet...');
-  try{
-    const res = await fetch(SHEET_API_URL);
-    const data = await res.json();
-    if(data.ok && Array.isArray(data.log)){
-      subLog = data.log;
-      saveLog();
-      renderDashboard();
-      setSyncStatus('โหลดข้อมูลล่าสุดจาก Sheet แล้ว (' + data.log.length + ' รายการ)');
-    } else {
-      setSyncStatus('โหลดข้อมูลจาก Sheet ไม่สำเร็จ ใช้ข้อมูลในเครื่องแทน');
-    }
-  }catch(err){
-    setSyncStatus('เชื่อมต่อ Sheet ไม่ได้ (ออฟไลน์?) ใช้ข้อมูลในเครื่องแทน');
-  }
-}
-
-async function pushToSheet(items){
-  if(!SHEET_API_URL || !items || !items.length) return;
-  try{
-    await fetch(SHEET_API_URL, {
-      method: 'POST',
-      headers: {'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify(items)
-    });
-    setSyncStatus('ซิงค์ขึ้น Sheet แล้ว (' + items.length + ' รายการ)');
-  }catch(err){
-    setSyncStatus('ซิงค์ขึ้น Sheet ไม่สำเร็จ (จะยังอยู่ในเครื่อง ลองซิงค์ใหม่ภายหลัง)');
-  }
-}
-
-document.addEventListener('DOMContentLoaded', ()=>{
-  const urlInput = document.getElementById('sheetApiUrl');
-  if(urlInput) urlInput.value = SHEET_API_URL;
-});
-
-function wireSheetSyncUI(){
-  const urlInput = document.getElementById('sheetApiUrl');
-  if(urlInput) urlInput.value = SHEET_API_URL;
-  const btnSaveApiUrl = document.getElementById('btnSaveApiUrl');
-  if(btnSaveApiUrl) btnSaveApiUrl.addEventListener('click', ()=>{
-    SHEET_API_URL = document.getElementById('sheetApiUrl').value.trim();
-    localStorage.setItem(API_URL_KEY, SHEET_API_URL);
-    toast('บันทึก URL แล้ว');
-    if(SHEET_API_URL) loadLogFromSheet();
-  });
-  const btnSyncNow = document.getElementById('btnSyncNow');
-  if(btnSyncNow) btnSyncNow.addEventListener('click', ()=>{
-    if(!SHEET_API_URL){ toast('ยังไม่ได้ตั้งค่า URL'); return; }
-    pushToSheet(subLog);
-  });
-}
-wireSheetSyncUI();
-if(SHEET_API_URL) loadLogFromSheet();
 
 function toast(msg){
   const t = document.getElementById('toast');
@@ -1895,6 +1822,10 @@ function renderResultTable(day){
         opt.textContent = `${c.name} (${c.ppw} คาบ/สัปดาห์)${c.wl>=WORKLOAD_WARN_THRESHOLD?' ⚠ สอนแทนบ่อย':''}`;
         sel.appendChild(opt);
       });
+      const noSubOpt = document.createElement('option');
+      noSubOpt.value = NO_SUB_VALUE;
+      noSubOpt.textContent = NO_SUB_VALUE;
+      sel.appendChild(noSubOpt);
       sel.addEventListener('change', refreshSubOptions);
       td.appendChild(sel);
     }
@@ -1913,6 +1844,7 @@ function assignDefaultsNoDuplicate(){
     usedByPeriod[period] = usedByPeriod[period] || new Set();
     let chosen = null;
     for(const opt of sel.options){
+      if(opt.value === NO_SUB_VALUE) continue;
       if(!usedByPeriod[period].has(opt.value)){ chosen = opt.value; break; }
     }
     if(chosen){
@@ -1932,6 +1864,7 @@ function refreshSubOptions(){
     const chosenValues = selects.map(s=>s.value);
     selects.forEach(sel=>{
       Array.from(sel.options).forEach(opt=>{
+        if(opt.value === NO_SUB_VALUE){ opt.disabled = false; return; }
         opt.disabled = opt.value !== sel.value && chosenValues.includes(opt.value);
       });
     });
@@ -1964,7 +1897,7 @@ document.getElementById('btnSave').addEventListener('click', ()=>{
   // กันครูคนเดียวกันถูกจัดสอนแทน 2 ห้องพร้อมกันในคาบเดียวกัน (เผื่อกรณีพิมพ์ชื่อเองซ้ำ)
   const seenPerPeriod = {};
   for(const a of assignments){
-    if(a.substitute === '(ยังไม่ระบุ)') continue;
+    if(a.substitute === '(ยังไม่ระบุ)' || a.substitute === NO_SUB_VALUE) continue;
     seenPerPeriod[a.period] = seenPerPeriod[a.period] || new Set();
     if(seenPerPeriod[a.period].has(a.substitute)){
       toast(`บันทึกไม่สำเร็จ: ${a.substitute} ถูกจัดสอนแทนซ้ำในคาบ ${a.period} มากกว่า 1 ห้อง กรุณาแก้ไขก่อนบันทึก`);
@@ -1986,7 +1919,6 @@ document.getElementById('btnSave').addEventListener('click', ()=>{
   saveLog();
   toast('บันทึกการจัดสอนแทนเรียบร้อย');
   document.getElementById('saveMsg').textContent = `บันทึกแล้ว ${assignments.length} รายการ`;
-  if(SHEET_API_URL) pushToSheet(newEntries);
 
   renderShareCard(date, assignments);
   document.getElementById('shareOuter').style.display = 'block';
@@ -2044,25 +1976,46 @@ function renderDashboard(){
   const absentCounts = {};
   teachers.forEach(t=>{ subCounts[t.name]=0; absentCounts[t.name]=0; });
   subLog.forEach(a=>{
+    if(a.substitute === NO_SUB_VALUE) return; // ไม่มีการจัดสอนแทน ไม่นับทั้งสองฝั่ง
     subCounts[a.substitute] = (subCounts[a.substitute]||0) + 1;
     absentCounts[a.absent_teacher] = (absentCounts[a.absent_teacher]||0) + 1;
   });
   const entries = Object.keys(subCounts).sort((a,b)=>semesterPeriods(b)-semesterPeriods(a));
   const body = document.getElementById('dashBody');
-  body.innerHTML = entries.map(name=>`
+  body.innerHTML = entries.map(name=>{
+    const base = semesterPeriods(name);
+    const sub = subCounts[name] || 0;
+    const absent = absentCounts[name] || 0;
+    const netSummary = base + sub - absent;
+    return `
     <tr>
       <td class="dash-name">${name}</td>
-      <td class="center">${semesterPeriods(name)}</td>
-      <td class="center">${subCounts[name]}</td>
-      <td class="center">${absentCounts[name] || 0}</td>
-    </tr>`).join('');
+      <td class="center">${base}</td>
+      <td class="center">${sub}</td>
+      <td class="center">${absent}</td>
+      <td class="center">${netSummary}</td>
+    </tr>`;
+  }).join('');
 
   const logBody = document.getElementById('logBody');
-  const recent = [...subLog].reverse().slice(0,50);
-  logBody.innerHTML = recent.map(a=>`
+  const filterInput = document.getElementById('historyDateFilter');
+  const filterDate = filterInput ? filterInput.value : '';
+  let historyRows;
+  if(filterDate){
+    historyRows = subLog.filter(a=>a.date === filterDate).slice().reverse();
+  } else {
+    historyRows = [...subLog].reverse().slice(0,50);
+  }
+  logBody.innerHTML = historyRows.map(a=>`
     <tr><td>${a.date}</td><td>${a.absent_teacher}</td><td>${a.reason}</td><td>${a.period}</td><td>${a.class}</td><td>${a.subject}</td><td>${a.substitute}</td></tr>
-  `).join('') || '<tr class="empty-row"><td colspan="7">ยังไม่มีข้อมูล</td></tr>';
+  `).join('') || `<tr class="empty-row"><td colspan="7">${filterDate ? 'ไม่มีข้อมูลวันที่เลือก' : 'ยังไม่มีข้อมูล'}</td></tr>`;
 }
+
+document.getElementById('historyDateFilter').addEventListener('change', renderDashboard);
+document.getElementById('btnClearHistoryFilter').addEventListener('click', ()=>{
+  document.getElementById('historyDateFilter').value = '';
+  renderDashboard();
+});
 
 document.getElementById('btnExport').addEventListener('click', ()=>{
   const blob = new Blob([JSON.stringify(subLog, null, 2)], {type:'application/json'});
