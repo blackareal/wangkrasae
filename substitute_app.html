@@ -44,9 +44,13 @@
   th,td{border:1px solid var(--border);padding:6px 8px;text-align:left;}
   th{background:var(--blue-light);color:var(--blue);font-weight:600;}
   th.th-amber{background:#fdf3e3;color:var(--amber);}
+  th.th-red{background:#fdecea;color:var(--red);}
+  th.th-green{background:#eafaf1;color:var(--green);}
   th.sortable{cursor:pointer;user-select:none;white-space:nowrap;}
   th.sortable:hover{background:#f0f0f0;}
   th.sortable.th-amber:hover{background:#faeacb;}
+  th.sortable.th-red:hover{background:#fbdcd8;}
+  th.sortable.th-green:hover{background:#d6f5e3;}
   th.sortable .sort-arrow{display:inline-block;margin-left:4px;opacity:0.4;font-size:11px;}
   th.sortable.sort-active .sort-arrow{opacity:1;}
   .center{text-align:center;}
@@ -199,8 +203,8 @@
           <th class="sortable" data-sort="name">ครู</th>
           <th class="center sortable" data-sort="base">คาบ/ภาคเรียน</th>
           <th class="center sortable" data-sort="sub">สอนแทน/คาบ</th>
-          <th class="center th-amber sortable" data-sort="absent">จัดสอนแทน/คาบ</th>
-          <th class="center sortable" data-sort="net">สรุปคาบสอน 1/2569</th>
+          <th class="center th-red sortable" data-sort="absent">จัดสอนแทน/คาบ</th>
+          <th class="center th-green sortable" data-sort="net">สรุปคาบสอน 1/2569</th>
         </tr></thead>
         <tbody id="dashBody"></tbody>
       </table>
