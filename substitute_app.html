@@ -24,11 +24,11 @@
   label{display:block;font-size:13px;margin-bottom:4px;color:#555;}
   input[type=date], select, input[type=text]{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:16px;font-family:inherit;min-height:44px;}
   .teacher-list{max-height:420px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:6px;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;align-content:start;}
-  @media (max-width:400px){ .teacher-list{grid-template-columns:repeat(2,1fr);} }
-  .t-row{padding:6px 5px;border:1px solid #f0f1f3;border-radius:6px;}
+  @media (max-width:700px){ .teacher-list{grid-template-columns:repeat(2,1fr);} }
+  .t-row{padding:8px 6px;border:1px solid #f0f1f3;border-radius:6px;min-height:40px;}
   .t-row:active{background:var(--blue-light);}
   .t-main{display:flex;align-items:flex-start;gap:5px;cursor:pointer;}
-  .t-main input[type=checkbox]{width:18px;height:18px;flex:none;margin:1px 0 0;}
+  .t-main input[type=checkbox]{width:20px;height:20px;flex:none;margin:1px 0 0;}
   .t-name{flex:1;font-size:12px;line-height:1.3;word-break:break-word;}
   .t-extra{display:none;margin-top:6px;}
   .t-extra.active{display:block;}
@@ -2058,12 +2058,16 @@ function isTeacherFree(name, day, period){
 
 // ---------- Find periods needing substitutes ----------
 let currentNeeds = []; // {period, time, class, subject, absentTeacher, reason}
+// รายชื่อครูที่ติ๊กว่าไม่มา "ทั้งหมด" ของวันนี้ (ไม่ใช่แค่คนที่มีคาบสอนในวันนั้น) —
+// ใช้กันไม่ให้ครูที่ขาดแบบไม่มีคาบสอนวันนั้นเอง หลุดไปเป็นตัวเลือกสอนแทนให้คนอื่น
+let currentAbsentNames = [];
 
 document.getElementById('btnFind').addEventListener('click', ()=>{
   const day = dayInput.value;
   const checkedBoxes = Array.from(document.querySelectorAll('#teacherList input.absentChk:checked'));
   if(checkedBoxes.length === 0){ toast('กรุณาเลือกครูที่ไม่มาอย่างน้อย 1 คน'); return; }
 
+  currentAbsentNames = checkedBoxes.map(chk=>chk.value);
   currentNeeds = [];
   checkedBoxes.forEach(chk=>{
     const name = chk.value;
@@ -2098,7 +2102,10 @@ function renderResultTable(day){
     return;
   }
 
-  const absentSet = new Set(currentNeeds.map(n=>n.absentTeacher));
+  // ใช้ currentAbsentNames (ครูที่ติ๊กไม่มาทั้งหมด) แทนการอิงจาก currentNeeds เพียงอย่างเดียว
+  // เพราะครูที่ไม่มีคาบสอนในวันนั้นเลย (เช่น ไปราชการทั้งวันแต่วันนั้นว่างพอดี) จะไม่ถูกเพิ่มใน currentNeeds
+  // แต่ก็ยังต้องถูกกันออกจากตัวเลือกครูสอนแทนอยู่ดี
+  const absentSet = new Set(currentAbsentNames);
 
   currentNeeds.forEach((need, idx)=>{
     // free teachers = not absent, not teaching this period/day
