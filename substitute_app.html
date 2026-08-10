@@ -249,6 +249,22 @@
       </table>
       </div>
     </div>
+    <div class="card">
+      <h2>สรุปจำนวนวัน การลา/ไปราชการ ที่ต้องการมีการจัดสอนแทน (1/2569)</h2>
+      <div class="table-scroll">
+      <table>
+        <thead><tr>
+          <th>ชื่อ</th>
+          <th class="center">ลาป่วย</th>
+          <th class="center">ลากิจ</th>
+          <th class="center">ไปราชการ</th>
+          <th class="center">อื่น ๆ</th>
+          <th class="center">รวม</th>
+        </tr></thead>
+        <tbody id="reasonCountBody"></tbody>
+      </table>
+      </div>
+    </div>
   </div>
 
 </div>
@@ -2304,8 +2320,44 @@ function renderPeriodsTable(){
   }).join('');
 }
 
+// นับ "ครั้ง" การลา/ไปราชการ แยกตามเหตุผล ต่อครู — นับตาม (ครู+วันที่+เหตุผล) ที่ไม่ซ้ำกัน
+// เพื่อไม่ให้วันที่ขาดหลายคาบในวันเดียวถูกนับเป็นหลายครั้ง
+function renderReasonCountsTable(){
+  const body = document.getElementById('reasonCountBody');
+  if(!body) return;
+
+  const seen = new Set();
+  const counts = {}; // teacherName -> { reason: n }
+  subLog.forEach(a=>{
+    if(!a.absent_teacher || !a.reason) return;
+    const key = a.absent_teacher + '|' + a.date + '|' + a.reason;
+    if(seen.has(key)) return;
+    seen.add(key);
+    counts[a.absent_teacher] = counts[a.absent_teacher] || {};
+    counts[a.absent_teacher][a.reason] = (counts[a.absent_teacher][a.reason] || 0) + 1;
+  });
+
+  body.innerHTML = teachers.map(t=>{
+    const c = counts[t.name] || {};
+    const sick = c['ลาป่วย'] || 0;
+    const personal = c['ลากิจ'] || 0;
+    const official = c['ไปราชการ'] || 0;
+    const other = c['อื่น ๆ'] || 0;
+    const total = sick + personal + official + other;
+    return `<tr>
+      <td class="dash-name">${t.name}</td>
+      <td class="center">${sick}</td>
+      <td class="center">${personal}</td>
+      <td class="center">${official}</td>
+      <td class="center">${other}</td>
+      <td class="center">${total}</td>
+    </tr>`;
+  }).join('');
+}
+
 function renderDashboard(){
   renderPeriodsTable();
+  renderReasonCountsTable();
   const subCounts = {};
   const absentCounts = {};
   teachers.forEach(t=>{ subCounts[t.name]=0; absentCounts[t.name]=0; });
