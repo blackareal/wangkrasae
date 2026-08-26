@@ -2137,7 +2137,8 @@ document.getElementById('btnFind').addEventListener('click', ()=>{
     const reason = reasonSel ? reasonSel.value : 'ลาป่วย';
     const t = teachers.find(x=>x.name===name);
     if(!t || !t.schedule || !t.schedule[day]) return;
-    Object.keys(t.schedule[day]).sort((a,b)=>Number(a)-Number(b)).forEach(period=>{
+    // จัดสอนแทนพิจารณาเฉพาะคาบ 1-5 เท่านั้น (คาบ 6-8 เป็นกิจกรรม/สืบเสาะ/ชุมนุม ไม่ใช่คาบเรียนปกติที่ต้องหาคนแทน)
+    Object.keys(t.schedule[day]).filter(p=>Number(p)<=5).sort((a,b)=>Number(a)-Number(b)).forEach(period=>{
       const cls = t.schedule[day][period];
       currentNeeds.push({
         period: period,
