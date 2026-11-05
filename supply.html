@@ -181,7 +181,7 @@ const thDate=iso=>{if(!iso)return'-';const [y,m,d]=iso.split('-');return `${+d} 
 const today=()=>new Date().toISOString().slice(0,10);
 const item=id=>S.items.find(i=>i.id===id);
 const stat=i=>i.stock<=0?'out':(i.stock<=i.min?'low':'ok');
-const statTx={ok:'พอใช้',low:'ใกล้หมด',out:'หมด'};
+const statTx={ok:'พร้อม',low:'ใกล้หมด',out:'หมด'};
 const stTx={pending:'รออนุมัติ',done:'จ่ายแล้ว',rejected:'ไม่อนุมัติ'};
 function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),2300)}
 function openModal(h){$('modal').innerHTML=h;$('modalBg').classList.add('show')}
@@ -376,7 +376,7 @@ function reqCard(r,staff){
   <ul>${lines}</ul>
   ${r.status==='rejected'?`<div class="sub" style="color:var(--bad)">เหตุผล: ${esc(r.reason||'-')}</div>`:''}
   ${r.status==='done'?`<div class="sub">จ่ายเมื่อ ${thDate(r.decided)}</div>`:''}
-  <div class="act">${staff&&r.status==='pending'?`<button class="btn ok sm" onclick="approve('${r.id}')">✓ อนุมัติ/จ่ายของ</button><button class="btn bad sm" onclick="rejectModal('${r.id}')">ไม่อนุมัติ</button>`:''}<button class="btn ghost sm" onclick="printReq('${r.id}')">🖨️ พิมพ์ใบเบิก</button>${staff?`<button class="btn ghost sm" onclick="psModal()">⚙️ ตั้งค่าหน้ากระดาษ/ฟอนต์</button>`:''}${!staff&&r.status==='pending'?`<button class="btn ghost sm" onclick="cancelReq('${r.id}')">ยกเลิกคำขอ</button>`:''}</div></div>`
+  <div class="act">${staff&&r.status==='pending'?`<button class="btn ok sm" onclick="approve('${r.id}')">✓ อนุมัติ/จ่ายของ</button><button class="btn bad sm" onclick="rejectModal('${r.id}')">ไม่อนุมัติ</button>`:''}<button class="btn ghost sm" onclick="printReq('${r.id}')">🖨️ พิมพ์ใบเบิก</button>${!staff&&r.status==='pending'?`<button class="btn ghost sm" onclick="cancelReq('${r.id}')">ยกเลิกคำขอ</button>`:''}</div></div>`
 }
 function vMine(){
   const my=S.requests.filter(r=>r.by===S.user);
