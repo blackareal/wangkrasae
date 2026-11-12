@@ -196,7 +196,7 @@ let filt={cat:'ทั้งหมด',q:'',rq:'all',sq:'',slow:false,hq:'',ht:'a
 function setRole(r){S.role=r;S.tab=r==='teacher'?'catalog':'overview';save();render()}
 function setTab(t){S.tab=t;save();render()}
 const isStaff=()=>!!(S.users.find(u=>u.name===S.user)||{}).staff;
-function logout(){S.user=null;S.cart=[];S.cartForm={};S.role='teacher';S.tab='catalog';
+function logout(){qcart={};S.user=null;S.cart=[];S.cartForm={};S.role='teacher';S.tab='catalog';
   if(API_URL){S.pin=null;S.users=[];S.requests=[];S.moves=[];try{sessionStorage.removeItem('wsw_pin')}catch(e){}}
   save();render()}
 async function doLogin(){
@@ -234,31 +234,143 @@ function render(){
   if(!tabs.some(t=>t[0]===S.tab))S.tab=tabs[0][0];
   ({catalog:vCatalog,mine:vMine,overview:vOverview,queue:vQueue,stock:vStock,history:vHistory,users:vUsers,quota:vQuota})[S.tab]();
 }
-/* ---------- วัสดุสำนักงาน (โควตาครูละ N บาท/ภาคเรียน) — ย้ายมาจากระบบติดตามงบประมาณเดิม ---------- */
-const defaultQuota=()=>({budget:1000,sem:'2/2569',orders:[
- [PEOPLE[10],'กรรไกร ขนาด 8 นิ้ว',2,'อัน',45],[PEOPLE[10],'เลคซีน ขนาด 1 นิ้ว',4,'ม้วน',25],[PEOPLE[10],'แฟ้มเก็บเอกสาร A4',6,'แฟ้ม',60],
- [PEOPLE[4],'กาวสองหน้า แบบบาง',6,'ม้วน',30],[PEOPLE[4],'คลิปดำ ขนาด 1 นิ้ว',3,'กล่อง',20],
- [PEOPLE[13],'ปากกาเมจิก 12 สี',2,'กล่อง',120],[PEOPLE[13],'สันรูด ขนาด 1 นิ้ว',20,'ใบ',5],[PEOPLE[13],'แม็กเย็บเอกสาร',3,'ชุด',85],
- [PEOPLE[11],'ลูกแม็ก เบอร์ 10',10,'กล่อง',12]
-].map((r,k)=>({sem:k<5?'1/2569':'2/2569',name:r[0],item:r[1],qty:r[2],unit:r[3],price:r[4],note:''}))});
-const PRICE_URL='https://blackareal.github.io/wangkrasae/w.material.html';
-const ORDERFORM_URL='https://docs.google.com/spreadsheets/d/1dCdxyTFPcmy0e5ypBGajReZKNpUbSjgZ/export?format=xlsx';
+/* ---------- วัสดุสำนักงาน (โควตาครูละ N บาท/ภาคเรียน) — สั่งในระบบ + ดาวน์โหลดสรุป ---------- */
+const DEMO_CAT=[['W001','กระดาษ A4 80G','กล่อง',700],['W002','กระดาษ A4 70G','กล่อง',600],['W103','ดินสอ HB','โหล',45],['W120','ปากกาลูกลื่น สีน้ำเงิน','โหล',60],['W150','แฟ้มเก็บเอกสาร A4','แฟ้ม',60]].map(r=>({code:r[0],name:r[1],unit:r[2],price:r[3]}));
+const defaultQuota=()=>({budget:1000,sem:'2/2569',open:true,catalog:DEMO_CAT,orders:[]});
+let qcart={},qsearch='';
+const qfmt=n=>Number(n||0).toLocaleString('th-TH',{minimumFractionDigits:0,maximumFractionDigits:2});
+const qCat=code=>(S.quota.catalog||[]).find(c=>c.code===code);
+const qUsed=(name,sem)=>S.quota.orders.filter(o=>o.sem===sem&&o.name===name).reduce((s,o)=>s+o.qty*o.price,0);
+const qCartTotal=()=>Object.keys(qcart).reduce((s,c)=>{const it=qCat(c);return s+(it?it.price*qcart[c]:0)},0);
+function qGroups(os){ // จัดกลุ่มรายการตามเลขที่คำสั่ง
+  const g=[],m={};
+  os.forEach(o=>{const k=o.oid||'-';if(!m[k]){m[k]={oid:o.oid,date:o.date,lines:[]};g.push(m[k])}m[k].lines.push(o)});
+  return g.sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(b.oid).localeCompare(String(a.oid)))
+}
 function vQuota(){
-  const Q=S.quota,staff=isStaff();const sem=window.qsem||Q.sem;const OS=Q.orders.filter(o=>o.sem===sem);const sems=[...new Set([Q.sem,...Q.orders.map(o=>o.sem)])].sort().reverse();const fmt=n=>Number(n||0).toLocaleString('th-TH');
-  const people=staff?S.users.filter(u=>true):S.users.filter(u=>u.name===S.user);
+  const Q=S.quota,staff=isStaff();const sem=window.qsem||Q.sem;const OS=Q.orders.filter(o=>o.sem===sem);
+  const sems=[...new Set([Q.sem,...Q.orders.map(o=>o.sem)])].sort().reverse();
+  const cur=sem===Q.sem,open=Q.open!==false;
+  const people=staff?S.users:S.users.filter(u=>u.name===S.user);
+  const myUsed=qUsed(S.user,sem),myLeft=Math.max(Q.budget-myUsed,0);
   const card=(u,k)=>{
     const os=OS.filter(o=>o.name===u.name),spent=os.reduce((s,o)=>s+o.qty*o.price,0);
     const pct=Q.budget>0?Math.min(Math.round(spent/Q.budget*100),100):0;const clr=pct>=100?'#c62828':pct>=80?'#e65100':'#2e7d32';
+    const canCancel=cur&&(staff||open)&&(staff||u.name===S.user);
+    const body=os.length?qGroups(os).map(g=>`<div style="border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:8px">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:4px"><b style="font-size:13px">${g.oid?esc(g.oid):'รายการเดิม (ก่อนใช้ระบบสั่งออนไลน์)'}</b><span class="sub">${esc(g.date||'')}</span><span style="flex:1"></span><b>฿${qfmt(g.lines.reduce((s,o)=>s+o.qty*o.price,0))}</b>${g.oid&&canCancel?`<button class="btn bad sm" onclick="cancelQuotaOrder('${g.oid}')">ยกเลิกคำสั่งนี้</button>`:''}</div>
+      <table><tr><th>รายการ</th><th style="text-align:center">จำนวน</th><th>หน่วย</th><th style="text-align:right">ราคา/หน่วย</th><th style="text-align:right">รวม</th></tr>${g.lines.map(o=>`<tr><td>${esc(o.item)}</td><td style="text-align:center">${o.qty}</td><td>${esc(o.unit)}</td><td style="text-align:right">฿${qfmt(o.price)}</td><td style="text-align:right"><b>฿${qfmt(o.qty*o.price)}</b></td></tr>`).join('')}</table></div>`).join(''):'<div class="sub">ยังไม่มีรายการสั่งซื้อในภาคเรียนนี้</div>';
     return `<div class="req" style="padding:0"><div style="padding:13px 15px;display:flex;gap:12px;align-items:center;cursor:pointer;flex-wrap:wrap" onclick="document.getElementById('qd${k}').style.display=document.getElementById('qd${k}').style.display==='none'?'block':'none'">
       <div style="flex:1;min-width:180px"><b>${esc(u.name)}</b><div class="sub">${esc(u.pos)}</div></div>
       <div style="flex:1;min-width:140px;background:#e2e8f0;border-radius:99px;height:10px"><div style="width:${pct}%;height:100%;border-radius:99px;background:${clr}"></div></div>
-      <div style="min-width:150px;text-align:right"><b style="color:${clr}">฿${fmt(spent)}</b> / ${fmt(Q.budget)} <div class="sub">เหลือ ฿${fmt(Math.max(Q.budget-spent,0))}</div></div></div>
-      <div id="qd${k}" style="display:${staff?'none':'block'};padding:0 15px 13px">${os.length?`<table><tr><th>รายการ</th><th style="text-align:center">จำนวน</th><th>หน่วย</th><th style="text-align:right">ราคา/หน่วย</th><th style="text-align:right">รวม</th></tr>${os.map(o=>`<tr><td>${esc(o.item)}</td><td style="text-align:center">${o.qty}</td><td>${esc(o.unit)}</td><td style="text-align:right">฿${fmt(o.price)}</td><td style="text-align:right"><b>฿${fmt(o.qty*o.price)}</b></td></tr>`).join('')}</table>`:'<div class="sub">ยังไม่มีรายการสั่งซื้อในภาคเรียนนี้</div>'}</div></div>`};
+      <div style="min-width:150px;text-align:right"><b style="color:${clr}">฿${qfmt(spent)}</b> / ${qfmt(Q.budget)} <div class="sub">เหลือ ฿${qfmt(Math.max(Q.budget-spent,0))}</div></div></div>
+      <div id="qd${k}" style="display:${staff?'none':'block'};padding:0 15px 13px">${body}</div></div>`};
   const ord=[...people].sort((a,b)=>(OS.some(o=>o.name===b.name)-OS.some(o=>o.name===a.name))||a.name.localeCompare(b.name,'th'));
-  $('view').innerHTML=`<div class="card" style="margin-bottom:12px;display:flex;gap:12px;flex-wrap:wrap;align-items:center"><div style="flex:1;min-width:240px"><b>วัสดุสำนักงาน</b> — บุคลากรทุกคนสั่งซื้อได้ภาคเรียนละไม่เกิน <b>${fmt(Q.budget)} บาท</b> · ภาคเรียนที่ <select onchange="window.qsem=this.value;vQuota()" style="padding:3px 8px;border-radius:8px;border:2px solid var(--line);font-family:inherit">${sems.map(s=>`<option ${s===sem?'selected':''}>${s}</option>`).join('')}</select>${sem!==Q.sem?' <span class="tag pending">ย้อนหลัง</span>':''}<br><span class="sub" style="font-size:13px;color:var(--mute)">โหลดใบสั่งของ กรอกรายการ แล้วส่งให้ผู้ดูแลพัสดุทางไลน์</span></div>
-   <a class="btn ghost" style="text-decoration:none" href="${PRICE_URL}" target="_blank">📋 รายละเอียดวัสดุและราคา</a><a class="btn ok" style="text-decoration:none" href="${ORDERFORM_URL}">⬇️ ใบสั่งของ</a>${staff?`<button class="btn ghost" onclick="setBudget()">✎ ตั้งภาคเรียน/วงเงิน</button>`:''}</div>`
-   +ord.map((u,k)=>card(u,k)).join('')
+  const head=`<div class="card" style="margin-bottom:12px;display:flex;gap:12px;flex-wrap:wrap;align-items:center"><div style="flex:1;min-width:240px"><b>วัสดุสำนักงาน</b> — บุคลากรทุกคนสั่งซื้อได้ภาคเรียนละไม่เกิน <b>${qfmt(Q.budget)} บาท</b> · ภาคเรียนที่ <select onchange="window.qsem=this.value;qcart={};vQuota()" style="padding:3px 8px;border-radius:8px;border:2px solid var(--line);font-family:inherit">${sems.map(s=>`<option ${s===sem?'selected':''}>${s}</option>`).join('')}</select>${!cur?' <span class="tag pending">ย้อนหลัง</span>':''}${cur?(open?' <span class="tag done">เปิดรับคำสั่งซื้อ</span>':' <span class="tag rejected">ปิดรับคำสั่งซื้อแล้ว</span>'):''}<br><span class="sub" style="font-size:13px;color:var(--mute)">เลือกสินค้าจากบัญชีราคา ส่งคำสั่งซื้อในระบบได้เลย ไม่ต้องส่งไฟล์ทางไลน์</span></div>
+   ${staff?`<button class="btn ok" onclick="exportQuota()">⬇️ ดาวน์โหลดสรุป (Excel)</button><button class="btn ghost" onclick="toggleRound()">${open?'🔒 ปิดรับคำสั่งซื้อ':'🔓 เปิดรับคำสั่งซื้อ'}</button><button class="btn ghost" onclick="setBudget()">✎ ตั้งภาคเรียน/วงเงิน</button>`:''}</div>`;
+  let shop='';
+  if(cur&&!open)shop=`<div class="card" style="margin-bottom:12px;color:#991b1b;background:#fef2f2">ปิดรับคำสั่งซื้อวัสดุสำนักงานของภาคเรียนนี้แล้ว หากต้องการสั่งเพิ่มหรือแก้ไข กรุณาติดต่องานพัสดุ</div>`;
+  else if(cur)shop=`<div class="layout" style="margin-bottom:14px"><div class="card"><div class="toolbar" style="margin-bottom:8px"><input type="search" id="qs" class="grow" placeholder="🔍 ค้นหาสินค้า (ชื่อ / รหัส เช่น กระดาษ, W001)" value="${esc(qsearch)}" oninput="qsearch=this.value;qList()"></div><div id="qlist" style="max-height:480px;overflow:auto"></div>
+    <div class="sub" style="margin-top:8px;font-size:12.5px">ไม่พบสินค้าที่ต้องการ? รายการนอกบัญชีราคาไม่สามารถดำเนินการในระบบได้ กรุณาติดต่องานพัสดุ</div></div>
+    <div class="card cart" id="qcart"></div></div>`;
+  $('view').innerHTML=head+shop+`<div class="sub" style="margin:4px 2px 8px;font-weight:600">${staff?'ยอดสั่งซื้อรายบุคคล':'คำสั่งซื้อของฉัน'}${!staff?` · ใช้ไป ฿${qfmt(myUsed)} · เหลือ ฿${qfmt(myLeft)}`:''}</div>`+ord.map((u,k)=>card(u,k)).join('');
+  if(cur&&open){qList();qCartRender()}
 }
+function qList(){
+  const el=$('qlist');if(!el)return;const q=qsearch.trim().toLowerCase();
+  const rows=(S.quota.catalog||[]).filter(c=>!q||c.name.toLowerCase().includes(q)||c.code.toLowerCase().includes(q));
+  el.innerHTML=rows.length?`<table style="width:100%">${rows.map(c=>`<tr><td style="width:56px;color:var(--mute);font-size:12px">${esc(c.code)}</td><td>${esc(c.name)}<div class="sub">${esc(c.unit)}</div></td><td style="text-align:right;white-space:nowrap"><b>฿${qfmt(c.price)}</b></td><td style="text-align:right;width:70px"><button class="btn ghost sm" onclick="qAdd('${c.code}')">＋ เพิ่ม</button></td></tr>`).join('')}</table>`:'<div class="sub" style="padding:14px">ไม่พบสินค้า — ติดต่องานพัสดุ ไม่สามารถดำเนินการในระบบได้</div>'
+}
+function qAdd(code){qcart[code]=Math.min(999,(qcart[code]||0)+1);qCartRender()}
+function qStep(code,d){const n=(qcart[code]||0)+d;if(n<1)delete qcart[code];else qcart[code]=Math.min(999,n);qCartRender()}
+function qSet(code,v){const n=Math.floor(+v);if(!(n>=1))delete qcart[code];else qcart[code]=Math.min(999,n);qCartRender()}
+function qCartRender(){
+  const el=$('qcart');if(!el)return;const Q=S.quota,codes=Object.keys(qcart).filter(c=>qCat(c));
+  const used=qUsed(S.user,Q.sem),tot=qCartTotal(),left=Q.budget-used-tot,over=left<-0.001;
+  el.innerHTML=`<h3>🛒 ตะกร้าสั่งซื้อ</h3>`+(codes.length?codes.map(c=>{const it=qCat(c);return `<div style="display:flex;gap:6px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)"><div style="flex:1;font-size:13.5px">${esc(it.name)}<div class="sub">฿${qfmt(it.price)} / ${esc(it.unit)}</div></div><div class="step"><button onclick="qStep('${c}',-1)">−</button><input value="${qcart[c]}" onchange="qSet('${c}',this.value)"><button onclick="qStep('${c}',1)">＋</button></div><div style="min-width:64px;text-align:right"><b>฿${qfmt(it.price*qcart[c])}</b></div></div>`}).join(''):'<div class="sub" style="padding:10px 0">ยังไม่ได้เลือกสินค้า</div>')
+   +`<div style="margin-top:10px;font-size:14px"><div style="display:flex;justify-content:space-between"><span>ใช้ไปแล้ว</span><span>฿${qfmt(used)}</span></div><div style="display:flex;justify-content:space-between"><span>คำสั่งซื้อนี้</span><b>฿${qfmt(tot)}</b></div><div style="display:flex;justify-content:space-between;color:${over?'#c62828':'#2e7d32'}"><span>${over?'เกินโควตา':'คงเหลือหลังสั่ง'}</span><b>฿${qfmt(Math.abs(left))}</b></div></div>`
+   +`<button class="btn ok" style="width:100%;margin-top:10px" ${(!codes.length||over)?'disabled':''} onclick="submitQuota()">ส่งคำสั่งซื้อ</button>${over?'<div class="sub" style="color:#c62828;margin-top:6px">ยอดเกินโควตา ลดจำนวนหรือเอาบางรายการออก</div>':''}`
+}
+function submitQuota(){
+  const lines=Object.keys(qcart).filter(c=>qCat(c)).map(c=>({code:c,qty:qcart[c]}));if(!lines.length)return;
+  if(!confirm(`ยืนยันส่งคำสั่งซื้อ ${lines.length} รายการ รวม ฿${qfmt(qCartTotal())} ?\n(ยกเลิกเองได้จนกว่าพัสดุจะปิดรับคำสั่งซื้อ)`))return;
+  if(API_URL)return busy(async()=>{const r=await api('orderQuota',{lines});qcart={};await refresh();toast('✅ ส่งคำสั่งซื้อแล้ว '+r.oid)});
+  const Q=S.quota,d=today(),oid='Q'+Q.sem.split('/')[1]+'-'+Q.sem.split('/')[0]+'-'+String(new Set(Q.orders.map(o=>o.oid).filter(Boolean)).size+1).padStart(3,'0');
+  lines.forEach(l=>{const c=qCat(l.code);Q.orders.push({sem:Q.sem,name:S.user,item:c.name,qty:l.qty,unit:c.unit,price:c.price,note:'',code:c.code,oid,date:d})});
+  qcart={};save();vQuota();toast('✅ ส่งคำสั่งซื้อแล้ว '+oid)
+}
+function cancelQuotaOrder(oid){
+  if(!confirm('ยกเลิกคำสั่งซื้อ '+oid+' ?'))return;
+  if(API_URL)return busy(async()=>{await api('cancelOrder',{oid});await refresh();toast('ยกเลิกแล้ว')});
+  S.quota.orders=S.quota.orders.filter(o=>o.oid!==oid);save();vQuota();toast('ยกเลิกแล้ว')
+}
+function toggleRound(){
+  const open=S.quota.open!==false;
+  if(!confirm(open?'ปิดรับคำสั่งซื้อ? ครูจะสั่ง/ยกเลิกเองไม่ได้อีกจนกว่าจะเปิดใหม่':'เปิดรับคำสั่งซื้ออีกครั้ง?'))return;
+  if(API_URL)return busy(async()=>{await api('setRound',{open:!open});await refresh();toast(open?'ปิดรับคำสั่งซื้อแล้ว':'เปิดรับคำสั่งซื้อแล้ว')});
+  S.quota.open=!open;save();vQuota()
+}
+/* ----- สร้างไฟล์ Excel สรุป (ExcelJS โหลดเมื่อกดปุ่มเท่านั้น) ----- */
+function buildQuotaWorkbook(ExcelJS,d){ // d={sem,budget,orders,users,printed}
+  const FONT='TH SarabunPSK',wb=new ExcelJS.Workbook();wb.creator='ระบบงานพัสดุ โรงเรียนวังกระแสวิทยาคม';
+  const thin={style:'thin',color:{argb:'FF999999'}},bd={top:thin,left:thin,bottom:thin,right:thin};
+  const NUM='#,##0.00',F=(o)=>Object.assign({name:FONT,size:14},o||{});
+  const mk=(name,cols,title,sub)=>{
+    const ws=wb.addWorksheet(name,{pageSetup:{paperSize:9,orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:0,margins:{left:.5,right:.5,top:.6,bottom:.6,header:.3,footer:.3}}});
+    ws.columns=cols.map(c=>({width:c[1]}));const n=cols.length;
+    ws.mergeCells(1,1,1,n);ws.getCell(1,1).value=title;ws.getCell(1,1).font=F({size:18,bold:true});ws.getCell(1,1).alignment={horizontal:'center'};
+    ws.mergeCells(2,1,2,n);ws.getCell(2,1).value=sub;ws.getCell(2,1).font=F();ws.getCell(2,1).alignment={horizontal:'center'};
+    const h=ws.getRow(4);cols.forEach((c,i)=>{const x=h.getCell(i+1);x.value=c[0];x.font=F({bold:true});x.alignment={horizontal:'center',vertical:'middle',wrapText:true};x.border=bd;x.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFDBEAFE'}}});
+    ws.views=[{state:'frozen',ySplit:4}];ws.pageSetup.printTitlesRow='4:4';return ws};
+  const put=(ws,r,vals,o)=>{o=o||{};vals.forEach((v,i)=>{const c=ws.getCell(r,i+1);if(v!==undefined&&v!==null)c.value=v;c.font=F({bold:!!o.bold});c.border=bd;if(o.fill)c.fill={type:'pattern',pattern:'solid',fgColor:{argb:o.fill}};
+    const t=(o.types||[])[i];if(t==='n'){c.numFmt=NUM;c.alignment={horizontal:'right',vertical:'top'}}else if(t==='i'){c.alignment={horizontal:'center',vertical:'top'}}else c.alignment={vertical:'top',wrapText:true}})};
+  const sub=`ภาคเรียนที่ ${d.sem} · วงเงินคนละ ${d.budget.toLocaleString('en-US')} บาท · พิมพ์เมื่อ ${d.printed}`;
+  const OS=d.orders.filter(o=>o.sem===d.sem);
+
+  /* 1) สรุปตามรายชื่อ */
+  const w1=mk('สรุปตามรายชื่อ',[['ลำดับ',7],['ชื่อ-สกุล',30],['รายการ',40],['จำนวน',9],['หน่วย',9],['ราคา/หน่วย',13],['เป็นเงิน',14]],'สรุปการสั่งซื้อวัสดุสำนักงาน โรงเรียนวังกระแสวิทยาคม',sub);
+  let r=5,k=0;const subs=[];const names=[...new Set(OS.map(o=>o.name))].sort((a,b)=>a.localeCompare(b,'th'));
+  names.forEach(nm=>{
+    k++;const ls=OS.filter(o=>o.name===nm);const first=r;
+    ls.forEach((o,j)=>{put(w1,r,[j?null:k,j?null:nm,o.item,o.qty,o.unit,o.price,null],{types:['i','s','s','i','i','n','n']});w1.getCell(r,7).value={formula:`D${r}*F${r}`,result:o.qty*o.price};r++});
+    const tot=ls.reduce((s,o)=>s+o.qty*o.price,0);
+    put(w1,r,[null,null,'รวม '+nm,null,null,null,null],{bold:true,fill:'FFF1F5F9',types:['s','s','s','s','s','n','n']});
+    w1.mergeCells(r,3,r,6);w1.getCell(r,3).alignment={horizontal:'right'};w1.getCell(r,7).value={formula:`SUM(G${first}:G${r-1})`,result:tot};w1.getCell(r,7).numFmt=NUM;subs.push(r);r++});
+  const gt=OS.reduce((s,o)=>s+o.qty*o.price,0);
+  put(w1,r,['รวมทั้งสิ้น',null,null,null,null,null,null],{bold:true,fill:'FFFEF3C7',types:['s','s','s','s','s','n','n']});
+  w1.mergeCells(r,1,r,6);w1.getCell(r,1).alignment={horizontal:'right'};
+  w1.getCell(r,7).value={formula:subs.length?subs.map(x=>'G'+x).join('+'):'0',result:gt};w1.getCell(r,7).numFmt=NUM;
+  if(!names.length){w1.getCell(5,3).value='(ยังไม่มีรายการสั่งซื้อ)'}
+
+  /* 2) รวมรายการสั่งร้าน */
+  const w2=mk('รวมรายการสั่งร้าน',[['ลำดับ',7],['รหัส',9],['รายการ',44],['หน่วย',10],['จำนวนรวม',12],['ราคา/หน่วย',13],['เป็นเงิน',14]],'รายการวัสดุสำนักงานที่ต้องสั่งซื้อ (รวมทุกคน)',sub);
+  const agg={};OS.forEach(o=>{const key=(o.code||'-')+'|'+o.item+'|'+o.price;(agg[key]=agg[key]||{code:o.code||'',item:o.item,unit:o.unit,price:o.price,qty:0}).qty+=o.qty});
+  const list=Object.values(agg).sort((a,b)=>String(a.code||'zz').localeCompare(String(b.code||'zz'))||a.item.localeCompare(b.item,'th'));
+  r=5;list.forEach((a,i)=>{put(w2,r,[i+1,a.code,a.item,a.unit,a.qty,a.price,null],{types:['i','i','s','i','i','n','n']});w2.getCell(r,7).value={formula:`E${r}*F${r}`,result:a.qty*a.price};r++});
+  put(w2,r,['รวมทั้งสิ้น',null,null,null,null,null,null],{bold:true,fill:'FFFEF3C7',types:['s','s','s','s','s','n','n']});
+  w2.mergeCells(r,1,r,6);w2.getCell(r,1).alignment={horizontal:'right'};
+  w2.getCell(r,7).value={formula:list.length?`SUM(G5:G${r-1})`:'0',result:gt};w2.getCell(r,7).numFmt=NUM;
+
+  /* 3) ยอดโควตารายคน */
+  const w3=mk('ยอดโควตารายคน',[['ลำดับ',7],['ชื่อ-สกุล',32],['ตำแหน่ง',26],['ใช้ไป (บาท)',14],['วงเงิน (บาท)',14],['คงเหลือ (บาท)',14]],'ยอดการใช้โควตาวัสดุสำนักงานรายบุคคล',sub);
+  r=5;const us=[...d.users].sort((a,b)=>a.name.localeCompare(b.name,'th'));
+  us.forEach((u,i)=>{const sp=OS.filter(o=>o.name===u.name).reduce((s,o)=>s+o.qty*o.price,0);
+    put(w3,r,[i+1,u.name,u.pos,sp,d.budget,null],{types:['i','s','s','n','n','n']});w3.getCell(r,6).value={formula:`E${r}-D${r}`,result:d.budget-sp};r++});
+  return wb}
+async function loadExcelJS(){
+  if(window.ExcelJS)return;
+  for(const u of ['https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js','https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js']){
+    try{await new Promise((ok,no)=>{const s=document.createElement('script');s.src=u;s.onload=ok;s.onerror=no;document.head.appendChild(s)});if(window.ExcelJS)return}catch(e){}}
+  throw new Error('โหลดตัวสร้างไฟล์ Excel ไม่ได้ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่')}
+async function exportQuota(){
+  const Q=S.quota,sem=window.qsem||Q.sem;toast('กำลังสร้างไฟล์...');
+  try{await loadExcelJS();
+    const dt=new Date(),p=dt.toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'});
+    const wb=buildQuotaWorkbook(window.ExcelJS,{sem,budget:Q.budget,orders:Q.orders,users:S.users,printed:p});
+    const buf=await wb.xlsx.writeBuffer();const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+    a.download='สรุปสั่งซื้อวัสดุสำนักงาน_ภาคเรียน'+sem.replace('/','-')+'.xlsx';a.click();toast('✅ ดาวน์โหลดแล้ว')}
+  catch(e){toast('❌ '+e.message)}}
 function setBudget(){
   const s=prompt('ภาคเรียนปัจจุบัน (รูปแบบ ภาค/ปี พ.ศ. เช่น 2/2569)',S.quota.sem);if(s===null)return;
   if(!/^[12]\/\d{4}$/.test(s.trim()))return toast('รูปแบบไม่ถูกต้อง เช่น 2/2569');
@@ -504,7 +616,7 @@ if(API_URL){
   if(p){S.pin=p;api('load').then(j=>{applyLoad(j);render()}).catch(()=>{S.pin=null;try{sessionStorage.removeItem('wsw_pin')}catch(e){}render()})}
   document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.pin&&S.user&&!$('modalBg').classList.contains('show'))refresh().catch(()=>{})});
 }else{
-  S=load();if(!S.users){S.users=defaultUsers();S.usersDemo=true}if(!S.quota||!S.quota.sem)S.quota=defaultQuota();render();
+  S=load();if(!S.users){S.users=defaultUsers();S.usersDemo=true}if(!S.quota||!S.quota.sem||!S.quota.catalog)S.quota=defaultQuota();render();
 }
 </script>
 </body>
