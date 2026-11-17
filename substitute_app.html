@@ -203,9 +203,10 @@
       </div>
 
       <div class="actions">
+        <button class="block" id="btnFullShot">🔍 ดูเต็มจอ (สำหรับแคปหน้าจอ)</button>
         <button class="secondary block" id="btnPrint">พิมพ์ / บันทึก PDF</button>
       </div>
-      <div class="muted" style="margin-top:8px;">เลื่อนดูสรุปด้านบน แล้วแคปหน้าจอส่งเข้ากลุ่มไลน์ได้เลย</div>
+      <div class="muted" style="margin-top:8px;">กด "ดูเต็มจอ" เพื่อให้การ์ดสรุปเต็มหน้าจอ แล้วแคปส่งเข้ากลุ่มไลน์ได้เลย (แตะพื้นที่ว่างหรือ ✕ เพื่อปิด)</div>
     </div>
   </div>
 
@@ -269,6 +270,10 @@
 
 </div>
 
+<div id="shotOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:#e9edf3;overflow:auto;-webkit-overflow-scrolling:touch;">
+  <button id="shotClose" type="button" style="position:fixed;top:8px;right:8px;z-index:10000;width:36px;height:36px;border-radius:50%;border:none;background:rgba(0,0,0,.45);color:#fff;font-size:18px;line-height:1;padding:0;cursor:pointer;">✕</button>
+  <div id="shotStage" style="padding:12px 0;display:flex;justify-content:center;"><div id="shotInner" style="width:min(520px,calc(100vw - 16px));transform-origin:top center;"></div></div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1848,9 +1853,18 @@ renderTeacherList();
 // ---------- Period lookup helpers ----------
 function getPeriodInfo(p){ return periods.find(x => String(x.p) === String(p)); }
 
+// ภารกิจประจำที่ทำให้ครูไม่ว่าง แต่ไม่ใช่คาบสอน (ไม่นับเป็นคาบสอน/ภาระงาน และไม่ต้องจัดสอนแทนให้)
+// ตอนนี้: หัวหน้ากลุ่มบริหารงานประชุมคาบ 4 วันอังคาร
+const FIXED_BUSY = [
+  { day:'อังคาร', period:4, label:'ประชุมหัวหน้ากลุ่มบริหารงาน', teachers:['วรสิทธิ์','สุภาวดี','รัตนา','อนัญชุดา'] }
+];
+function isFixedBusy(name, day, period){
+  return FIXED_BUSY.some(b => b.day===day && String(b.period)===String(period) && b.teachers.some(k=>name.includes(k)));
+}
 function isTeacherFree(name, day, period){
   const t = teachers.find(x=>x.name===name);
   if(!t) return false;
+  if(isFixedBusy(name, day, period)) return false;
   return !(t.schedule && t.schedule[day] && t.schedule[day][period]);
 }
 
@@ -2090,6 +2104,39 @@ function renderShareCard(date, assignments){
 }
 
 document.getElementById('btnPrint').addEventListener('click', ()=>window.print());
+
+// ---------- ดูเต็มจอสำหรับแคปหน้าจอ: แสดงเฉพาะการ์ดสรุป ย่อให้พอดีจอ (ถ้ารายการเยอะมากจะเลื่อนดูได้) ----------
+const SHOT_MIN_SCALE = 0.6; // ย่อได้ไม่เกินนี้ เพื่อให้ตัวหนังสือยังอ่านออกในไลน์
+function openShot(){
+  const ov = document.getElementById('shotOverlay');
+  const inner = document.getElementById('shotInner');
+  const stage = document.getElementById('shotStage');
+  const clone = document.getElementById('shareCard').cloneNode(true);
+  clone.removeAttribute('id');
+  clone.querySelectorAll('[id]').forEach(e=>e.removeAttribute('id'));
+  inner.innerHTML = '';
+  inner.style.transform = 'none';
+  stage.style.height = 'auto';
+  inner.appendChild(clone);
+  ov.style.display = 'block';
+  ov.scrollTop = 0;
+  document.body.style.overflow = 'hidden';
+  const availH = window.innerHeight - 24;
+  const h = inner.offsetHeight;
+  let scale = h > availH ? Math.max(SHOT_MIN_SCALE, availH / h) : 1;
+  inner.style.transform = scale < 1 ? `scale(${scale})` : 'none';
+  stage.style.height = (h * scale + 24) + 'px';
+}
+function closeShot(){
+  document.getElementById('shotOverlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+document.getElementById('btnFullShot').addEventListener('click', openShot);
+document.getElementById('shotClose').addEventListener('click', closeShot);
+document.getElementById('shotOverlay').addEventListener('click', e=>{
+  if(e.target.id === 'shotOverlay' || e.target.id === 'shotStage') closeShot();
+});
+document.addEventListener('keydown', e=>{ if(e.key === 'Escape') closeShot(); });
 
 // ---------- Dashboard ----------
 let dashSortState = { col: 'net', dir: 'desc' }; // ค่าเริ่มต้น: เรียงตาม "สรุปคาบสอน" มากไปน้อย
