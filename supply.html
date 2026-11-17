@@ -238,13 +238,15 @@ function render(){
 const DEMO_CAT=[['W001','กระดาษ A4 80G','กล่อง',700],['W002','กระดาษ A4 70G','กล่อง',600],['W103','ดินสอ HB','โหล',45],['W120','ปากกาลูกลื่น สีน้ำเงิน','โหล',60],['W150','แฟ้มเก็บเอกสาร A4','แฟ้ม',60]].map(r=>({code:r[0],name:r[1],unit:r[2],price:r[3]}));
 const defaultQuota=()=>({budget:1000,sem:'2/2569',open:true,catalog:DEMO_CAT,orders:[]});
 let qcart={},qsearch='';
+const ORD_ST=['รอดำเนินการ','สั่งร้านแล้ว','รับของแล้ว'];
+const stTag=t=>`<span class="tag ${t==='รับของแล้ว'?'done':t==='สั่งร้านแล้ว'?'':'pending'}" style="${t==='สั่งร้านแล้ว'?'background:#dbeafe;color:#1e40af':''}">${t}</span>`;
 const qfmt=n=>Number(n||0).toLocaleString('th-TH',{minimumFractionDigits:0,maximumFractionDigits:2});
 const qCat=code=>(S.quota.catalog||[]).find(c=>c.code===code);
 const qUsed=(name,sem)=>S.quota.orders.filter(o=>o.sem===sem&&o.name===name).reduce((s,o)=>s+o.qty*o.price,0);
 const qCartTotal=()=>Object.keys(qcart).reduce((s,c)=>{const it=qCat(c);return s+(it?it.price*qcart[c]:0)},0);
 function qGroups(os){ // จัดกลุ่มรายการตามเลขที่คำสั่ง
   const g=[],m={};
-  os.forEach(o=>{const k=o.oid||'-';if(!m[k]){m[k]={oid:o.oid,date:o.date,lines:[]};g.push(m[k])}m[k].lines.push(o)});
+  os.forEach(o=>{const k=o.oid||'-';if(!m[k]){m[k]={oid:o.oid,date:o.date,status:o.status||ORD_ST[0],lines:[]};g.push(m[k])}m[k].lines.push(o)});
   return g.sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(b.oid).localeCompare(String(a.oid)))
 }
 function vQuota(){
@@ -256,9 +258,9 @@ function vQuota(){
   const card=(u,k)=>{
     const os=OS.filter(o=>o.name===u.name),spent=os.reduce((s,o)=>s+o.qty*o.price,0);
     const pct=Q.budget>0?Math.min(Math.round(spent/Q.budget*100),100):0;const clr=pct>=100?'#c62828':pct>=80?'#e65100':'#2e7d32';
-    const canCancel=cur&&(staff||open)&&(staff||u.name===S.user);
+    const canCancel0=cur&&(staff||open)&&(staff||u.name===S.user);
     const body=os.length?qGroups(os).map(g=>`<div style="border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:8px">
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:4px"><b style="font-size:13px">${g.oid?esc(g.oid):'รายการเดิม (ก่อนใช้ระบบสั่งออนไลน์)'}</b><span class="sub">${esc(g.date||'')}</span><span style="flex:1"></span><b>฿${qfmt(g.lines.reduce((s,o)=>s+o.qty*o.price,0))}</b>${g.oid&&canCancel?`<button class="btn bad sm" onclick="cancelQuotaOrder('${g.oid}')">ยกเลิกคำสั่งนี้</button>`:''}</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:4px"><b style="font-size:13px">${g.oid?esc(g.oid):'รายการเดิม (ก่อนใช้ระบบสั่งออนไลน์)'}</b><span class="sub">${esc(g.date||'')}</span><span style="flex:1"></span>${g.oid?(staff?`<select onchange="setOrderStatus('${g.oid}',this.value)" style="padding:3px 6px;border-radius:8px;border:2px solid var(--line);font-family:inherit">${ORD_ST.map(t=>`<option ${t===g.status?'selected':''}>${t}</option>`).join('')}</select>`:stTag(g.status)):''}<b>฿${qfmt(g.lines.reduce((s,o)=>s+o.qty*o.price,0))}</b>${g.oid&&canCancel0&&(staff||g.status===ORD_ST[0])?`<button class="btn bad sm" onclick="cancelQuotaOrder('${g.oid}')">ยกเลิกคำสั่งนี้</button>`:''}</div>
       <table><tr><th>รายการ</th><th style="text-align:center">จำนวน</th><th>หน่วย</th><th style="text-align:right">ราคา/หน่วย</th><th style="text-align:right">รวม</th></tr>${g.lines.map(o=>`<tr><td>${esc(o.item)}</td><td style="text-align:center">${o.qty}</td><td>${esc(o.unit)}</td><td style="text-align:right">฿${qfmt(o.price)}</td><td style="text-align:right"><b>฿${qfmt(o.qty*o.price)}</b></td></tr>`).join('')}</table></div>`).join(''):'<div class="sub">ยังไม่มีรายการสั่งซื้อในภาคเรียนนี้</div>';
     return `<div class="req" style="padding:0"><div style="padding:13px 15px;display:flex;gap:12px;align-items:center;cursor:pointer;flex-wrap:wrap" onclick="document.getElementById('qd${k}').style.display=document.getElementById('qd${k}').style.display==='none'?'block':'none'">
       <div style="flex:1;min-width:180px"><b>${esc(u.name)}</b><div class="sub">${esc(u.pos)}</div></div>
@@ -268,12 +270,17 @@ function vQuota(){
   const ord=[...people].sort((a,b)=>(OS.some(o=>o.name===b.name)-OS.some(o=>o.name===a.name))||a.name.localeCompare(b.name,'th'));
   const head=`<div class="card" style="margin-bottom:12px;display:flex;gap:12px;flex-wrap:wrap;align-items:center"><div style="flex:1;min-width:240px"><b>วัสดุสำนักงาน</b> — บุคลากรทุกคนสั่งซื้อได้ภาคเรียนละไม่เกิน <b>${qfmt(Q.budget)} บาท</b> · ภาคเรียนที่ <select onchange="window.qsem=this.value;qcart={};vQuota()" style="padding:3px 8px;border-radius:8px;border:2px solid var(--line);font-family:inherit">${sems.map(s=>`<option ${s===sem?'selected':''}>${s}</option>`).join('')}</select>${!cur?' <span class="tag pending">ย้อนหลัง</span>':''}${cur?(open?' <span class="tag done">เปิดรับคำสั่งซื้อ</span>':' <span class="tag rejected">ปิดรับคำสั่งซื้อแล้ว</span>'):''}<br><span class="sub" style="font-size:13px;color:var(--mute)">เลือกสินค้าจากบัญชีราคา ส่งคำสั่งซื้อในระบบได้เลย ไม่ต้องส่งไฟล์ทางไลน์</span></div>
    ${staff?`<button class="btn ok" onclick="exportQuota()">⬇️ ดาวน์โหลดสรุป (Excel)</button><button class="btn ghost" onclick="toggleRound()">${open?'🔒 ปิดรับคำสั่งซื้อ':'🔓 เปิดรับคำสั่งซื้อ'}</button><button class="btn ghost" onclick="setBudget()">✎ ตั้งภาคเรียน/วงเงิน</button>`:''}</div>`;
+  let sum='';
+  if(staff){
+    const N=S.users.length,by=new Set(OS.map(o=>o.name)),tot=OS.reduce((s,o)=>s+o.qty*o.price,0),gs=qGroups(OS.filter(o=>o.oid));
+    const cnt=t=>gs.filter(g=>g.status===t).length,pend=gs.filter(g=>g.status===ORD_ST[0]).map(g=>g.oid);
+    sum=`<div class="grid-kpi"><div class="kpi ok"><b>${by.size} / ${N}</b><span>คนที่สั่งแล้ว (ยังไม่สั่ง ${N-by.size} คน)</span></div><div class="kpi"><b>฿${qfmt(tot)}</b><span>ยอดสั่งรวม · เหลือโควตารวม ฿${qfmt(Math.max(N*Q.budget-tot,0))}</span></div><div class="kpi warn"><b>${cnt(ORD_ST[0])}</b><span>คำสั่งรอดำเนินการ${pend.length?` · <a href="#" onclick="bulkOrdered();return false">ทำเครื่องหมาย "สั่งร้านแล้ว" ทั้งหมด</a>`:''}</span></div><div class="kpi"><b>${cnt(ORD_ST[1])} / ${cnt(ORD_ST[2])}</b><span>สั่งร้านแล้ว / รับของแล้ว</span></div></div>`}
   let shop='';
   if(cur&&!open)shop=`<div class="card" style="margin-bottom:12px;color:#991b1b;background:#fef2f2">ปิดรับคำสั่งซื้อวัสดุสำนักงานของภาคเรียนนี้แล้ว หากต้องการสั่งเพิ่มหรือแก้ไข กรุณาติดต่องานพัสดุ</div>`;
   else if(cur)shop=`<div class="layout" style="margin-bottom:14px"><div class="card"><div class="toolbar" style="margin-bottom:8px"><input type="search" id="qs" class="grow" placeholder="🔍 ค้นหาสินค้า (ชื่อ / รหัส เช่น กระดาษ, W001)" value="${esc(qsearch)}" oninput="qsearch=this.value;qList()"></div><div id="qlist" style="max-height:480px;overflow:auto"></div>
     <div class="sub" style="margin-top:8px;font-size:12.5px">ไม่พบสินค้าที่ต้องการ? รายการนอกบัญชีราคาไม่สามารถดำเนินการในระบบได้ กรุณาติดต่องานพัสดุ</div></div>
     <div class="card cart" id="qcart"></div></div>`;
-  $('view').innerHTML=head+shop+`<div class="sub" style="margin:4px 2px 8px;font-weight:600">${staff?'ยอดสั่งซื้อรายบุคคล':'คำสั่งซื้อของฉัน'}${!staff?` · ใช้ไป ฿${qfmt(myUsed)} · เหลือ ฿${qfmt(myLeft)}`:''}</div>`+ord.map((u,k)=>card(u,k)).join('');
+  $('view').innerHTML=head+sum+shop+`<div class="sub" style="margin:4px 2px 8px;font-weight:600">${staff?'ยอดสั่งซื้อรายบุคคล':'คำสั่งซื้อของฉัน'}${!staff?` · ใช้ไป ฿${qfmt(myUsed)} · เหลือ ฿${qfmt(myLeft)}`:''}</div>`+ord.map((u,k)=>card(u,k)).join('');
   if(cur&&open){qList();qCartRender()}
 }
 function qList(){
@@ -296,13 +303,23 @@ function submitQuota(){
   if(!confirm(`ยืนยันส่งคำสั่งซื้อ ${lines.length} รายการ รวม ฿${qfmt(qCartTotal())} ?\n(ยกเลิกเองได้จนกว่าพัสดุจะปิดรับคำสั่งซื้อ)`))return;
   if(API_URL)return busy(async()=>{const r=await api('orderQuota',{lines});qcart={};await refresh();toast('✅ ส่งคำสั่งซื้อแล้ว '+r.oid)});
   const Q=S.quota,d=today(),oid='Q'+Q.sem.split('/')[1]+'-'+Q.sem.split('/')[0]+'-'+String(new Set(Q.orders.map(o=>o.oid).filter(Boolean)).size+1).padStart(3,'0');
-  lines.forEach(l=>{const c=qCat(l.code);Q.orders.push({sem:Q.sem,name:S.user,item:c.name,qty:l.qty,unit:c.unit,price:c.price,note:'',code:c.code,oid,date:d})});
+  lines.forEach(l=>{const c=qCat(l.code);Q.orders.push({sem:Q.sem,name:S.user,item:c.name,qty:l.qty,unit:c.unit,price:c.price,note:'',code:c.code,oid,date:d,status:ORD_ST[0]})});
   qcart={};save();vQuota();toast('✅ ส่งคำสั่งซื้อแล้ว '+oid)
 }
 function cancelQuotaOrder(oid){
   if(!confirm('ยกเลิกคำสั่งซื้อ '+oid+' ?'))return;
   if(API_URL)return busy(async()=>{await api('cancelOrder',{oid});await refresh();toast('ยกเลิกแล้ว')});
   S.quota.orders=S.quota.orders.filter(o=>o.oid!==oid);save();vQuota();toast('ยกเลิกแล้ว')
+}
+function setOrderStatus(oid,st){
+  if(API_URL)return busy(async()=>{await api('setOrderStatus',{oid,status:st});await refresh();toast('อัปเดตสถานะแล้ว')});
+  S.quota.orders.forEach(o=>{if(o.oid===oid)o.status=st});save();vQuota()
+}
+function bulkOrdered(){
+  const sem=window.qsem||S.quota.sem,ids=[...new Set(S.quota.orders.filter(o=>o.sem===sem&&o.oid&&(o.status||ORD_ST[0])===ORD_ST[0]).map(o=>o.oid))];
+  if(!ids.length||!confirm(`ทำเครื่องหมายคำสั่งซื้อที่รอดำเนินการ ${ids.length} คำสั่ง เป็น "สั่งร้านแล้ว"?\n(ครูจะยกเลิกเองไม่ได้อีก)`))return;
+  if(API_URL)return busy(async()=>{await api('setOrderStatus',{oids:ids,status:ORD_ST[1]});await refresh();toast('อัปเดตแล้ว '+ids.length+' คำสั่ง')});
+  S.quota.orders.forEach(o=>{if(ids.includes(o.oid))o.status=ORD_ST[1]});save();vQuota()
 }
 function toggleRound(){
   const open=S.quota.open!==false;
