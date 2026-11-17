@@ -9,7 +9,8 @@
 <style>
   body { font-family: 'Sarabun', sans-serif; background:#f6f1e7; }
   .card { background:#fff; border-radius:1rem; box-shadow:0 2px 12px rgba(30,58,95,.08); }
-  .inp { width:100%; border:1px solid #d8cfbd; border-radius:.6rem; padding:.65rem .8rem; background:#fffdf8; }
+  .inp { width:100%; max-width:100%; min-width:0; box-sizing:border-box; border:1px solid #d8cfbd; border-radius:.6rem; padding:.65rem .8rem; background:#fffdf8; }
+  input[type=datetime-local].inp { -webkit-appearance:none; appearance:none; min-height:3rem; }
   .inp:focus { outline:2px solid #c9a24b; border-color:#c9a24b; }
   .lbl { display:block; font-weight:600; color:#1e3a5f; margin-bottom:.25rem; }
   .err { color:#b91c1c; font-size:.85rem; margin-top:.2rem; display:none; }
@@ -44,7 +45,7 @@ const CONFIG = {
   ],
   GROUPS: ['ศิษย์เก่า','ครูและบุคลากร','บุคคลทั่วไป'],
   BANK: { name:'ธนาคารกรุงไทย', number:'408-3-52192-9', account:'บริจาคเพื่อโรงเรียน วังกระแสวิทยาคม' },
-  MAX_SLIP_MB: 5
+  MAX_SLIP_MB: 20   // ขนาดไฟล์ต้นฉบับสูงสุด (ระบบย่อให้เหลือประมาณ 100-300KB ก่อนส่ง)
 };
 CONFIG.SIZES = CONFIG.SIZE_CHART.map(s => s.size);
 </script>
@@ -262,19 +263,39 @@ $('copyBtn').onclick = async () => {
   $('copyBtn').textContent = 'คัดลอกแล้ว ✓'; setTimeout(() => $('copyBtn').textContent = 'คัดลอก', 1800);
 };
 
-// ----- สลิป -----
-$('slip').onchange = e => {
+// ----- สลิป (ย่อรูปในเครื่องก่อนส่ง เพื่อให้อัปโหลดเร็ว) -----
+const SLIP_MAX_SIDE = 1280, SLIP_QUALITY = 0.72;
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      let { width: w, height: h } = img;
+      const k = Math.min(1, SLIP_MAX_SIDE / Math.max(w, h));
+      w = Math.round(w * k); h = Math.round(h * k);
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL('image/jpeg', SLIP_QUALITY));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('อ่านรูปไม่ได้')); };
+    img.src = url;
+  });
+}
+$('slip').onchange = async e => {
   const f = e.target.files[0]; slipData = null; $('preview').classList.add('hidden');
   $('e-slip').classList.remove('show');
   if (!f) return;
-  if (!['image/jpeg', 'image/png'].includes(f.type)) { $('e-slip').textContent = 'รองรับเฉพาะไฟล์ JPG และ PNG'; $('e-slip').classList.add('show'); e.target.value = ''; return; }
-  if (f.size > CONFIG.MAX_SLIP_MB * 1024 * 1024) { $('e-slip').textContent = 'ไฟล์ใหญ่เกิน ' + CONFIG.MAX_SLIP_MB + 'MB'; $('e-slip').classList.add('show'); e.target.value = ''; return; }
-  const rd = new FileReader();
-  rd.onload = () => {
-    $('preview').src = rd.result; $('preview').classList.remove('hidden');
-    slipData = { mimeType: f.type, base64: rd.result.split(',')[1] };
-  };
-  rd.readAsDataURL(f);
+  const bad = m => { $('e-slip').textContent = m; $('e-slip').classList.add('show'); e.target.value = ''; };
+  if (!['image/jpeg', 'image/png'].includes(f.type)) return bad('รองรับเฉพาะไฟล์ JPG และ PNG');
+  if (f.size > CONFIG.MAX_SLIP_MB * 1024 * 1024) return bad('ไฟล์ใหญ่เกิน ' + CONFIG.MAX_SLIP_MB + 'MB');
+  try {
+    const dataUrl = await compressImage(f);
+    $('preview').src = dataUrl; $('preview').classList.remove('hidden');
+    slipData = { mimeType: 'image/jpeg', base64: dataUrl.split(',')[1] };
+  } catch (err) { bad('อ่านรูปไม่สำเร็จ ลองเลือกรูปใหม่'); }
 };
 
 // ----- ตรวจสอบและส่ง -----
@@ -313,16 +334,22 @@ $('form').onsubmit = async ev => {
   $('loading').classList.remove('hidden'); $('loading').classList.add('flex');
   $('submitBtn').disabled = true;
   try {
+    const ctl = new AbortController();
+    const to = setTimeout(() => ctl.abort(), 90000);
     const res = await fetch(CONFIG.GAS_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal: ctl.signal
     });
+    clearTimeout(to);
     const out = await res.json();
     if (out.status !== 'success') throw new Error(out.message || 'เกิดข้อผิดพลาด');
     showReceipt(payload, out);
   } catch (err) {
-    $('formErr').textContent = 'ส่งข้อมูลไม่สำเร็จ: ' + err.message + ' (กรุณาลองใหม่ หรือติดต่อผู้ดูแล)';
+    $('formErr').textContent = err.name === 'AbortError'
+      ? 'การส่งใช้เวลานานเกินไป ข้อมูลอาจถูกบันทึกแล้ว กรุณาติดต่อผู้ดูแลเพื่อตรวจสอบก่อนส่งซ้ำ'
+      : 'ส่งข้อมูลไม่สำเร็จ: ' + err.message + ' (กรุณาลองใหม่ หรือติดต่อผู้ดูแล)';
     $('formErr').classList.add('show');
     $('submitBtn').disabled = false;
   } finally {
