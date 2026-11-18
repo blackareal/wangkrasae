@@ -430,11 +430,17 @@ function doImport(){
   save();closeModal();pushUsers();toast(`เพิ่ม ${add} · อัปเดต ${upd}${bad?' · ข้าม '+bad+' บรรทัด':''}`)
 }
 /* ---------- รูปวัสดุ + ช่องวันที่ พ.ศ. ---------- */
-function itemImg(i){
-  if(i.img)return `<img src="${i.img}" alt="${esc(i.name)}" style="width:100%;height:100%;object-fit:contain">`;
+const IMG_VER=1; // เปลี่ยนเลขนี้เมื่ออัปเดตรูปในโฟลเดอร์ supply_img เพื่อให้เบราว์เซอร์โหลดรูปใหม่
+function itemFallback(i){
   if(i.cat==='หมึกพิมพ์'){const c=i.color||'#2563eb';return `<svg viewBox="0 0 100 100" style="width:100%;height:100%"><rect x="34" y="40" width="32" height="46" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2"/><rect x="34" y="58" width="32" height="28" rx="5" fill="${c}"/><rect x="40" y="26" width="20" height="16" rx="3" fill="#475569"/><rect x="44" y="18" width="12" height="9" rx="2" fill="#94a3b8"/><rect x="40" y="50" width="20" height="7" rx="2" fill="#fff" opacity=".85"/></svg>`}
   if(i.cat==='กระดาษ')return `<svg viewBox="0 0 100 100" style="width:100%;height:100%"><rect x="22" y="30" width="56" height="44" rx="3" fill="#fff" stroke="#94a3b8" stroke-width="2"/><rect x="22" y="38" width="56" height="28" fill="#2563eb"/><text x="50" y="57" font-size="14" font-weight="700" fill="#fff" text-anchor="middle" font-family="Sarabun,sans-serif">A4</text><path d="M22 74l6 6h44l6-6" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/></svg>`;
   return `<svg viewBox="0 0 100 100" style="width:100%;height:100%"><rect x="26" y="26" width="48" height="48" rx="8" fill="#e2e8f0"/><text x="50" y="58" font-size="24" text-anchor="middle">📦</text></svg>`
+}
+function itemImg(i){
+  // ลำดับ: รูปที่อัปโหลดในระบบ (เก็บในชีต) → รูปสำเร็จรูป supply_img/<รหัส>.jpg → ภาพวาดมาตรฐาน
+  if(i.img)return `<img src="${i.img}" alt="${esc(i.name)}" style="width:100%;height:100%;object-fit:contain">`;
+  if(!i.id)return itemFallback(i);
+  return `<img src="supply_img/${esc(i.id)}.jpg?v=${IMG_VER}" alt="${esc(i.name)}" loading="lazy" style="width:100%;height:100%;object-fit:contain;border-radius:8px" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div style="display:none;width:100%;height:100%">${itemFallback(i)}</div>`
 }
 let pendingImg=null;
 function pickImg(inp){
@@ -467,7 +473,7 @@ function vCatalog(){
     <div class="toolbar"><input type="search" class="grow" id="q" placeholder="🔍 ค้นหาวัสดุ เช่น กระดาษ, กาว, หมึก" value="${esc(filt.q)}"></div>
     <div class="chips">${['ทั้งหมด',...CATS].map(c=>`<button class="chip ${filt.cat===c?'on':''}" onclick="filt.cat='${c}';vCatalog()">${c}</button>`).join('')}</div>
     <div class="items">${list.map(i=>{const s=stat(i);const inCart=cartMap[i.id];return `<div class="item ${inCart?'in':''}">
-      <div style="height:110px;background:#f8fafc;border-radius:9px;padding:6px;display:flex;align-items:center;justify-content:center">${itemImg(i)}</div>
+      <div style="height:150px;background:#f8fafc;border-radius:9px;padding:0;overflow:hidden;display:flex;align-items:center;justify-content:center">${itemImg(i)}</div>
       <h4>${esc(i.name)}</h4>
       <div class="meta"><span>คงเหลือ <b>${i.stock}</b> ${esc(i.unit)}</span><span class="tag ${s}">${statTx[s]}</span></div>
       ${s==='out'?'<button class="btn sm" disabled>ของหมด</button>':`<div class="step"><button onclick="stepQ('${i.id}',-1)">−</button><input id="q_${i.id}" type="number" min="1" max="${i.stock}" value="${inCart||1}"><button onclick="stepQ('${i.id}',1)">+</button><button class="btn sm" style="margin-left:auto;width:auto" onclick="addCart('${i.id}')">${inCart?'อัปเดต':'เพิ่ม'}</button></div>`}
