@@ -87,7 +87,7 @@
   .toast.show{opacity:1;}
 
   /* ---------- Share card (screenshot-ready summary) ---------- */
-  #shareCard{
+  #shareCard, .shot-card{
     background:linear-gradient(180deg,#ffffff, #fbfbfd);
     border:1px solid var(--border);border-radius:16px;overflow:hidden;
   }
@@ -270,9 +270,9 @@
 
 </div>
 
-<div id="shotOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:#e9edf3;overflow:auto;-webkit-overflow-scrolling:touch;">
+<div id="shotOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:#fff;overflow:auto;-webkit-overflow-scrolling:touch;">
   <button id="shotClose" type="button" style="position:fixed;top:8px;right:8px;z-index:10000;width:36px;height:36px;border-radius:50%;border:none;background:rgba(0,0,0,.45);color:#fff;font-size:18px;line-height:1;padding:0;cursor:pointer;">✕</button>
-  <div id="shotStage" style="padding:12px 0;display:flex;justify-content:center;"><div id="shotInner" style="width:min(520px,calc(100vw - 16px));transform-origin:top center;"></div></div>
+  <div id="shotStage" style="padding:12px 8px;box-sizing:border-box;width:100%;"><div id="shotInner" style="width:100%;max-width:520px;margin:0 auto;box-sizing:border-box;transform-origin:top center;"></div></div>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -2113,6 +2113,7 @@ function openShot(){
   const stage = document.getElementById('shotStage');
   const clone = document.getElementById('shareCard').cloneNode(true);
   clone.removeAttribute('id');
+  clone.classList.add('shot-card');
   clone.querySelectorAll('[id]').forEach(e=>e.removeAttribute('id'));
   inner.innerHTML = '';
   inner.style.transform = 'none';
@@ -2126,6 +2127,7 @@ function openShot(){
   let scale = h > availH ? Math.max(SHOT_MIN_SCALE, availH / h) : 1;
   inner.style.transform = scale < 1 ? `scale(${scale})` : 'none';
   stage.style.height = (h * scale + 24) + 'px';
+  stage.style.overflow = 'hidden';
 }
 function closeShot(){
   document.getElementById('shotOverlay').style.display = 'none';
